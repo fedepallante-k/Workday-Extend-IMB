@@ -8,7 +8,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>"
     },
     {
       "name": "getOOBRequests",
@@ -16,7 +16,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of OOBRequest business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>"
     }
   ],
   "securityDomains": [ ],
@@ -189,7 +189,7 @@
       {
         "_generationNote": "Creates a single instance, as specified by of the AccompanyingTravellers business object resource.",
         "name": "createAccompanyingTravellers",
-        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/accompanyingTravellers` %>",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers` %>",
         "authType": "sso",
         "httpMethod": "POST",
         "failOnStatusCodes": [

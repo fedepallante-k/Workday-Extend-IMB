@@ -8,7 +8,8 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of AccompanyingTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/accompanyingTravellers` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers` %>",
+      "exclude": true
     },
     {
       "name": "getMobileNumbers",
@@ -16,7 +17,8 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/mobileNumbers` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers` %>",
+      "exclude": true
     },
     {
       "name": "getWorkers",
@@ -24,7 +26,8 @@
       "authType": "sso",
       "_generationNote": "For data types with a large quantity of instances, it may be required to apply filtering.",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "https://api.workday.com/common/v1/workers"
+      "url": "https://api.workday.com/common/v1/workers",
+      "exclude": true
     },
     {
       "name": "getDestinations",
@@ -32,17 +35,123 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
-    },
-    {
-      "name": "getStatuses",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "The target Status is not included within the application source nor was a known Workday Delivered Target.",
-      "_generationNote2": "If this is due to the business object not being created yet, we recommend creating it and then running this create task again.",
-      "url": "Unable to be generated"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>",
+      "exclude": true
     }
   ],
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
+        "name": "createOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "transitionOutboundVars",
+        "type": "outboundVariable",
+        "variableScope": "flow",
+        "values": [
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ? startDateDt.value : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? endDateDt.value : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) stsIL.selectedEntries[0].id %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "value": "<%
+              var travellers = []
+              if(!empty(fieldMemeberGrid.getSelectedRows())){
+                for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                  travellers.add( 'id', i.childrenMap.familyMemberCol.childrenMap.worker.value)
+                }
+              }
+              return travellers;
+            %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "value": "<% 'Multiinstance' %>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% elevatedRiskRG.value == ['yes'] %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller",
+            "value": "<% 'singleInstance' %>"
+          },
+          {
+            "outboundPath": "lodging",
+            "value": "<% 'singleInstance' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% %>"
+          },
+          {
+            "outboundPath": "status",
+            "value": "<% 'singleInstance' %>"
+          },
+          {
+            "outboundPath": "initiator",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
+      }
+    ],
+    "responseErrorDetail": {
+      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
+      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
+      "errorSummary": "<% error %>",
+      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
+      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
+    }
+  },
   "securityDomains": [ ],
   "script": "",
   "presentation": {
@@ -57,251 +166,370 @@
       "id": "bodySection",
       "children": [
         {
-          "type": "text",
-          "id": "name",
-          "label": "Name",
-          "valuesOut": [
+          "type": "fieldSet",
+          "id": "tripDetailsFS",
+          "title": "Trip Details",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.name"
+              "type": "checkBox",
+              "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
+              "id": "vismoChbx",
+              "required": true,
+              "enabled": true,
+              "trueLabel": "True Label",
+              "falseLabel": "False Label"
+            },
+            {
+              "type": "text",
+              "label": "Trip Name",
+              "id": "tripNameTxt",
+              "required": true,
+              "enabled": true,
+              "value": ""
+            },
+            {
+              "type": "textArea",
+              "label": "Trip Purpose",
+              "id": "tripPurposeTxtA",
+              "required": true,
+              "enabled": true,
+              "value": ""
+            },
+            {
+              "type": "date",
+              "label": "Start Date",
+              "id": "startDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% %>"
+            },
+            {
+              "type": "date",
+              "label": "End Date (or Expected End Date)",
+              "id": "endDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% %>"
+            },
+            {
+              "type": "checkBox",
+              "label": "End Date is an Expected End Date",
+              "id": "endDateChbx",
+              "required": true,
+              "enabled": true,
+              "trueLabel": "True Label",
+              "falseLabel": "False Label",
+              "value": ""
+            },
+            {
+              "type": "instanceList",
+              "label": "STS",
+              "id": "stsIL",
+              "required": true,
+              "enabled": true,
+              "values": "<% !empty(OOBScript.getSTS()) ? OOBScript.getSTS() : [] %>",
+              "searchEndPoint": "<% %>",
+              "searchResultValues": "<% [] %>",
+              "onChange": "<% self.selectedEntries[0].id == 'other' ? otherTxt.setVisible(true) : otherTxt.setVisible(false) %>"
+            },
+            {
+              "type": "text",
+              "label": "Other - STS specific to this Trip",
+              "id": "otherStsTxt",
+              "required": false,
+              "enabled": true,
+              "visible":false,
+              "value": ""
             }
           ]
         },
         {
-          "type": "text",
-          "id": "purpose",
-          "label": "Purpose",
-          "valuesOut": [
+          "type": "fieldSet",
+          "title": "Travelers included in OOB",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.purpose"
+              "type": "fieldSet",
+              "horizontal": true,
+              "children": [
+                {
+                  "type": "fieldSet",
+                  "children": [
+                    {
+                      "type": "grid",
+                      "id": "fieldMemeberGrid",
+                      "rows": "<% [] %>",
+                      "rowVariableName": "fieldMemeberData",
+                      "label": "<% 'For Field Family Members' %>",
+                      "columns": [
+                        {
+                          "type": "column",
+                          "columnId": "familyMemberCol",
+                          "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
+                          "cellTemplate": {
+                            "id": "worker",
+                            "type": "text",
+                            "value": "<% 'Test' %>",
+                            "enabled": false
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "fieldSet",
+                  "children":[
+                    {
+                      "type": "grid",
+                      "rows": "<% [] %>",
+                      "rowVariableName": "staffMemeberData",
+                      "label": "<% 'For Staff Members' %>",
+                      "columns": [
+                        {
+                          "type": "column",
+                          "columnId": "familyMemberCol",
+                          "label": "<% 'Travelers (yourself plus Frequent Travelers from OOB Profile)' %>",
+                          "cellTemplate": {
+                            "type": "text",
+                            "value": "<% 'Test2' %>",
+                            "enabled": false
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "rows": "<% [] %>",
+              "rowVariableName": "otherMemeberData",
+              "label": "<% 'For Other Members' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "familyMemberCol",
+                  "label": "<% 'Other Individuals Traveling ' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% 'Test3' %>",
+                    "enabled": false
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "addToOOBCol",
+                  "label": "<% 'Add to OOB profile? ' %>",
+                  "cellTemplate": {
+                    "type": "checkBox",
+                    "value": "<% %>",
+                    "enabled": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "richText",
+              "label": "Alternative arrangements for Dependent Children ",
+              "id": "AlternativeRTxt",
+              "required": false,
+              "enabled": false
+            },
+            {
+              "type": "textArea",
+              "id": "alternativeTxtA",
+              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
+              "required": true,
+              "enabled": true,
+              "value": ""
+            },
+            {
+              "type": "grid",
+              "rows": "<% [] %>",
+              "rowVariableName": "contactDetailsData",
+              "label": "<% 'Phone Numbers you are travelling with' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "NameCol",
+                  "label": "<% 'Name' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "values": "<% [] %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "countryCodeCol",
+                  "label": "<% 'Country Phone Code' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "values": "<% [] %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "phoneNumberCol",
+                  "label": "<% 'Phone Number' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "notesCol",
+                  "label": "<% 'Notes' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "startDate",
-          "label": "Start Date",
-          "valuesOut": [
+          "type": "fieldSet",
+          "title": "Personal Time",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.startDate"
+              "type": "richText",
+              "id": "personalTimeRTxt",
+              "required": false,
+              "enabled": false,
+              "value": "Please specify the date(s) and time off type for your personal time.  Upon submission of this OOB the time off requests will be created for you."
+            },
+            {
+              "type": "radioGroup",
+              "label": "Trip includes Vacation, Bereavement or Holiday days",
+              "instanceList": [
+                {
+                  "id": "yes",
+                  "descriptor": "Yes"
+                },
+                {
+                  "id": "no",
+                  "descriptor": "No"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "rows": "<% [] %>",
+              "rowVariableName": "timeOffData",
+              "label": "<% 'Personal Time Off Details' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "workerTimeOffCol",
+                  "label": "<% 'Workers taking time off' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "values": "<% [] %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "countryCodeCol",
+                  "label": "<% 'Absence Type' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "values": "<% [] %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "Start DateCol",
+                  "label": "<% 'Start Date' %>",
+                  "cellTemplate": {
+                    "type": "date",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "endDateCol",
+                  "label": "<% 'End Date' %>",
+                  "cellTemplate": {
+                    "type": "date",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "expectedEndDate",
-          "label": "Expected End Date",
-          "valuesOut": [
+          "type": "fieldSet",
+          "title": "Elevated Risk",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.expectedEndDate"
+              "type": "radioGroup",
+              "label": "Is this an Elevated Risk Situation",
+              "id": "elevatedRiskRG",
+              "selectedValues": "<% ['no']  %>",
+              "instanceList": [
+                {
+                  "id": "yes",
+                  "descriptor": "Yes"
+                },
+                {
+                  "id": "no",
+                  "descriptor": "No"
+                }
+              ],
+              "onChange": "<% self.value == ['no'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>"
+            },
+            {
+              "type": "textArea",
+              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+              "id": "elevatedRiskTxtA",
+              "required": false,
+              "enabled": true,
+              "value": "Value",
+              "visible": false
+            },
+            {
+              "type": "textArea",
+              "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
+              "id": "addCommentsOnBehalfOfTxtA",
+              "required": false,
+              "enabled": true,
+              "visible": false,
+              "value": ""
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "endDate",
-          "label": "End Date",
-          "valuesOut": [
+          "type": "editButtonBar",
+          "editButtons": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.endDate"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "sts",
-          "label": "STS",
-          "valuesOut": [
+              "type": "editButton",
+              "label": "<% 'next' %>",
+              "buttonType": "PRIMARY",
+              "sortOrder": "a",
+              "id": "nextBtn"
+            },
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.sts"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "otherSTS",
-          "label": "Other STS",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.otherSTS"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "accompanyingTravellers",
-          "label": "Accompanying Travellers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getAccompanyingTravellers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBRequest.accompanyingTravellers"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "alternateArrangementForChildren",
-          "label": "Alternate Arrangement For Children",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.alternateArrangementForChildren"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "phoneNumbers",
-          "label": "Phone Numbers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getMobileNumbers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBRequest.phoneNumbers"
-            }
-          ]
-        },
-        {
-          "type": "checkBox",
-          "trueLabel": "yes",
-          "falseLabel": "no",
-          "id": "elevatedRisk",
-          "label": "Elevated Risk",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.elevatedRisk"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "elevatedRiskSituation",
-          "label": "Elevated Risk Situation",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.elevatedRiskSituation"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "initiatorComments",
-          "label": "Initiator Comments",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.initiatorComments"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "traveller",
-          "label": "Traveller",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getWorkers.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.traveller.id"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "lodging",
-          "label": "Lodging",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getDestinations.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.lodging.id"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "cancelConfirmation",
-          "label": "Cancel Confirmation",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.cancelConfirmation"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "status",
-          "label": "Status",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getStatuses.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.status.id"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "initiator",
-          "label": "Initiator",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getWorkers.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.initiator.id"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "affinity",
-          "label": "Affinity",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.affinity"
+              "type": "editButton",
+              "label": "<% 'Save For Later' %>",
+              "id": "draftBtn",
+              "sortOrder": "b",
+              "buttonType": "AUXILIARY"
             }
           ]
         }
@@ -318,32 +546,6 @@
           "value": "Powered By Workday Extend"
         }
       ]
-    }
-  },
-  "outboundData": {
-    "outboundEndPoints": [
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
-        "name": "createOOBRequest",
-        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests` %>",
-        "authType": "sso",
-        "httpMethod": "POST",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      }
-    ],
-    "responseErrorDetail": {
-      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
-      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
-      "errorSummary": "<% error %>",
-      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
-      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
     }
   }
 }

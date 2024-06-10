@@ -5,7 +5,7 @@
     {
       "_generationNote": "Gets a single instance, as specified by 'queryParams.instanceId' of the OOBProfile business object resource.",
       "name": "getOOBProfile",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobProfiles/{{queryParams.instanceId}}` %>",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/{{queryParams.instanceId}}` %>",
       "authType": "sso",
       "httpMethod": "GET"
     }

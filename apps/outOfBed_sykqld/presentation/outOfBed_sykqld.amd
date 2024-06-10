@@ -1,5 +1,10 @@
 {
-  "appProperties": [ ],
+  "appProperties": [
+    {
+      "key": "mainAppId",
+      "value": "outOfBed_sykqld"
+    }
+  ],
   "tasks": [
     {
       "id": "createOOBProfile",

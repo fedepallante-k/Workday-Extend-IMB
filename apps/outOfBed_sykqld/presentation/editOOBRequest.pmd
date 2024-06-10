@@ -5,7 +5,7 @@
     {
       "_generationNote": "Gets a single instance, as specified by 'queryParams.instanceId' of the OOBRequest business object resource.",
       "name": "getOOBRequest",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests/{{queryParams.instanceId}}` %>",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/{{queryParams.instanceId}}` %>",
       "authType": "sso",
       "httpMethod": "GET"
     },
@@ -15,7 +15,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of AccompanyingTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/accompanyingTravellers` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers` %>"
     },
     {
       "name": "getMobileNumbers",
@@ -23,7 +23,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/mobileNumbers` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers` %>"
     },
     {
       "name": "getWorkers",
@@ -39,7 +39,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>"
     },
     {
       "name": "getStatuses",
@@ -351,7 +351,7 @@
       {
         "_generationNote": "Updates a single instance, as specified by 'queryParams.instanceId', of the OOBRequest business object resource.",
         "name": "updateOOBRequest",
-        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests/{{queryParams.instanceId}}` %>",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/{{queryParams.instanceId}}` %>",
         "authType": "sso",
         "httpMethod": "PUT",
         "failOnStatusCodes": [
