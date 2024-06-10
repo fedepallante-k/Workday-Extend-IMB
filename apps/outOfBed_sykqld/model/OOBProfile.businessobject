@@ -1,0 +1,46 @@
+{
+  "id": 4,
+  "name": "OOBProfile",
+  "label": "OOB Profile",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "oobProfiles",
+    "label": "OOB Profiles"
+  },
+  "fields": [
+    {
+      "id": 1,
+      "name": "sts",
+      "type": "TEXT",
+      "label": "STS",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 2,
+      "name": "mobileNumbers",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "MobileNumbers"
+    },
+    {
+      "id": 3,
+      "name": "frequentTravellers",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "FrequentTravellers"
+    },
+    {
+      "id": 4,
+      "name": "favouriteDestinations",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "Destination"
+    }
+  ]
+}

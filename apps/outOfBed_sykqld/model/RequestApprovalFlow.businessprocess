@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "name": "RequestApprovalFlow",
+  "label": "Request Approval Flow",
+  "description": "Business Process Type for RequestApprovalFlow",
+  "useForOrchestrate": true,
+  "allowsCancel": true,
+  "approvalStep": {
+    "actions": [
+      "APPROVE",
+      "DENY"
+    ]
+  },
+  "actionSteps": [],
+  "targetBusinessObject": "OOBRequest",
+  "securityDomains": [
+    "CreateOOBRequests"
+  ]
+}

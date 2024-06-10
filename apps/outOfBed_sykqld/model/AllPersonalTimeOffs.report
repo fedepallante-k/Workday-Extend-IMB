@@ -1,0 +1,47 @@
+{
+  "id": 3,
+  "name": "AllPersonalTimeOffs",
+  "businessObject": "PersonalTimeOff",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "sortConfigs": [],
+  "columns": [
+    {
+      "id": 1,
+      "name": "PersonalTimeOff",
+      "order": "a",
+      "isSelfReferencing": true
+    },
+    {
+      "id": 2,
+      "name": "Worker",
+      "order": "b",
+      "field": "worker"
+    },
+    {
+      "id": 3,
+      "name": "Oob Request",
+      "order": "c",
+      "field": "oobRequest"
+    },
+    {
+      "id": 4,
+      "name": "Type",
+      "order": "d",
+      "field": "type"
+    },
+    {
+      "id": 5,
+      "name": "Start Date",
+      "order": "e",
+      "field": "startDate"
+    },
+    {
+      "id": 6,
+      "name": "End Date",
+      "order": "f",
+      "field": "endDate"
+    }
+  ]
+}

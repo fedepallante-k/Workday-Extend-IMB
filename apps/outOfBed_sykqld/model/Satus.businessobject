@@ -1,0 +1,35 @@
+{
+  "id": 5,
+  "name": "Status",
+  "label": "Status",
+  "defaultSecurityDomains": [
+    "AdminOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "status",
+    "label": "Status"
+  },
+  "fields": [
+    {
+      "id": 1,
+      "name": "statusID",
+      "type": "TEXT",
+      "label": "Status ID",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 2,
+      "name": "description",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    }
+  ]
+}

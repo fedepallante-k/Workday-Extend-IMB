@@ -1,0 +1,83 @@
+{
+  "id": 4,
+  "name": "AllTravellers",
+  "businessObject": "AccompanyingTravellers",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "sortConfigs": [],
+  "columns": [
+    {
+      "id": 1,
+      "name": "AccompanyingTravellers",
+      "order": "a",
+      "isSelfReferencing": true
+    },
+    {
+      "id": 2,
+      "name": "STS",
+      "order": "b",
+      "field": "sts"
+    },
+    {
+      "id": 3,
+      "name": "Departure Date",
+      "order": "c",
+      "field": "departureDate"
+    },
+    {
+      "id": 4,
+      "name": "Arrival Date",
+      "order": "d",
+      "field": "arrivalDate"
+    },
+    {
+      "id": 5,
+      "name": "Mode Of Transport",
+      "order": "e",
+      "field": "modeOfTransport"
+    },
+    {
+      "id": 6,
+      "name": "Departure Point",
+      "order": "f",
+      "field": "departurePoint"
+    },
+    {
+      "id": 7,
+      "name": "Arrival Point",
+      "order": "g",
+      "field": "arrivalPoint"
+    },
+    {
+      "id": 8,
+      "name": "Lodging",
+      "order": "h",
+      "field": "lodging"
+    },
+    {
+      "id": 9,
+      "name": "First Name",
+      "order": "i",
+      "field": "firstName"
+    },
+    {
+      "id": 10,
+      "name": "Last Name",
+      "order": "j",
+      "field": "lastName"
+    },
+    {
+      "id": 11,
+      "name": "From Profile",
+      "order": "k",
+      "field": "fromProfile"
+    },
+    {
+      "id": 12,
+      "name": "Oob Request",
+      "order": "l",
+      "field": "oobRequest"
+    }
+  ]
+}

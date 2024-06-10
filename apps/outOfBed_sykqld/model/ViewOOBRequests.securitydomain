@@ -1,0 +1,6 @@
+{
+  "id": 3,
+  "name": "ViewOOBRequests",
+  "enabledForPageSecurity": true,
+  "label": "View: OOB Requests"
+}

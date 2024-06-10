@@ -1,0 +1,349 @@
+{
+  "id": "createOOBRequest",
+  "_generationNote": "This page creates a single instance of the OOBRequest object. You can use this page as a starting template for building an end-user page, or used as an administration page to create new instances.",
+  "endPoints": [
+    {
+      "name": "getAccompanyingTravellers",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "Gets a collection of AccompanyingTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/accompanyingTravellers` %>"
+    },
+    {
+      "name": "getMobileNumbers",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/mobileNumbers` %>"
+    },
+    {
+      "name": "getWorkers",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "For data types with a large quantity of instances, it may be required to apply filtering.",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "https://api.workday.com/common/v1/workers"
+    },
+    {
+      "name": "getDestinations",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
+    },
+    {
+      "name": "getStatuses",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "The target Status is not included within the application source nor was a known Workday Delivered Target.",
+      "_generationNote2": "If this is due to the business object not being created yet, we recommend creating it and then running this create task again.",
+      "url": "Unable to be generated"
+    }
+  ],
+  "securityDomains": [ ],
+  "script": "",
+  "presentation": {
+    "pageType": "edit",
+    "title": {
+      "type": "title",
+      "id": "title",
+      "label": "Create Oob Request"
+    },
+    "body": {
+      "type": "section",
+      "id": "bodySection",
+      "children": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.name"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "purpose",
+          "label": "Purpose",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.purpose"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "datePrecision": "DAY",
+          "dateFormat": "yyyy-MM-dd",
+          "id": "startDate",
+          "label": "Start Date",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.startDate"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "datePrecision": "DAY",
+          "dateFormat": "yyyy-MM-dd",
+          "id": "expectedEndDate",
+          "label": "Expected End Date",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.expectedEndDate"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "datePrecision": "DAY",
+          "dateFormat": "yyyy-MM-dd",
+          "id": "endDate",
+          "label": "End Date",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.endDate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "sts",
+          "label": "STS",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.sts"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "otherSTS",
+          "label": "Other STS",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.otherSTS"
+            }
+          ]
+        },
+        {
+          "type": "instanceList",
+          "id": "accompanyingTravellers",
+          "label": "Accompanying Travellers",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getAccompanyingTravellers.data %>",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "multiSelect": true,
+          "valuesOut": [
+            {
+              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
+              "valueOutBinding": "createOOBRequest.accompanyingTravellers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "alternateArrangementForChildren",
+          "label": "Alternate Arrangement For Children",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.alternateArrangementForChildren"
+            }
+          ]
+        },
+        {
+          "type": "instanceList",
+          "id": "phoneNumbers",
+          "label": "Phone Numbers",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getMobileNumbers.data %>",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "multiSelect": true,
+          "valuesOut": [
+            {
+              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
+              "valueOutBinding": "createOOBRequest.phoneNumbers"
+            }
+          ]
+        },
+        {
+          "type": "checkBox",
+          "trueLabel": "yes",
+          "falseLabel": "no",
+          "id": "elevatedRisk",
+          "label": "Elevated Risk",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.elevatedRisk"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "elevatedRiskSituation",
+          "label": "Elevated Risk Situation",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.elevatedRiskSituation"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "initiatorComments",
+          "label": "Initiator Comments",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.initiatorComments"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "traveller",
+          "label": "Traveller",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getWorkers.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createOOBRequest.traveller.id"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "lodging",
+          "label": "Lodging",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getDestinations.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createOOBRequest.lodging.id"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "cancelConfirmation",
+          "label": "Cancel Confirmation",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.cancelConfirmation"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "status",
+          "label": "Status",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getStatuses.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createOOBRequest.status.id"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "initiator",
+          "label": "Initiator",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getWorkers.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createOOBRequest.initiator.id"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "affinity",
+          "label": "Affinity",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createOOBRequest.affinity"
+            }
+          ]
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "id": "footer",
+      "children": [
+        {
+          "type": "richText",
+          "id": "footerText",
+          "enabled": "false",
+          "value": "Powered By Workday Extend"
+        }
+      ]
+    }
+  },
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
+        "name": "createOOBRequest",
+        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      }
+    ],
+    "responseErrorDetail": {
+      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
+      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
+      "errorSummary": "<% error %>",
+      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
+      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
+    }
+  }
+}

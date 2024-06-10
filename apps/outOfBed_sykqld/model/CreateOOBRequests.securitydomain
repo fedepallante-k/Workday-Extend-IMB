@@ -1,0 +1,6 @@
+{
+  "id": 1,
+  "name": "CreateOOBRequests",
+  "enabledForPageSecurity": true,
+  "label": "Create: OOB Requests"
+}

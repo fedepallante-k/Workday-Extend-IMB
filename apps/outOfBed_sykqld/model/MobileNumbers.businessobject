@@ -1,0 +1,54 @@
+{
+  "id": 1,
+  "name": "MobileNumbers",
+  "label": "Mobile Numbers",
+  "defaultSecurityDomains": [
+    "AdminOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "mobileNumbers",
+    "label": "Mobile Numbers"
+  },
+  "fields": [
+    {
+      "enableSearch": false,
+      "enableIndex": false,
+      "isPurgeable": false,
+      "useForDisplay": false,
+      "isReferenceId": false,
+      "type": "TEXT",
+      "name": "name",
+      "id": 1
+    },
+    {
+      "enableSearch": false,
+      "enableIndex": false,
+      "isPurgeable": false,
+      "useForDisplay": false,
+      "isReferenceId": false,
+      "type": "TEXT",
+      "name": "countryCode",
+      "id": 2
+    },
+    {
+      "enableSearch": false,
+      "enableIndex": false,
+      "isPurgeable": false,
+      "useForDisplay": false,
+      "isReferenceId": false,
+      "type": "TEXT",
+      "name": "number",
+      "id": 3
+    },
+    {
+      "enableSearch": false,
+      "enableIndex": false,
+      "isPurgeable": false,
+      "useForDisplay": false,
+      "isReferenceId": false,
+      "type": "TEXT",
+      "name": "notes",
+      "id": 4
+    }
+  ]
+}

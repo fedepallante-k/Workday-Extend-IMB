@@ -1,0 +1,6 @@
+{
+  "id": 2,
+  "name": "AdminOOBRequests",
+  "enabledForPageSecurity": false,
+  "label": "Admin: OOB Requests"
+}

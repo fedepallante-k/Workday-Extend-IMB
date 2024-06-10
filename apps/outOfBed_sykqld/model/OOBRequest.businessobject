@@ -1,0 +1,187 @@
+{
+  "id": 2,
+  "name": "OOBRequest",
+  "label": "OOB Request",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "oobRequests",
+    "label": "OOB Requests"
+  },
+  "fields": [
+    {
+      "id": 1,
+      "name": "name",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 2,
+      "name": "purpose",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 3,
+      "name": "startDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 4,
+      "name": "expectedEndDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 5,
+      "name": "endDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 6,
+      "name": "sts",
+      "type": "TEXT",
+      "label": "STS",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 7,
+      "name": "otherSTS",
+      "type": "TEXT",
+      "label": "Other STS",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 8,
+      "name": "accompanyingTravellers",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "AccompanyingTravellers"
+    },
+    {
+      "id": 9,
+      "name": "alternateArrangementForChildren",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 10,
+      "name": "phoneNumbers",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "MobileNumbers"
+    },
+    {
+      "id": 11,
+      "name": "elevatedRisk",
+      "type": "BOOLEAN",
+      "isPurgeable": false,
+      "enableIndex": false
+    },
+    {
+      "id": 12,
+      "name": "elevatedRiskSituation",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 13,
+      "name": "initiatorComments",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 14,
+      "name": "traveller",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "WORKER",
+      "secureByTarget": true
+    },
+    {
+      "id": 15,
+      "name": "lodging",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "Destination",
+      "secureByTarget": false
+    },
+    {
+      "id": 16,
+      "name": "cancelConfirmation",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 17,
+      "name": "status",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "Status",
+      "secureByTarget": false
+    },
+    {
+      "id": 18,
+      "name": "initiator",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "WORKER",
+      "secureByTarget": false
+    },
+    {
+      "id": 19,
+      "name": "affinity",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    }
+  ]
+}

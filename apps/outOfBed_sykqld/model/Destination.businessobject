@@ -1,0 +1,130 @@
+{
+  "id": 7,
+  "name": "Destination",
+  "label": "Destination",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "destinations",
+    "label": "Destinations"
+  },
+  "fields": [
+    {
+      "id": 1,
+      "name": "name",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 2,
+      "name": "countryCode",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 3,
+      "name": "addressLine1",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 4,
+      "name": "addressLine2",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 5,
+      "name": "addressLine3",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 6,
+      "name": "city",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 7,
+      "name": "state",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 8,
+      "name": "postalCode",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 9,
+      "name": "contactNumber",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 10,
+      "name": "other",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 11,
+      "name": "startDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 12,
+      "name": "endDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    }
+  ]
+}

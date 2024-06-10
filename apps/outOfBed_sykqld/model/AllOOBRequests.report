@@ -1,0 +1,132 @@
+{
+  "id": 1,
+  "name": "AllOOBRequests",
+  "businessObject": "OOBRequest",
+  "defaultSecurityDomains": [
+    "ViewOOBRequests"
+  ],
+  "sortConfigs": [],
+  "columns": [
+    {
+      "isSelfReferencing": true,
+      "order": "a",
+      "name": "OOBRequest",
+      "id": 1
+    },
+    {
+      "field": "name",
+      "order": "b",
+      "name": "Name",
+      "id": 2
+    },
+    {
+      "field": "purpose",
+      "order": "c",
+      "name": "Purpose",
+      "id": 3
+    },
+    {
+      "field": "startDate",
+      "order": "d",
+      "name": "Start Date",
+      "id": 4
+    },
+    {
+      "field": "expectedEndDate",
+      "order": "e",
+      "name": "Expected End Date",
+      "id": 5
+    },
+    {
+      "field": "endDate",
+      "order": "f",
+      "name": "End Date",
+      "id": 6
+    },
+    {
+      "field": "sts",
+      "order": "g",
+      "name": "STS",
+      "id": 7
+    },
+    {
+      "field": "otherSTS",
+      "order": "h",
+      "name": "Other STS",
+      "id": 8
+    },
+    {
+      "field": "accompanyingTravellers",
+      "order": "i",
+      "name": "Accompanying Travellers",
+      "id": 9
+    },
+    {
+      "field": "alternateArrangementForChildren",
+      "order": "j",
+      "name": "Alternate Arrangement For Children",
+      "id": 10
+    },
+    {
+      "field": "phoneNumbers",
+      "order": "k",
+      "name": "Phone Numbers",
+      "id": 11
+    },
+    {
+      "field": "elevatedRisk",
+      "order": "l",
+      "name": "Elevated Risk",
+      "id": 12
+    },
+    {
+      "field": "elevatedRiskSituation",
+      "order": "m",
+      "name": "Elevated Risk Situation",
+      "id": 13
+    },
+    {
+      "field": "initiatorComments",
+      "order": "n",
+      "name": "Initiator Comments",
+      "id": 14
+    },
+    {
+      "field": "traveller",
+      "order": "o",
+      "name": "Traveller",
+      "id": 15
+    },
+    {
+      "field": "lodging",
+      "order": "p",
+      "name": "Lodging",
+      "id": 16
+    },
+    {
+      "field": "cancelConfirmation",
+      "order": "q",
+      "name": "Cancel Confirmation",
+      "id": 17
+    },
+    {
+      "field": "status",
+      "order": "r",
+      "name": "Status",
+      "id": 18
+    },
+    {
+      "field": "initiator",
+      "order": "s",
+      "name": "Initiator",
+      "id": 19
+    },
+    {
+      "field": "affinity",
+      "order": "t",
+      "name": "Affinity",
+      "id": 20
+    }
+  ],
+  "label": "All OOB Requests"
+}

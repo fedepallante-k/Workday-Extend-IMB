@@ -1,0 +1,55 @@
+{
+  "appProperties": [ ],
+  "tasks": [
+    {
+      "id": "createOOBProfile",
+      "routingPattern": "/",
+      "page": {
+        "id": "createOOBProfile"
+      }
+    },
+    {
+      "id": "editOOBProfile",
+      "routingPattern": "/editOOBProfile",
+      "page": {
+        "id": "editOOBProfile"
+      }
+    },
+    {
+      "id": "createOOBRequest",
+      "routingPattern": "/createOOBRequest",
+      "page": {
+        "id": "createOOBRequest"
+      }
+    },
+    {
+      "id": "editOOBRequest",
+      "routingPattern": "/editOOBRequest",
+      "page": {
+        "id": "editOOBRequest"
+      }
+    },
+    {
+      "id": "viewOOBRequest",
+      "routingPattern": "/viewOOBRequest",
+      "page": {
+        "id": "viewOOBRequest"
+      }
+    },
+    {
+      "id": "viewOOBProfile",
+      "routingPattern": "/viewOOBProfile",
+      "page": {
+        "id": "viewOOBProfile"
+      }
+    },
+    {
+      "id": "createAccompanyingTravellers",
+      "routingPattern": "/createAccompanyingTravellers",
+      "page": {
+        "id": "createAccompanyingTravellers"
+      }
+    }
+  ],
+  "applicationId": "outOfBed_sykqld"
+}

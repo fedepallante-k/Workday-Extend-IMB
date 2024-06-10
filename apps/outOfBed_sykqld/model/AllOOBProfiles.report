@@ -1,0 +1,42 @@
+{
+  "id": 2,
+  "name": "AllOOBProfiles",
+  "businessObject": "OOBProfile",
+  "defaultSecurityDomains": [
+    "ViewOOBRequests"
+  ],
+  "sortConfigs": [],
+  "columns": [
+    {
+      "id": 1,
+      "name": "OOBProfile",
+      "order": "a",
+      "isSelfReferencing": true
+    },
+    {
+      "id": 2,
+      "name": "STS",
+      "order": "b",
+      "field": "sts"
+    },
+    {
+      "id": 3,
+      "name": "Mobile Numbers",
+      "order": "c",
+      "field": "mobileNumbers"
+    },
+    {
+      "id": 4,
+      "name": "Frequent Travellers",
+      "order": "d",
+      "field": "frequentTravellers"
+    },
+    {
+      "id": 5,
+      "name": "Favourite Destinations",
+      "order": "e",
+      "field": "favouriteDestinations"
+    }
+  ],
+  "label": "All OOB Profiles"
+}

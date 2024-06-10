@@ -1,0 +1,116 @@
+{
+  "id": 8,
+  "name": "AccompanyingTravellers",
+  "label": "Accompanying Travellers",
+  "defaultSecurityDomains": [
+    "CreateOOBRequests"
+  ],
+  "defaultCollection": {
+    "name": "accompanyingTravellers",
+    "label": "Accompanying Travellers"
+  },
+  "fields": [
+    {
+      "id": 1,
+      "name": "sts",
+      "type": "TEXT",
+      "label": "STS",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 2,
+      "name": "departureDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 3,
+      "name": "arrivalDate",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "DAY"
+    },
+    {
+      "id": 4,
+      "name": "modeOfTransport",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 5,
+      "name": "departurePoint",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 6,
+      "name": "arrivalPoint",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 7,
+      "name": "lodging",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "Destination",
+      "secureByTarget": false
+    },
+    {
+      "id": 8,
+      "name": "firstName",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 9,
+      "name": "lastName",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 10,
+      "name": "fromProfile",
+      "type": "BOOLEAN",
+      "isPurgeable": false,
+      "enableIndex": false
+    },
+    {
+      "id": 11,
+      "name": "oobRequest",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "OOBRequest",
+      "secureByTarget": true
+    }
+  ]
+}
