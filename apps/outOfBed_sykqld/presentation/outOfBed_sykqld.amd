@@ -5,6 +5,127 @@
       "value": "outOfBed_sykqld"
     }
   ],
+  "dataProviders": [
+    {
+      "key": "WORKDAY-COMMON",
+      "value": "https://api.workday.com/common/v1"
+    },
+    {
+      "key": "WORKDAY-RAAS",
+      "value": "https://api.workday.com/raas"
+    },
+    {
+      "key": "WORKDAY-WQL",
+      "value": "https://api.workday.com/wql/v1"
+    },
+    {
+      "key": "APP-V1",
+      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
+    },
+    {
+      "key": "WORKDAY-BP",
+      "value": "https://api.workday.com/businessProcess/v1"
+    },
+    {
+      "key": "APP-ORCHESTRATE-V1",
+      "value": "https://api.workday.com/orchestrate/v1/apps/<% site.applicationId %>/orchestrations"
+    },
+    {
+      "key": "WORKDAY-CONNECT-V1",
+      "value": "https://api.workday.com/connect/v1"
+    }
+  ],
+  "flowDefinitions": [
+    {
+      "id": "createOOBFlow",
+      "flowSteps": [
+        {
+          "id": "createOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBPart2",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "createOOBPart2",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBPart3",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "createOOBBackToRequest",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBProfile"
+        },
+        {
+          "id": "createOOBBackToRequest",
+          "endsFlow": true,
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "createOOBPart3",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "createOOBBackToProfile",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "createOOBBackToProfile",
+          "endsFlow": true,
+          "taskId": "createOOBProfile"
+        },
+        {
+          "id": "createOOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBBackToMain",
+              "condition": true
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "createOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "createOOBProfile"
+        }
+      ]
+    }
+  ],
   "tasks": [
     {
       "id": "createOOBProfile",
@@ -53,6 +174,13 @@
       "routingPattern": "/createAccompanyingTravellers",
       "page": {
         "id": "createAccompanyingTravellers"
+      }
+    },
+    {
+      "id": "createOOBReview",
+      "routingPattern": "createOOBReview",
+      "page": {
+        "id": "createOOBReview"
       }
     }
   ],
