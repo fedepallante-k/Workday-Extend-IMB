@@ -1,30 +1,39 @@
 {
   "id": "createOOBProfile",
-  "_generationNote": "This page creates a single instance of the OOBProfile object. You can use this page as a starting template for building an end-user page, or used as an administration page to create new instances.",
   "endPoints": [
     {
-      "name": "getMobileNumbers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/mobileNumbers` %>"
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
     },
     {
-      "name": "getFrequentTravellers",
+      "name": "getCountries",
       "httpMethod": "GET",
       "authType": "sso",
-      "_generationNote": "Gets a collection of FrequentTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/frequentTravellers` %>"
+      "deferred": true,
+      "url": "<% `https://api.workday.com/referenceData/country/vers/latest/search?q=` + instanceListQuery %>"
     },
     {
-      "name": "getDestinations",
+      "name": "getCities",
       "httpMethod": "GET",
       "authType": "sso",
-      "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
+      "deferred": true,
+      "url": "<% `https://api.workday.com/referenceData/country_region/vers/latest/search?q=` + instanceListQuery %>"
+    },
+    {
+      "name": "getPostalCode",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "deferred": true,
+      "url": "<% `https://api.workday.com/referenceData/postal_code/vers/latest/search?q=` + instanceListQuery %>"
+    },
+    {
+      "name": "getPhoneCodes",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "deferred": true,
+      "url": "<% `https://api.workday.com/referenceData/country_phone_code/vers/latest/search?q=` + instanceListQuery %>"
     }
   ],
   "securityDomains": [ ],
@@ -34,85 +43,277 @@
     "title": {
       "type": "title",
       "id": "title",
-      "label": "Create Oob Profile"
+      "label": "Create OOB Profile"
     },
     "body": {
-      "type": "section",
+      "type": "fieldSet",
       "id": "bodySection",
       "children": [
         {
-          "type": "text",
-          "id": "sts",
-          "label": "STS",
-          "valuesOut": [
+          "type": "section",
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBProfile.sts"
+              "type": "section",
+              "horizontal": true,
+              "columnWidthRatios": [0.8,0.2],
+              "children": [
+                {
+                  "type": "section",
+                  "children": [
+                    {
+                      "type": "richText",
+                      "value": "<pre>The OOB Profile allows you to enter frequently used pieces of information such as STS, contact numbers, travel destinations and travelers outside of your family unit.  Any entries in this screen can be selected to be used when creating an OOB without having to re-enter on the OOB creation screen</pre>",
+                      "enabled": false
+                    },
+                    {
+                      "type": "text",
+                      "id": "sts",
+                      "label": "STS",
+                      "required": true,
+                      "valuesOut": [
+                        {
+                          "value": "<% self.value %>",
+                          "valueOutBinding": "createOOBProfile.sts"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "label": "Quick Links",
+                  "children": [
+                    {
+                      "type": "button",
+                      "action": "LINK",
+                      "label": "My OOB Dashboard",
+                      "taskReference": {
+                        "taskId": "myOOBDashboard"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "children": [
+                {
+                  "type": "grid",
+                  "label": "Mobile Phone Numbers used when travelling",
+                  "id": "allNumbers",
+                  "isArrayOutBinding": true,
+                  "rows": "<% [] %>",
+                  "rowVariableName": "number",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "name",
+                      "label": "Name",
+                      "required": true,
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "nameCol",
+                        "value": "",
+                        "valueOutBinding": "createMobileNumbers.data[].name"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "phoneCode",
+                      "label": "Country Phone Code",
+                      "cellTemplate": {
+                        "type": "instanceList",
+                        "id": "phoneCodeList",
+                        "values": "<% [] %>",
+                        "searchEndPoint": "<% endpoints.getPhoneCodes %>",
+                        "searchResultValues": "<% getPhoneCodes.items %>",
+                        "idKey": "phoneCode",
+                        "displayKey": "phoneCode",
+                        "multiSelect": false,
+                        "valueOutBinding": "createMobileNumbers.data[].countryCode"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "phoneNumber",
+                      "label": "Phone Number",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "phoneNumberCol",
+                        "value": "",
+                        "valueOutBinding": "createMobileNumbers.data[].number",
+                        "onChange": "<%
+                                     self.clearError(); 
+                                     if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
+                                       self.setError('Only numbers allowed');  
+                                     }
+                                     %>"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "notes",
+                      "label": "Notes",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "notesCol",
+                        "value": "",
+                        "valueOutBinding": "createMobileNumbers.data[].notes"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "grid",
+                  "label": "Favourite Travel Destinations",
+                  "id": "allDestinations",
+                  "isArrayOutBinding": true,
+                  "rows": "<% [] %>",
+                  "rowVariableName": "destination",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "name",
+                      "label": "Location Name",
+                      "required": true,
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "nameCol",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].name"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "countryCode",
+                      "label": "Country",
+                      "cellTemplate": {
+                        "type": "instanceList",
+                        "id": "countryList",
+                        "values": "<% [] %>",
+                        "searchEndPoint": "<% endpoints.getCountries %>",
+                        "searchResultValues": "<% getCountries.items %>",
+                        "idKey": "ISO_3166_1_Alpha_3_Code",
+                        "displayKey": "name",
+                        "multiSelect": false,
+                        "valueOutBinding": "createDestinations.data[].countryCode"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "addressLine1",
+                      "label": "Address Line 1",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "addressLine1Col",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].addressLine1"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "addressLine2",
+                      "label": "Address Line 2",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "addressLine2Col",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].addressLine2"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "city",
+                      "label": "City",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "cityCol",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].city"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "state",
+                      "label": "State/Province/County",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "stateCol",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].state"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "postalCode",
+                      "label": "PostalCode",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "postalCodeCol",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].postalCode"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "contactNumber",
+                      "label": "Contact Number of Destination",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "contactNumberCol",
+                        "value": "",
+                        "valueOutBinding": "createDestinations.data[].contactNumber",
+                        "onChange": "<%
+                                     self.clearError();
+                                     if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
+                                         self.setError('Only numbers allowed');
+                                     }
+                                     %>"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "grid",
+                  "label": "Frequent Travellers",
+                  "id": "allTravellers",
+                  "isArrayOutBinding": true,
+                  "rows": "<% [] %>",
+                  "rowVariableName": "traveller",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "firstName",
+                      "label": "First Name",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "firstNameCol",
+                        "required": true,
+                        "value": "",
+                        "valuesOut": [
+                          {
+                            "valueOutBinding": "createFrequentTravellers.data[].name",
+                            "value": "<% (self.value ?: '') + ' ' + (lastNameCol.value ?: '') %>"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "lastName",
+                      "label": "Last Name",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "lastNameCol",
+                        "value": ""
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
-        },
-        {
-          "type": "instanceList",
-          "id": "mobileNumbers",
-          "label": "Mobile Numbers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getMobileNumbers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBProfile.mobileNumbers"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "frequentTravellers",
-          "label": "Frequent Travellers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getFrequentTravellers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBProfile.frequentTravellers"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "favouriteDestinations",
-          "label": "Favourite Destinations",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getDestinations.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBProfile.favouriteDestinations"
-            }
-          ]
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "id": "footer",
-      "children": [
-        {
-          "type": "richText",
-          "id": "footerText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
         }
       ]
     }
@@ -120,26 +321,60 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "createOOBProfile",
-        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobProfiles` %>",
+        "name": "createFrequentTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "failOnStatusCodes": [
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "createDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "createOOBProfile",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<%
+                   return self.data;
+                   %>",
+        "values": [
           {
-            "code": 400
+            "outboundPath": "worker.id",
+            "value": "<% getCurrentWorker.id %>"
           },
           {
-            "code": 403
+            "outboundPath": "frequentTravellers",
+            "exclude": "<% empty(createFrequentTravellers.data) %>",
+            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "favouriteDestinations",
+            "exclude": "<% empty(createDestinations.data) %>",
+            "value": "<% createDestinations.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "mobileNumbers",
+            "exclude": "<% empty(createMobileNumbers.data) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
           }
-        ]
+        ],
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       }
     ],
     "responseErrorDetail": {
-      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
-      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
       "errorSummary": "<% error %>",
-      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
       "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
     }
   }

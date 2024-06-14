@@ -1,5 +1,10 @@
 {
-  "appProperties": [ ],
+  "appProperties": [
+    {
+      "key": "mainAppId",
+      "value": "outOfBed_sykqld"
+    }
+  ],
   "tasks": [
     {
       "id": "createOOBProfile",
@@ -51,5 +56,31 @@
       }
     }
   ],
-  "applicationId": "outOfBed_sykqld"
+  "applicationId": "outOfBed_sykqld",
+  "dataProviders": [
+    {
+      "key": "WORKDAY-APP",
+      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
+    },
+    {
+      "key": "WORKDAY-WQL",
+      "value": "https://api.workday.com/wql/v1"
+    },
+    {
+      "key": "WORKDAY-BP",
+      "value": "https://api.workday.com/businessProcess/v1"
+    },
+    {
+      "key": "WORKDAY-COMMON",
+      "value": "https://api.workday.com/common/v1"
+    },
+    {
+      "key": "WORKDAY-CUSTOM_OBJECT",
+      "value": "https://api.workday.com/customObject/v2/customObjects"
+    },
+    {
+      "key": "WORKDAY-CONNECT-V1",
+      "value": "https://api.workday.com/connect/v1"
+    }
+  ]
 }
