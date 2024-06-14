@@ -65,7 +65,7 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
       "authType": "sso"
     },
     {
@@ -78,6 +78,13 @@
   ],
   "outboundData": {
     "outboundEndPoints": [
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
         "name": "createOOBRequest",
@@ -371,7 +378,7 @@
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
               "searchEndPoint": "<% %>",
               "searchResultValues": "<% [] %>",
-              "onChange": "<% self.selectedEntries[0].id == 'other' ? otherTxt.setVisible(true) : otherTxt.setVisible(false) %>"
+              "onChange": "<% self.selectedEntries[0].id == 'other' ? otherStsTxt.setVisible(true) : otherStsTxt.setVisible(false) %>"
             },
             {
               "type": "text",
@@ -507,9 +514,10 @@
                   "columnId": "NameCol",
                   "label": "<% 'Name' %>",
                   "cellTemplate": {
-                    "type": "instanceList",
-                    "values": "<% getWorkerDetails.data[0].phoneNumbers %>",
-                    "enabled": true
+                    "type": "text",
+                    "id": "nameCol",
+                    "value": "<% %>",
+                    "valueOutBinding": "createMobileNumbers.data[].name"
                   }
                 },
                 {
@@ -521,7 +529,7 @@
                     "id": "phoneCodeList",
                     "values": "<% [] %>",
                     "searchEndPoint": "<% endpoints.getPhoneCodes %>",
-                    "searchResultValues": "<% getPhoneCodes.items %>",
+                    "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
                     "idKey": "phoneCode",
                     "displayKey": "phoneCode",
                     "multiSelect": false,
@@ -534,8 +542,15 @@
                   "label": "<% 'Phone Number' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "value": "<% '' %>",
-                    "enabled": true
+                    "id": "phoneNumberCol",
+                    "value": "",
+                    "valueOutBinding": "createMobileNumbers.data[].number",
+                    "onChange": "<%
+                      self.clearError();
+                      if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
+                        self.setError('Only numbers allowed');
+                      }
+                    %>"
                   }
                 },
                 {
@@ -544,8 +559,9 @@
                   "label": "<% 'Notes' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "value": "<% '' %>",
-                    "enabled": true
+                    "id": "notesCol",
+                    "value": "",
+                    "valueOutBinding": "createMobileNumbers.data[].notes"
                   }
                 }
               ]
@@ -554,6 +570,7 @@
         },
         {
           "type": "fieldSet",
+          "render": "<% !getWorkerDetails.data[0].workerIsContingentWorker %>",
           "title": "Personal Time",
           "collapsible": true,
           "children": [
@@ -567,6 +584,7 @@
             {
               "type": "radioGroup",
               "label": "Trip includes Vacation, Bereavement or Holiday days",
+              "required": true,
               "instanceList": [
                 {
                   "id": "yes",
@@ -637,6 +655,7 @@
               "type": "radioGroup",
               "label": "Is this an Elevated Risk Situation",
               "id": "elevatedRiskRG",
+              "required": true,
               "selectedValues": "<% ['no']  %>",
               "instanceList": [
                 {
@@ -648,7 +667,7 @@
                   "descriptor": "No"
                 }
               ],
-              "onChange": "<% self.value == ['no'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>"
+              "onChange": "<% self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>"
             },
             {
               "type": "textArea",
@@ -663,6 +682,7 @@
               "type": "textArea",
               "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
               "id": "addCommentsOnBehalfOfTxtA",
+              "render": "<% !empty(onBehalfOf) %>",
               "required": false,
               "enabled": true,
               "visible": false,
@@ -688,18 +708,6 @@
               "buttonType": "AUXILIARY"
             }
           ]
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "id": "footer",
-      "children": [
-        {
-          "type": "richText",
-          "id": "footerText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
         }
       ]
     }
