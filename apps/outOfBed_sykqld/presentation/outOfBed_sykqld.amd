@@ -54,6 +54,13 @@
       "page": {
         "id": "createAccompanyingTravellers"
       }
+    },
+    {
+      "id": "myDashboard",
+      "routingPattern": "myDashboard",
+      "page": {
+        "id": "myDashboard"
+      }
     }
   ],
   "applicationId": "outOfBed_sykqld",
