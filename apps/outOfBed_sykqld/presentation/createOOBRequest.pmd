@@ -86,6 +86,14 @@
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createFrequentTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
         "name": "createOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
@@ -286,9 +294,11 @@
     "OOB.script"
   ],
   "onLoad": "<%
-
-    pageVariables.frequentTravellers = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
-    //pageVariables.frequentTravellers = {}.addAll(getOOBProfile.data.map(traveller => {traveller.frequentTravellers.descriptor}));
+    //pageVariables.frequentTravellers = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
+    //pageVariables.frequentTravellers2 = {}.addAll(getOOBProfile.data.map(traveller => {traveller.frequentTravellers.descriptor}));
+    //pageVariables.frequentTravellers3 = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
+    //pageVariables.frequentTravellers3 = getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor});
+    //pageVariables.frequentTravellers4 = list:mapAttribute(getFrequentTravellers.data, 'name').add(getCurrentWorker.descriptor)
     //var frequentTravellers = {}.addAll(getSupOrgWorkersWithFutureDatedEvents.data.map(worker => {worker.worker.id}));
   %>",
   "securityDomains": [ ],
@@ -310,7 +320,23 @@
           "id": "testTxt",
           "required": false,
           "enabled": false,
-          "value": "<% !empty(getWorkerDetails) ? getWorkerDetails.data : 'Empty' %>"
+          "value": "<% !empty(getFrequentTravellers) ? getFrequentTravellers : 'Empty' %>"
+        },
+        {
+          "type": "text",
+          "label": "frequentTravellers3",
+          "id": "test3Txt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(pageVariables.frequentTravellers3) ? json:asJSON(pageVariables.frequentTravellers3) : 'Empty' %>"
+        },
+        {
+          "type": "text",
+          "label": "frequentTravellers4",
+          "id": "test4Txt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(pageVariables.frequentTravellers4) ? json:asJSON(pageVariables.frequentTravellers4) : 'Empty' %>"
         },
         {
           "type": "fieldSet",
@@ -409,6 +435,7 @@
                       "rows": "<% getFrequentTravellers.data %>",
                       "selectionEnabled": true,
                       "rowVariableName": "fieldMemeberData",
+                      "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
                       "columns": [
                         {
@@ -431,7 +458,7 @@
                   "children":[
                     {
                       "type": "grid",
-                      "rows": "<% [] %>",
+                      "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
@@ -441,7 +468,7 @@
                           "label": "<% 'Travelers (yourself plus Frequent Travelers from OOB Profile)' %>",
                           "cellTemplate": {
                             "type": "text",
-                            "value": "<% 'Test2' %>",
+                            "value": "<% staffMemeberData.name %>",
                             "enabled": false
                           }
                         }
@@ -506,6 +533,8 @@
             {
               "type": "grid",
               "rows": "<% [] %>",
+              "id": "allNumbers",
+              "isArrayOutBinding": true,
               "rowVariableName": "contactDetailsData",
               "label": "<% 'Phone Numbers you are travelling with' %>",
               "columns": [
