@@ -79,19 +79,21 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "name": "createMobileNumbers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
-        "authType": "sso",
-        "httpMethod": "POST",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
-      },
-      {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createFrequentTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "exclude": true
+      },
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "exclude": true
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
@@ -99,6 +101,10 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
         "authType": "sso",
         "httpMethod": "POST",
+        "onSend": "<%
+                   console.debug('self.data = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -118,7 +124,113 @@
           },
           {
             "outboundPath": "startDate",
-            "value": "<% !empty(startDateDt.value) ? startDateDt.value : null %>"
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "expectedEndDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "value": "<%
+                      var travellers = []
+                      if(!empty(fieldMemeberGrid.getSelectedRows())){
+                          console.debug('Select Rows Empty' + !empty(fieldMemeberGrid.getSelectedRows()));
+                              for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
+                              }
+                      }
+                      console.debug('selected Travllers' + travellers);
+                      return travellers;
+                      %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "mobileNumbers",
+            "exclude": "<% empty(createMobileNumbers.data) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "exclude": true,
+            "value": "<% 'Multiinstance' %>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% true %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller.id",
+            "_exclude": true,
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "lodging.id",
+            "exclude": true,
+            "value": "<% '5673ac5b801f9001a44ba2d06f180000' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% 'true' %>"
+          },
+          {
+            "outboundPath": "status",
+            "exclude": true,
+            "value": "<% 'singleInstance' %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
+      },
+      {
+        "name": "transitionOutboundVars",
+        "type": "outboundVariable",
+        "variableScope": "flow",
+        "values": [
+          {
+            "outboundPath": "saveForLater",
+            "value": "<% !empty(saveForLaterBtn.value) %>"
+          },
+          {
+            "outboundPath": "proceed",
+            "value": "<% !empty(nextBtn.value) %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
           },
           {
             "outboundPath": "endDate",
@@ -126,7 +238,7 @@
           },
           {
             "outboundPath": "sts",
-            "value": "<% !empty(stsIL.selectedEntries[0]) stsIL.selectedEntries[0].id %>"
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
           },
           {
             "outboundPath": "otherSTS",
@@ -138,7 +250,7 @@
                       var travellers = []
                       if(!empty(fieldMemeberGrid.getSelectedRows())){
                           for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                              travellers.add( 'id', i.childrenMap.familyMemberCol.childrenMap.worker.value)
+                              travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
                           }
                       }
                       return travellers;
@@ -154,7 +266,7 @@
           },
           {
             "outboundPath": "elevatedRisk",
-            "value": "<% elevatedRiskRG.value == ['yes'] %>"
+            "value": "<% (elevatedRiskRG.value == ['yes'])%>"
           },
           {
             "outboundPath": "elevatedRiskSituation",
@@ -169,8 +281,9 @@
             "value": "<% 'singleInstance' %>"
           },
           {
-            "outboundPath": "lodging",
-            "value": "<% 'singleInstance' %>"
+            "outboundPath": "lodging.id",
+            "exclude": true,
+            "value": "<% '5673ac5b801f9001a44ba2d06f180000' %>"
           },
           {
             "outboundPath": "cancelConfirmation",
@@ -178,101 +291,12 @@
           },
           {
             "outboundPath": "status",
+            "exclude": true,
             "value": "<% 'singleInstance' %>"
           },
           {
             "outboundPath": "initiator",
-            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
-          },
-          {
-            "outboundPath": "affinity",
-            "value": "<% '' %>"
-          }
-        ]
-      },
-      {
-        "name": "transitionOutboundVars",
-        "type": "outboundVariable",
-        "variableScope": "flow",
-        "values": [
-          {
-            "outboundPath": "saveForLater",
-            "value": "<% saveForLaterBtn.value ?? '' %>"
-          },
-          {
-            "outboundPath": "name",
-            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
-          },
-          {
-            "outboundPath": "purpose",
-            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
-          },
-          {
-            "outboundPath": "startDate",
-            "value": "<% !empty(startDateDt.value) ? startDateDt.value : null %>"
-          },
-          {
-            "outboundPath": "endDate",
-            "value": "<% !empty(endDateDt.value) ? endDateDt.value : null %>"
-          },
-          {
-            "outboundPath": "sts",
-            "value": "<% !empty(stsIL.selectedEntries[0]) stsIL.selectedEntries[0].id %>"
-          },
-          {
-            "outboundPath": "otherSTS",
-            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
-          },
-          {
-            "outboundPath": "accompanyingTravellers",
-            "value": "<%
-              var travellers = []
-              if(!empty(fieldMemeberGrid.getSelectedRows())){
-                for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                  travellers.add( 'id', i.childrenMap.familyMemberCol.childrenMap.worker.value)
-                }
-              }
-              return travellers;
-            %>"
-          },
-          {
-            "outboundPath": "alternateArrangementForChildren",
-            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
-          },
-          {
-            "outboundPath": "phoneNumbers",
-            "value": "<% 'Multiinstance' %>"
-          },
-          {
-            "outboundPath": "elevatedRisk",
-            "value": "<% elevatedRiskRG.value == ['yes'] %>"
-          },
-          {
-            "outboundPath": "elevatedRiskSituation",
-            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
-          },
-          {
-            "outboundPath": "initiatorComments",
-            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
-          },
-          {
-            "outboundPath": "traveller",
-            "value": "<% 'singleInstance' %>"
-          },
-          {
-            "outboundPath": "lodging",
-            "value": "<% 'singleInstance' %>"
-          },
-          {
-            "outboundPath": "cancelConfirmation",
-            "value": "<% %>"
-          },
-          {
-            "outboundPath": "status",
-            "value": "<% 'singleInstance' %>"
-          },
-          {
-            "outboundPath": "initiator",
+            "exclude": true,
             "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
           },
           {
@@ -291,7 +315,8 @@
     }
   },
   "include": [
-    "OOB.script"
+    "OOB.script",
+    "Dates.script"
   ],
   "onLoad": "<%
     //pageVariables.frequentTravellers = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
@@ -323,22 +348,6 @@
           "value": "<% !empty(getFrequentTravellers) ? getFrequentTravellers : 'Empty' %>"
         },
         {
-          "type": "text",
-          "label": "frequentTravellers3",
-          "id": "test3Txt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(pageVariables.frequentTravellers3) ? json:asJSON(pageVariables.frequentTravellers3) : 'Empty' %>"
-        },
-        {
-          "type": "text",
-          "label": "frequentTravellers4",
-          "id": "test4Txt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(pageVariables.frequentTravellers4) ? json:asJSON(pageVariables.frequentTravellers4) : 'Empty' %>"
-        },
-        {
           "type": "fieldSet",
           "id": "tripDetailsFS",
           "title": "Trip Details",
@@ -351,7 +360,8 @@
               "required": true,
               "enabled": true,
               "trueLabel": "True Label",
-              "falseLabel": "False Label"
+              "falseLabel": "False Label",
+              "value": true
             },
             {
               "type": "text",
@@ -359,7 +369,7 @@
               "id": "tripNameTxt",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "Test Trip 1"
             },
             {
               "type": "textArea",
@@ -367,7 +377,7 @@
               "id": "tripPurposeTxtA",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "Test Purpose"
             },
             {
               "type": "date",
@@ -375,7 +385,7 @@
               "id": "startDateDt",
               "required": true,
               "enabled": true,
-              "value": "<% %>"
+              "value": "<% OOB.getCurrentTime() %>"
             },
             {
               "type": "date",
@@ -383,7 +393,7 @@
               "id": "endDateDt",
               "required": true,
               "enabled": true,
-              "value": "<% %>"
+              "value": "<% OOB.getCurrentTime() %>"
             },
             {
               "type": "checkBox",
@@ -393,7 +403,7 @@
               "enabled": true,
               "trueLabel": "True Label",
               "falseLabel": "False Label",
-              "value": ""
+              "value": true
             },
             {
               "type": "instanceList",
@@ -443,10 +453,26 @@
                           "columnId": "familyMemberCol",
                           "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
                           "cellTemplate": {
-                            "id": "worker",
-                            "type": "text",
-                            "value": "<% fieldMemeberData.name %>",
-                            "enabled": false
+                            "type":"fieldSet",
+                            "children": [
+                              {
+                                "id": "worker",
+                                "type": "text",
+                                "value": "<% fieldMemeberData.name %>",
+                                "enabled": false,
+                                "valuesOut": [
+                                  {
+                                    "valueOutBinding": "createFrequentTravellers.data[].name",
+                                    "value": "<% (self.value ?: '')  %>"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "staffId",
+                                "value": "<% fieldMemeberData.id %>"
+                              }
+                            ]
                           }
                         }
                       ]
@@ -460,6 +486,7 @@
                       "type": "grid",
                       "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
+                      "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
                         {
@@ -467,9 +494,20 @@
                           "columnId": "familyMemberCol",
                           "label": "<% 'Travelers (yourself plus Frequent Travelers from OOB Profile)' %>",
                           "cellTemplate": {
-                            "type": "text",
-                            "value": "<% staffMemeberData.name %>",
-                            "enabled": false
+                            "type": "fieldSet",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "staffMemberName",
+                                "value": "<% staffMemeberData.name %>",
+                                "enabled": false
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "staffId",
+                                "value": "<% staffMemeberData.id %>"
+                              }
+                            ]
                           }
                         }
                       ]
@@ -528,7 +566,7 @@
               "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "alternative Text area"
             },
             {
               "type": "grid",
@@ -623,7 +661,8 @@
                   "id": "no",
                   "descriptor": "No"
                 }
-              ]
+              ],
+              "selectedValues":"<% ['yes'] %>"
             },
             {
               "type": "grid",
