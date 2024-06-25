@@ -69,6 +69,18 @@
       "authType": "sso"
     },
     {
+      "name": "getWorkerFromSameUnit",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getWorkerAndDependents",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, cf_CFLRVUnitIDTextWorker as UnitID, fullName, phone_PrimaryHome, phone_PrimaryWork, phoneNumbers, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependents FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
       "name": "getPhoneCodes",
       "httpMethod": "GET",
       "authType": "sso",
@@ -84,8 +96,22 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "failOnStatusCodes": [{"code":400},{"code":403}],
-        "exclude": true
+        "onSend": "<%
+          self.data = {'data':[]};
+          var addOtherMembers= [];
+          for (var otherMembers : OtherMemberGrid.getRows()) {
+              console.info('columnData =' + otherMembers.childrenMap.addToOOBCol.value);
+            if(otherMembers.childrenMap.addToOOBCol.value){
+            //addOtherMembers.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+            self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+            }
+          }
+          console.info('INFO =' + addOtherMembers);
+          console.info('createFrequentTravellers self.data =' + json:asJSON(self.data));
+          //self.data.data.addAll(addOtherMembers);
+          self.data;
+          %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
         "name": "createMobileNumbers",
@@ -102,7 +128,7 @@
         "authType": "sso",
         "httpMethod": "POST",
         "onSend": "<%
-                   console.debug('self.data = ' + json:asJSON(self.data));
+                   console.debug('createOOBRequest self.data = ' + json:asJSON(self.data));
                    return self.data;
                    %>",
         "failOnStatusCodes": [
@@ -144,6 +170,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
+            "exclude": true,
             "value": "<%
                       var travellers = []
                       if(!empty(fieldMemeberGrid.getSelectedRows())){
@@ -246,6 +273,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
+            "exclude": true,
             "value": "<%
                       var travellers = []
                       if(!empty(fieldMemeberGrid.getSelectedRows())){
@@ -319,12 +347,27 @@
     "Dates.script"
   ],
   "onLoad": "<%
-    //pageVariables.frequentTravellers = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
-    //pageVariables.frequentTravellers2 = {}.addAll(getOOBProfile.data.map(traveller => {traveller.frequentTravellers.descriptor}));
-    //pageVariables.frequentTravellers3 = getOOBProfile.data.filter(traveller => {!empty(traveller.frequentTravellers)});
-    //pageVariables.frequentTravellers3 = getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor});
-    //pageVariables.frequentTravellers4 = list:mapAttribute(getFrequentTravellers.data, 'name').add(getCurrentWorker.descriptor)
-    //var frequentTravellers = {}.addAll(getSupOrgWorkersWithFutureDatedEvents.data.map(worker => {worker.worker.id}));
+    var workers1 =[];
+    var counter = 0;
+    for (var item : getWorkerFromSameUnit.data){
+      //console.info('item =' + item);
+      workers1.add({'id': item.worker.id, 'name': item.worker.descriptor})
+      if(!empty(item)){
+        var i = 0
+        for( var child : item.dependent){
+          //console.info('child =' + child);
+          workers1.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+          i = i+1;
+        }
+        i=0;
+      }
+    }
+    //console.info('workers1 info =' + workers1);
+    pageVariables.frequentTravellers = workers1.addAll(getFrequentTravellers.data);
+    pageVariables.isChild = 0;
+  %>",
+  "onSubmit": "<%
+
   %>",
   "securityDomains": [ ],
   "script": "",
@@ -341,11 +384,21 @@
       "children": [
         {
           "type": "text",
-          "label": "getWorkerDetails",
+          "label": "getFrequentTravellers",
           "id": "testTxt",
+          "visible": false,
           "required": false,
           "enabled": false,
           "value": "<% !empty(getFrequentTravellers) ? getFrequentTravellers : 'Empty' %>"
+        },
+        {
+          "type": "text",
+          "label": "pageVariables.frequentTravellers",
+          "id": "testTxt",
+          "visible": false,
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(pageVariables.frequentTravellers) ? json:asJSON(pageVariables.frequentTravellers) : 'Empty' %>"
         },
         {
           "type": "fieldSet",
@@ -442,7 +495,7 @@
                     {
                       "type": "grid",
                       "id": "fieldMemeberGrid",
-                      "rows": "<% getFrequentTravellers.data %>",
+                      "rows": "<% pageVariables.frequentTravellers %>",
                       "selectionEnabled": true,
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
@@ -462,7 +515,7 @@
                                 "enabled": false,
                                 "valuesOut": [
                                   {
-                                    "valueOutBinding": "createFrequentTravellers.data[].name",
+                                    "_valueOutBinding": "createFrequentTravellers.data[].name",
                                     "value": "<% (self.value ?: '')  %>"
                                   }
                                 ]
@@ -470,7 +523,7 @@
                               {
                                 "type": "hidden",
                                 "id": "staffId",
-                                "value": "<% fieldMemeberData.id %>"
+                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
                               }
                             ]
                           }
@@ -547,8 +600,8 @@
                   "label": "<% 'Add to OOB profile? ' %>",
                   "cellTemplate": {
                     "type": "checkBox",
-                    "value": "<% %>",
-                    "enabled": false
+                    "value": "<% false %>",
+                    "enabled": true
                   }
                 }
               ]
@@ -581,9 +634,9 @@
                   "columnId": "NameCol",
                   "label": "<% 'Name' %>",
                   "cellTemplate": {
-                    "type": "text",
+                    "type": "instanceList",
                     "id": "nameCol",
-                    "value": "<% %>",
+                    "values": "<% %>",
                     "valueOutBinding": "createMobileNumbers.data[].name"
                   }
                 },
