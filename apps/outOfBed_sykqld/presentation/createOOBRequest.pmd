@@ -23,8 +23,7 @@
       "authType": "sso",
       "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
       "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers` %>",
-      "exclude": true
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers` %>"
     },
     {
       "name": "getWorkers",
@@ -92,6 +91,36 @@
     "outboundEndPoints": [
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<%
+        //console.info('addAccompanyingTraveller = start');
+        self.data = {'data':[]};
+        var addAccompanyingTraveller= [];
+        for (var otherMembers : OtherMemberGrid.getRows()) {
+          if(otherMembers.childrenMap.addToOOBCol.value){
+            addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' ')});
+          }
+        }
+
+        if(!empty(fieldMemeberGrid.getSelectedRows())){
+          for ( var i : fieldMemeberGrid.getSelectedRows()) {
+            addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' ')});
+          }
+        }
+
+        //console.info('addAccompanyingTraveller List =' + addAccompanyingTraveller);
+        self.data.data.add(addAccompanyingTraveller);
+        console.info('createAccompanyingTravellers self.data =' + json:asJSON(self.data));
+
+        self.data;
+        %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createFrequentTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
@@ -100,14 +129,14 @@
           self.data = {'data':[]};
           var addOtherMembers= [];
           for (var otherMembers : OtherMemberGrid.getRows()) {
-              console.info('columnData =' + otherMembers.childrenMap.addToOOBCol.value);
+              //console.info('columnData =' + otherMembers.childrenMap.addToOOBCol.value);
             if(otherMembers.childrenMap.addToOOBCol.value){
             //addOtherMembers.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
-          console.info('INFO =' + addOtherMembers);
-          console.info('createFrequentTravellers self.data =' + json:asJSON(self.data));
+          //console.info('INFO =' + addOtherMembers);
+          //console.info('createFrequentTravellers self.data =' + json:asJSON(self.data));
           //self.data.data.addAll(addOtherMembers);
           self.data;
           %>",
@@ -118,8 +147,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "failOnStatusCodes": [{"code":400},{"code":403}],
-        "exclude": true
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
@@ -128,9 +156,9 @@
         "authType": "sso",
         "httpMethod": "POST",
         "onSend": "<%
-                   console.debug('createOOBRequest self.data = ' + json:asJSON(self.data));
-                   return self.data;
-                   %>",
+          console.debug('createOOBRequest self.data = ' + json:asJSON(self.data));
+          return self.data;
+        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -172,30 +200,36 @@
             "outboundPath": "accompanyingTravellers",
             "exclude": true,
             "value": "<%
-                      var travellers = []
-                      if(!empty(fieldMemeberGrid.getSelectedRows())){
-                          console.debug('Select Rows Empty' + !empty(fieldMemeberGrid.getSelectedRows()));
-                              for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                              }
+              var travellers = []
+              console.debug('Request Travllers start' );
+              if(!empty(fieldMemeberGrid.getSelectedRows())){
+                  console.debug('Select Rows Empty' + !empty(fieldMemeberGrid.getSelectedRows()));
+                      for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                          console.debug('worker Name = ' + !empty(i.childrenMap.familyMemberCol.childrenMap.worker.value) ? i.childrenMap.familyMemberCol.childrenMap.worker.value : '' );
+                          travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
                       }
-                      console.debug('selected Travllers' + travellers);
-                      return travellers;
-                      %>"
+              }
+              console.debug('selected Travllers' + travellers);
+              return travellers;
+              %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
             "outboundPath": "alternateArrangementForChildren",
             "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
           },
           {
-            "outboundPath": "mobileNumbers",
-            "exclude": "<% empty(createMobileNumbers.data) %>",
-            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
-          },
-          {
             "outboundPath": "phoneNumbers",
-            "exclude": true,
-            "value": "<% 'Multiinstance' %>"
+            "exclude": "<% empty(createMobileNumbers) %>",
+            "value": "<% 
+            var mobileList =[];
+            mobileList = createMobileNumbers.data.map(x=> {{'id' : x.body.id}});
+            console.info('MobileNumber =' + json:asJSON(mobileList));
+            return mobileList;
+            %>"
           },
           {
             "outboundPath": "elevatedRisk",
@@ -235,6 +269,59 @@
         ]
       },
       {
+        "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateOOBProfile",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + '5673ac5b801f9001a44bb09bcdc90000' %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": false,
+        "_onSend": "<%
+         //var updateOOBProfileList = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});;
+         //var updateOOBProfileMap = {:};
+
+         //console.debug('createAccompanyingTravellers .data = ' + json:asJSON(createAccompanyingTravellers.data));
+         //var dataMap = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
+
+         //updateOOBProfileMap.add('data', updateOOBProfileList);
+         //console.debug('updateOOBProfileList = ' + json:asJSON(updateOOBProfileList));
+         console.debug('Update OOBProfile .data = ' + json:asJSON(self.data));
+         //return updateOOBProfileMap;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "sts",
+            "exclude": true,
+            "value": "<% !empty(sts.value) ? sts.value : '' %>"
+          },
+          {
+            "exclude": true,
+            "outboundPath": "mobileNumbers",
+            "value": "<% !empty(mobileNumbers) ? mobileNumbers : '' %>"
+          },
+          {
+            "outboundPath": "frequentTravellers",
+            "value": "<% //createFrequentTravellers.data.map(x=> {{'id' : x.body.id}})
+             var list = createFrequentTravellers.data.map(x=> {{'id' : x.body.id}});
+            console.info('This is info = ' + json:asJSON(list));
+            return list;
+                      %>"
+          },
+          {
+            "exclude": true,
+            "outboundPath": "favouriteDestinations",
+            "value": "<% !empty(favouriteDestinations.value) ? favouriteDestinations : null %>"
+          }
+        ]
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -270,6 +357,19 @@
           {
             "outboundPath": "otherSTS",
             "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "exclude": true,
+            "value": "<%
+              var travellers = []
+              if(!empty(fieldMemeberGrid.getSelectedRows())){
+                for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
+                }
+              }
+              return travellers;
+            %>"
           },
           {
             "outboundPath": "accompanyingTravellers",
@@ -350,21 +450,24 @@
     var workers1 =[];
     var counter = 0;
     for (var item : getWorkerFromSameUnit.data){
-      //console.info('item =' + item);
       workers1.add({'id': item.worker.id, 'name': item.worker.descriptor})
       if(!empty(item)){
         var i = 0
         for( var child : item.dependent){
-          //console.info('child =' + child);
           workers1.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
           i = i+1;
         }
         i=0;
       }
     }
-    //console.info('workers1 info =' + workers1);
+
+    var phoneNumbersPV = getMobileNumbers.data;
+    for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
+      phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
+    };
+
     pageVariables.frequentTravellers = workers1.addAll(getFrequentTravellers.data);
-    pageVariables.isChild = 0;
+    pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
   %>",
   "onSubmit": "<%
 
@@ -384,21 +487,21 @@
       "children": [
         {
           "type": "text",
-          "label": "getFrequentTravellers",
+          "label": " getMobileNumbers.data",
           "id": "testTxt",
-          "visible": false,
+          "visible": true,
           "required": false,
           "enabled": false,
-          "value": "<% !empty(getFrequentTravellers) ? getFrequentTravellers : 'Empty' %>"
+          "value": "<% !empty(getMobileNumbers.data) ?  getMobileNumbers.data : 'Empty' %>"
         },
         {
           "type": "text",
-          "label": "pageVariables.frequentTravellers",
-          "id": "testTxt",
-          "visible": false,
+          "label": "pageVariables.phoneNumbers",
+          "id": "testTxt2",
+          "visible": true,
           "required": false,
           "enabled": false,
-          "value": "<% !empty(pageVariables.frequentTravellers) ? json:asJSON(pageVariables.frequentTravellers) : 'Empty' %>"
+          "value": "<% !empty(pageVariables.phoneNumbers) ? json:asJSON(pageVariables.phoneNumbers) : 'Empty' %>"
         },
         {
           "type": "fieldSet",
@@ -557,7 +660,7 @@
                               },
                               {
                                 "type": "hidden",
-                                "id": "staffId",
+                                "id": "StaffId",
                                 "value": "<% staffMemeberData.id %>"
                               }
                             ]
@@ -634,11 +737,40 @@
                   "columnId": "NameCol",
                   "label": "<% 'Name' %>",
                   "cellTemplate": {
-                    "type": "instanceList",
-                    "id": "nameCol",
-                    "values": "<% %>",
-                    "valueOutBinding": "createMobileNumbers.data[].name"
-                  }
+                    "type": "fieldSet",
+                    "children": [
+                      {
+                        "type": "instanceList",
+                        "id": "nameCell",
+                        "displayKey": "number",
+                        "values": "<% pageVariables.phoneNumbers %>",
+
+                        "onChange": "<%
+                          if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                            var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
+                            console.info('selectedNumberData = ' + selectedNumberData);
+                            notesCol.value = selectedNumberData.notes;
+                                numberName.value = selectedNumberData.name; 
+                                //TODO
+                            //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
+                            phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
+                          }
+                          else{
+                            notesCol.value = '';
+                                //TODO
+                            //phoneCodeList.setValues = '';
+                            phoneNumberCol.value = '';
+                          }
+                        %>"
+                  },
+                      {
+                        "type": "text",
+                        "id": "numberName",
+                        "valueOutBinding": "createMobileNumbers.data[].name",
+                        "value": "<% !empty(nameCell.selectedEnteries[0].name) ? nameCell.selectedEnteries[0].name : '' %>"
+                      }
+                      ]
+                    }
                 },
                 {
                   "type": "column",
