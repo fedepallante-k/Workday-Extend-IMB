@@ -750,7 +750,7 @@
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
                             console.info('selectedNumberData = ' + selectedNumberData);
                             notesCol.value = selectedNumberData.notes;
-                                numberName.value = selectedNumberData.name; 
+                            numberName.value = selectedNumberData.name;
                                 //TODO
                             //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
                             phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
