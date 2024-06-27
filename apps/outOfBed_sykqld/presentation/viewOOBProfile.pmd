@@ -24,6 +24,28 @@
       "id": "bodySection",
       "children": [
         {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Field",
+          "taskReference": {
+            "taskId": "createOOBRequest",
+            "parameterBindings": {
+              "isField": "<% true %>"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Staff",
+          "taskReference": {
+            "taskId": "createOOBRequest",
+            "parameterBindings": {
+              "isField": "<% false %>"
+            }
+          }
+        },
+        {
           "type": "text",
           "id": "sts",
           "label": "STS",

@@ -121,7 +121,7 @@
         {
           "id": "createOOBBackToMain",
           "endsFlow": true,
-          "taskId": "createOOBProfile"
+          "taskId": "viewOOBProfile"
         }
       ]
     }

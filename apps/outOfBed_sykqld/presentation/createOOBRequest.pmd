@@ -64,7 +64,7 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
       "authType": "sso"
     },
     {
@@ -85,6 +85,12 @@
       "authType": "sso",
       "deferred": true,
       "url": "<% 'https://api.workday.com/referenceData/country_phone_code/vers/latest/search?q=' + instanceListQuery %>"
+    },
+    {
+      "name": "getTimeOffTypes",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT timeOffType FROM timeOffTypes').urlEncode() %>",
+      "authType": "sso"
     }
   ],
   "outboundData": {
@@ -447,14 +453,15 @@
     "Dates.script"
   ],
   "onLoad": "<%
-    var workers1 =[];
+    var familyAndFrequent =[];
+    var personalTimeOffMembers =[];
     var counter = 0;
     for (var item : getWorkerFromSameUnit.data){
-      workers1.add({'id': item.worker.id, 'name': item.worker.descriptor})
+      familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
-        var i = 0
+        var i = 0;
         for( var child : item.dependent){
-          workers1.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
           i = i+1;
         }
         i=0;
@@ -466,8 +473,27 @@
       phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
     };
 
-    pageVariables.frequentTravellers = workers1.addAll(getFrequentTravellers.data);
+
+    for (var item : getWorkerDetails.data){
+        personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
+      if(!empty(item)){
+          console.info('item is not empty');
+        var q = 0;
+          for( var child : item){
+            console.info('dependent = ' + child);
+            if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
+             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+              q = q+1;
+            }
+        }
+        i=0;
+      }
+    };
+
+    pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellers.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
+    pageVariables.PTOMembers = personalTimeOffMembers;
+    console.info('PTO Members = ' + personalTimeOffMembers);
   %>",
   "onSubmit": "<%
 
@@ -487,18 +513,18 @@
       "children": [
         {
           "type": "text",
-          "label": " getMobileNumbers.data",
+          "label": " getTimeOffTypes.data",
           "id": "testTxt",
-          "visible": true,
+          "visible": false,
           "required": false,
           "enabled": false,
-          "value": "<% !empty(getMobileNumbers.data) ?  getMobileNumbers.data : 'Empty' %>"
+          "value": "<% !empty(getTimeOffTypes.data) ?  getTimeOffTypes.data : 'Empty' %>"
         },
         {
           "type": "text",
           "label": "pageVariables.phoneNumbers",
           "id": "testTxt2",
-          "visible": true,
+          "visible": false,
           "required": false,
           "enabled": false,
           "value": "<% !empty(pageVariables.phoneNumbers) ? json:asJSON(pageVariables.phoneNumbers) : 'Empty' %>"
@@ -589,16 +615,18 @@
           "collapsible": true,
           "children": [
             {
-              "type": "fieldSet",
+              "type": "section",
               "horizontal": true,
+
               "children": [
                 {
-                  "type": "fieldSet",
+                  "type": "section",
                   "children": [
                     {
                       "type": "grid",
                       "id": "fieldMemeberGrid",
                       "rows": "<% pageVariables.frequentTravellers %>",
+                      "render": "<% queryParams.isField %>",
                       "selectionEnabled": true,
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
@@ -614,14 +642,21 @@
                               {
                                 "id": "worker",
                                 "type": "text",
-                                "value": "<% fieldMemeberData.name %>",
+                                "value": "<% !empty(fieldMemeberData.name) ? fieldMemeberData.name : '' %>",
                                 "enabled": false,
                                 "valuesOut": [
                                   {
                                     "_valueOutBinding": "createFrequentTravellers.data[].name",
                                     "value": "<% (self.value ?: '')  %>"
                                   }
-                                ]
+                                ],
+                                "onChange": "<%
+                                  if(!empty(fieldMemeberGrid.getSelectedRows())){
+                                    for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                                      travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
+                                    }
+                                  }
+                                %>"
                               },
                               {
                                 "type": "hidden",
@@ -642,6 +677,7 @@
                       "type": "grid",
                       "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
+                      "render": "<% !queryParams.isField %>",
                       "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
@@ -764,7 +800,7 @@
                         %>"
                   },
                       {
-                        "type": "text",
+                        "type": "hidden",
                         "id": "numberName",
                         "valueOutBinding": "createMobileNumbers.data[].name",
                         "value": "<% !empty(nameCell.selectedEnteries[0].name) ? nameCell.selectedEnteries[0].name : '' %>"
@@ -861,7 +897,7 @@
                   "label": "<% 'Workers taking time off' %>",
                   "cellTemplate": {
                     "type": "instanceList",
-                    "values": "<% [] %>",
+                    "values": "<%  !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
                     "enabled": true
                   }
                 },
@@ -872,7 +908,7 @@
                   "cellTemplate": {
                     "type": "instanceList",
                     "id": "absenceTypeIL",
-                    "values": "<% [] %>"
+                    "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>"
                   }
                 },
                 {
@@ -935,11 +971,11 @@
               "type": "textArea",
               "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
               "id": "addCommentsOnBehalfOfTxtA",
-              "render": "<% !empty(onBehalfOf) %>",
+              "render": "<% !queryParams.isField %>",
               "required": false,
               "enabled": true,
-              "visible": false,
-              "value": ""
+              "visible": true,
+              "value": "For Staff private comments"
             }
           ]
         },
