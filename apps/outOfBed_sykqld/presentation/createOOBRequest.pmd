@@ -58,7 +58,7 @@
     {
       "name": "getFrequentTravellersWQL",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<%'/data?query=' + ('SELECT workdayID, frequentTravellers FROM outOfBed_sykqld_oobProfiles WHERE frequentTravellers is not empty').urlEncode() %>",
+      "url": "<%'/data?query=' + ('SELECT workdayID AS id, name FROM outOfBed_sykqld_frequentTravellers').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -102,7 +102,6 @@
         "authType": "sso",
         "httpMethod": "POST",
         "onSend": "<%
-        //console.info('addAccompanyingTraveller = start');
         self.data = {'data':[]};
         var addAccompanyingTraveller= [];
         for (var otherMembers : OtherMemberGrid.getRows()) {
@@ -117,10 +116,7 @@
           }
         }
 
-        //console.info('addAccompanyingTraveller List =' + addAccompanyingTraveller);
         self.data.data.add(addAccompanyingTraveller);
-        console.info('createAccompanyingTravellers self.data =' + json:asJSON(self.data));
-
         self.data;
         %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -135,15 +131,10 @@
           self.data = {'data':[]};
           var addOtherMembers= [];
           for (var otherMembers : OtherMemberGrid.getRows()) {
-              //console.info('columnData =' + otherMembers.childrenMap.addToOOBCol.value);
             if(otherMembers.childrenMap.addToOOBCol.value){
-            //addOtherMembers.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
-          //console.info('INFO =' + addOtherMembers);
-          //console.info('createFrequentTravellers self.data =' + json:asJSON(self.data));
-          //self.data.data.addAll(addOtherMembers);
           self.data;
           %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -204,23 +195,6 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "exclude": true,
-            "value": "<%
-              var travellers = []
-              console.debug('Request Travllers start' );
-              if(!empty(fieldMemeberGrid.getSelectedRows())){
-                  console.debug('Select Rows Empty' + !empty(fieldMemeberGrid.getSelectedRows()));
-                      for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                          console.debug('worker Name = ' + !empty(i.childrenMap.familyMemberCol.childrenMap.worker.value) ? i.childrenMap.familyMemberCol.childrenMap.worker.value : '' );
-                          travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                      }
-              }
-              console.debug('selected Travllers' + travellers);
-              return travellers;
-              %>"
-          },
-          {
-            "outboundPath": "accompanyingTravellers",
             "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
@@ -239,7 +213,7 @@
           },
           {
             "outboundPath": "elevatedRisk",
-            "value": "<% true %>"
+            "value": "<% elevatedRiskRG.value == ['yes'] ? true : false %>"
           },
           {
             "outboundPath": "elevatedRiskSituation",
@@ -316,7 +290,7 @@
             "outboundPath": "frequentTravellers",
             "value": "<% //createFrequentTravellers.data.map(x=> {{'id' : x.body.id}})
              var list = createFrequentTravellers.data.map(x=> {{'id' : x.body.id}});
-            console.info('This is info = ' + json:asJSON(list));
+            //console.info('This is info = ' + json:asJSON(list));
             return list;
                       %>"
           },
@@ -489,12 +463,10 @@
         i=0;
       }
     };
-
-    pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellers.data);
+    
+    pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
-    pageVariables.PTOMembers = personalTimeOffMembers;
-    console.info('PTO Members = ' + personalTimeOffMembers);
-    pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : false;
+    pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
   %>",
   "onSubmit": "<%
 
@@ -514,12 +486,12 @@
       "children": [
         {
           "type": "text",
-          "label": " getTimeOffTypes.data",
+          "label": " getFrequentTravellers.data",
           "id": "testTxt",
           "visible": false,
           "required": false,
           "enabled": false,
-          "value": "<% !empty(getTimeOffTypes.data) ?  getTimeOffTypes.data : 'Empty' %>"
+          "value": "<% !empty(getFrequentTravellers.data) ?  json:asJSON(getFrequentTravellers.data) : 'Empty' %>"
         },
         {
           "type": "text",
@@ -873,6 +845,7 @@
             {
               "type": "radioGroup",
               "label": "Trip includes Vacation, Bereavement or Holiday days",
+              "id": "PersonalLeaveRG",
               "required": true,
               "instanceList": [
                 {
@@ -884,11 +857,14 @@
                   "descriptor": "No"
                 }
               ],
-              "selectedValues":"<% ['yes'] %>"
+              "selectedValues":"<% ['no'] %>",
+              "onChange": "<% self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false)%>"
             },
             {
               "type": "grid",
+              "id": "personalTimeGrid",
               "rows": "<% [] %>",
+              "visible": false,
               "rowVariableName": "timeOffData",
               "label": "<% 'Personal Time Off Details' %>",
               "columns": [
@@ -899,8 +875,7 @@
                   "cellTemplate": {
                     "type": "instanceList",
                     "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
-                    "_values": "<% !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
-                   "enabled": true
+                    "enabled": true
                   }
                 },
                 {

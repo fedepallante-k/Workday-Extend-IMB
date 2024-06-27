@@ -14,7 +14,7 @@ var getSTS = function() {
 {'id': 'vacation', 'descriptor': 'I am on vacation/sightseeing. (Visa runs, actual vacations)'},
 {'id': 'visitFriends', 'descriptor': 'I am visiting friends'},
 {'id': 'training', 'descriptor': 'I am attending a training/meeting'},
-{'id': 'other', 'descriptor': 'Other (None of these apply'}
+{'id': 'other', 'descriptor': 'Other (None of these apply)'}
     ];
 }
 
