@@ -494,6 +494,7 @@
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.PTOMembers = personalTimeOffMembers;
     console.info('PTO Members = ' + personalTimeOffMembers);
+    pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : false;
   %>",
   "onSubmit": "<%
 
@@ -615,18 +616,18 @@
           "collapsible": true,
           "children": [
             {
-              "type": "section",
+              "type": "fieldSet",
               "horizontal": true,
 
               "children": [
                 {
-                  "type": "section",
+                  "type": "fieldSet",
                   "children": [
                     {
                       "type": "grid",
                       "id": "fieldMemeberGrid",
-                      "rows": "<% pageVariables.frequentTravellers %>",
-                      "render": "<% queryParams.isField %>",
+                      "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
+                      "render": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
@@ -650,7 +651,7 @@
                                     "value": "<% (self.value ?: '')  %>"
                                   }
                                 ],
-                                "onChange": "<%
+                                "_onChange": "<%
                                   if(!empty(fieldMemeberGrid.getSelectedRows())){
                                     for ( var i : fieldMemeberGrid.getSelectedRows()) {
                                       travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
@@ -677,7 +678,7 @@
                       "type": "grid",
                       "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
-                      "render": "<% !queryParams.isField %>",
+                      "render": "<% !pageVariables.isField %>",
                       "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
@@ -897,8 +898,9 @@
                   "label": "<% 'Workers taking time off' %>",
                   "cellTemplate": {
                     "type": "instanceList",
-                    "values": "<%  !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
-                    "enabled": true
+                    "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
+                    "_values": "<% !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
+                   "enabled": true
                   }
                 },
                 {
@@ -909,7 +911,7 @@
                     "type": "instanceList",
                     "id": "absenceTypeIL",
                     "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>"
-                  }
+                   }
                 },
                 {
                   "type": "column",
@@ -971,7 +973,7 @@
               "type": "textArea",
               "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
               "id": "addCommentsOnBehalfOfTxtA",
-              "render": "<% !queryParams.isField %>",
+              "render": "<% !pageVariables.isField%>",
               "required": false,
               "enabled": true,
               "visible": true,
