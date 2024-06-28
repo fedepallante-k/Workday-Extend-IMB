@@ -83,6 +83,7 @@
         "onSend": "<%
         self.data = {'data':[]};
         var addAccompanyingTraveller= [];
+
         for (var otherMembers : OtherMemberGrid.getRows()) {
           if(otherMembers.childrenMap.addToOOBCol.value){
             addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' ')});
@@ -109,13 +110,13 @@
         "onSend": "<%
           self.data = {'data':[]};
           var addOtherMembers= [];
+
           for (var otherMembers : OtherMemberGrid.getRows()) {
             if(otherMembers.childrenMap.addToOOBCol.value){
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
-          console.info('createFrequentTravellers self.data = ' +  json:asJSON(self.data));
-          console.info('OtherMemberGrid.getRows() = ' + json:asJSON(OtherMemberGrid.getRows()));
+
           self.data;
           %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -131,14 +132,13 @@
           for (var otherNumbers : allNumbers.getRows()) {
             if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value && otherNumbers.childrenMap.NameCol.childrenMap.numberId.value == 'other'){
               self.data.data.add({
-                  //'name': !empty(otherNumbers.childrenMap.NameCol.childrenMap.numberName.value) ? otherNumbers.childrenMap.NameCol.childrenMap.numberName.value : '',
-                  'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
-                  'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
-                  'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : ''
+                'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
+                'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
+                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : ''
               });
             }
           }
-          console.info(' createMobileNumbers self.data = ' + json:asJSON(self.data));
+
         self.data;
         %>"
       },
@@ -202,6 +202,7 @@
             "exclude":"<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
             "value": "<%
             var mobileList = !empty(createMobileNumbers.data) ? createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) : [];
+
             if (!empty(allNumbers.getRows())){
               for (var allOtherMembers : allNumbers.getRows()) {
                 if(allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value && allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value != 'other'){
@@ -209,6 +210,7 @@
                 }
               }
             }
+
             return mobileList;
             %>"
           },
@@ -272,11 +274,7 @@
           },
           {
             "outboundPath": "frequentTravellers",
-            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}})
-             //var list = createFrequentTravellers.data.map(x=> {{'id' : x.body.id}});
-            //console.info('This is info = ' + json:asJSON(list));
-            //return list;
-                      %>"
+            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           }
         ]
       },
@@ -448,24 +446,6 @@
       "id": "bodySection",
       "children": [
         {
-          "type": "text",
-          "label": " getFrequentTravellers.data",
-          "id": "testTxt",
-          "visible": false,
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getFrequentTravellers.data) ?  json:asJSON(getFrequentTravellers.data) : 'Empty' %>"
-        },
-        {
-          "type": "text",
-          "label": "pageVariables.phoneNumbers",
-          "id": "testTxt2",
-          "visible": false,
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(pageVariables.phoneNumbers) ? json:asJSON(pageVariables.phoneNumbers) : 'Empty' %>"
-        },
-        {
           "type": "fieldSet",
           "id": "tripDetailsFS",
           "title": "Trip Details",
@@ -581,17 +561,9 @@
                                 "enabled": false,
                                 "valuesOut": [
                                   {
-                                    "_valueOutBinding": "createFrequentTravellers.data[].name",
                                     "value": "<% (self.value ?: '')  %>"
                                   }
-                                ],
-                                "_onChange": "<%
-                                  if(!empty(fieldMemeberGrid.getSelectedRows())){
-                                    for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                                      travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                                    }
-                                  }
-                                %>"
+                                ]
                               },
                               {
                                 "type": "hidden",
@@ -718,7 +690,6 @@
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
-                                console.info('selectedNumberData = ' + json:asJSON(selectedNumberData));
                             numberId.value = selectedNumberData.id;
                             numberName.value = selectedNumberData.name;
                             phoneNameCell.value = selectedNumberData.name;      
@@ -746,13 +717,11 @@
                       {
                         "type": "hidden",
                         "id": "numberName",
-                        "_valueOutBinding": "createMobileNumbers.data[].name",
                         "value": "<% %>"
                       },
                       {
                         "type": "hidden",
                         "id": "numberId",
-                        "_valueOutBinding": "createMobileNumbers.data[].name",
                         "value": "<%  %>"
                       }
                       ]
@@ -781,8 +750,7 @@
                     "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
                     "idKey": "phoneCode",
                     "displayKey": "phoneCode",
-                    "multiSelect": false,
-                    "_valueOutBinding": "createMobileNumbers.data[].countryCode"
+                    "multiSelect": false
                   }
                 },
                 {
@@ -794,7 +762,6 @@
                     "id": "phoneNumberCol",
                     "value": "",
                     "required": true,
-                    "_valueOutBinding": "createMobileNumbers.data[].number",
                     "onChange": "<%
                       self.clearError();
                       if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
@@ -810,8 +777,7 @@
                   "cellTemplate": {
                     "type": "text",
                     "id": "notesCol",
-                    "value": "",
-                    "_valueOutBinding": "createMobileNumbers.data[].notes"
+                    "value": ""
                   }
                 }
               ]
