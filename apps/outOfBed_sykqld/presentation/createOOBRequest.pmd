@@ -515,8 +515,7 @@
               "required": true,
               "enabled": true,
               "trueLabel": "True Label",
-              "falseLabel": "False Label",
-              "value": true
+              "falseLabel": "False Label"
             },
             {
               "type": "text",
@@ -524,7 +523,7 @@
               "id": "tripNameTxt",
               "required": true,
               "enabled": true,
-              "value": "Test Trip 1"
+              "value": ""
             },
             {
               "type": "textArea",
@@ -532,7 +531,7 @@
               "id": "tripPurposeTxtA",
               "required": true,
               "enabled": true,
-              "value": "Test Purpose"
+              "value": ""
             },
             {
               "type": "date",
@@ -731,7 +730,7 @@
               "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
               "required": true,
               "enabled": true,
-              "value": "alternative Text area"
+              "value": ""
             },
             {
               "type": "grid",
@@ -941,7 +940,7 @@
               "id": "elevatedRiskTxtA",
               "required": false,
               "enabled": true,
-              "value": "Value",
+              "value": "",
               "visible": false
             },
             {
@@ -952,7 +951,7 @@
               "required": false,
               "enabled": true,
               "visible": true,
-              "value": "For Staff private comments"
+              "value": ""
             }
           ]
         },
