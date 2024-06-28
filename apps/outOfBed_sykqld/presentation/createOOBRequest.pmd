@@ -9,16 +9,7 @@
       "authType": "sso"
     },
     {
-      "name": "getAccompanyingTravellers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "Gets a collection of AccompanyingTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers` %>",
-      "exclude": true
-    },
-    {
-      "name": "getMobileNumbers",
+      "name": "getMobileNumbers1",
       "httpMethod": "GET",
       "authType": "sso",
       "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
@@ -26,22 +17,10 @@
       "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers` %>"
     },
     {
-      "name": "getWorkers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "For data types with a large quantity of instances, it may be required to apply filtering.",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "https://api.workday.com/common/v1/workers",
-      "exclude": true
-    },
-    {
-      "name": "getDestinations",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>",
-      "exclude": true
+      "name": "getMobileNumbers",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers ORDER BY createdMoment ASC').urlEncode() %>",
+      "authType": "sso"
     },
     {
       "name": "getFrequentTravellers",
@@ -203,12 +182,15 @@
           },
           {
             "outboundPath": "phoneNumbers",
-            "exclude": "<% empty(createMobileNumbers) %>",
-            "value": "<% 
+            "exclude":"<% empty(createMobileNumbers.data) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}})
+            /*
             var mobileList =[];
+            console.info('createMobileNumbers =' + json:asJSON(createMobileNumbers));
             mobileList = createMobileNumbers.data.map(x=> {{'id' : x.body.id}});
             console.info('MobileNumber =' + json:asJSON(mobileList));
             return mobileList;
+            */
             %>"
           },
           {
@@ -231,7 +213,7 @@
           {
             "outboundPath": "lodging.id",
             "exclude": true,
-            "value": "<% '5673ac5b801f9001a44ba2d06f180000' %>"
+            "value": "<% '' %>"
           },
           {
             "outboundPath": "cancelConfirmation",
@@ -255,18 +237,6 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "exclude": false,
-        "_onSend": "<%
-         //var updateOOBProfileList = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});;
-         //var updateOOBProfileMap = {:};
-
-         //console.debug('createAccompanyingTravellers .data = ' + json:asJSON(createAccompanyingTravellers.data));
-         //var dataMap = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
-
-         //updateOOBProfileMap.add('data', updateOOBProfileList);
-         //console.debug('updateOOBProfileList = ' + json:asJSON(updateOOBProfileList));
-         console.debug('Update OOBProfile .data = ' + json:asJSON(self.data));
-         //return updateOOBProfileMap;
-        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -282,22 +252,12 @@
             "value": "<% !empty(sts.value) ? sts.value : '' %>"
           },
           {
-            "exclude": true,
-            "outboundPath": "mobileNumbers",
-            "value": "<% !empty(mobileNumbers) ? mobileNumbers : '' %>"
-          },
-          {
             "outboundPath": "frequentTravellers",
-            "value": "<% //createFrequentTravellers.data.map(x=> {{'id' : x.body.id}})
-             var list = createFrequentTravellers.data.map(x=> {{'id' : x.body.id}});
+            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}})
+             //var list = createFrequentTravellers.data.map(x=> {{'id' : x.body.id}});
             //console.info('This is info = ' + json:asJSON(list));
-            return list;
+            //return list;
                       %>"
-          },
-          {
-            "exclude": true,
-            "outboundPath": "favouriteDestinations",
-            "value": "<% !empty(favouriteDestinations.value) ? favouriteDestinations : null %>"
           }
         ]
       },
@@ -340,8 +300,9 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "exclude": true,
-            "value": "<%
+            "exclude": "<% createAccompanyingTravellers.data %>",
+            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}})
+            /*
               var travellers = []
               if(!empty(fieldMemeberGrid.getSelectedRows())){
                 for ( var i : fieldMemeberGrid.getSelectedRows()) {
@@ -349,20 +310,8 @@
                 }
               }
               return travellers;
+            */
             %>"
-          },
-          {
-            "outboundPath": "accompanyingTravellers",
-            "exclude": true,
-            "value": "<%
-                      var travellers = []
-                      if(!empty(fieldMemeberGrid.getSelectedRows())){
-                          for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                              travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                          }
-                      }
-                      return travellers;
-                      %>"
           },
           {
             "outboundPath": "alternateArrangementForChildren",
@@ -370,7 +319,7 @@
           },
           {
             "outboundPath": "phoneNumbers",
-            "value": "<% 'Multiinstance' %>"
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
             "outboundPath": "elevatedRisk",
@@ -390,8 +339,7 @@
           },
           {
             "outboundPath": "lodging.id",
-            "exclude": true,
-            "value": "<% '5673ac5b801f9001a44ba2d06f180000' %>"
+            "value": "<% %>"
           },
           {
             "outboundPath": "cancelConfirmation",
@@ -399,12 +347,10 @@
           },
           {
             "outboundPath": "status",
-            "exclude": true,
-            "value": "<% 'singleInstance' %>"
+            "value": "<% %>"
           },
           {
             "outboundPath": "initiator",
-            "exclude": true,
             "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
           },
           {
@@ -443,6 +389,8 @@
     }
 
     var phoneNumbersPV = getMobileNumbers.data;
+    console.info('getMobileNumbers.data[0] = ' + getMobileNumbers.data);
+    console.info('getMobileNumbers1.data = ' + getMobileNumbers1.data);
     for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
       phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
     };
@@ -467,6 +415,7 @@
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
+    console.info('pageVariables.phoneNumbers ' + json:asJSON(pageVariables.phoneNumbers));
   %>",
   "onSubmit": "<%
 
@@ -751,8 +700,8 @@
                         "type": "instanceList",
                         "id": "nameCell",
                         "displayKey": "number",
+                        "required": true,
                         "values": "<% pageVariables.phoneNumbers %>",
-
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
@@ -804,6 +753,7 @@
                     "type": "text",
                     "id": "phoneNumberCol",
                     "value": "",
+                    "required": true,
                     "valueOutBinding": "createMobileNumbers.data[].number",
                     "onChange": "<%
                       self.clearError();
