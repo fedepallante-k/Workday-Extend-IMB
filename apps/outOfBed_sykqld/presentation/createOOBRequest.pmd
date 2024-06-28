@@ -114,6 +114,8 @@
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
+          console.info('createFrequentTravellers self.data = ' +  json:asJSON(self.data));
+          console.info('OtherMemberGrid.getRows() = ' + json:asJSON(OtherMemberGrid.getRows()));
           self.data;
           %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -123,7 +125,22 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          self.data = {'data':[]};
+          for (var otherNumbers : allNumbers.getRows()) {
+            if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value && otherNumbers.childrenMap.NameCol.childrenMap.numberId.value == 'other'){
+              self.data.data.add({
+                  //'name': !empty(otherNumbers.childrenMap.NameCol.childrenMap.numberName.value) ? otherNumbers.childrenMap.NameCol.childrenMap.numberName.value : '',
+                  'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
+                  'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
+                  'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : ''
+              });
+            }
+          }
+          console.info(' createMobileNumbers self.data = ' + json:asJSON(self.data));
+        self.data;
+        %>"
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
@@ -182,15 +199,17 @@
           },
           {
             "outboundPath": "phoneNumbers",
-            "exclude":"<% empty(createMobileNumbers.data) %>",
-            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}})
-            /*
-            var mobileList =[];
-            console.info('createMobileNumbers =' + json:asJSON(createMobileNumbers));
-            mobileList = createMobileNumbers.data.map(x=> {{'id' : x.body.id}});
-            console.info('MobileNumber =' + json:asJSON(mobileList));
+            "exclude":"<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "value": "<%
+            var mobileList = !empty(createMobileNumbers.data) ? createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) : [];
+            if (!empty(allNumbers.getRows())){
+              for (var allOtherMembers : allNumbers.getRows()) {
+                if(allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value && allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value != 'other'){
+                  mobileList.add({'id' : allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value});
+                }
+              }
+            }
             return mobileList;
-            */
             %>"
           },
           {
@@ -389,8 +408,6 @@
     }
 
     var phoneNumbersPV = getMobileNumbers.data;
-    console.info('getMobileNumbers.data[0] = ' + getMobileNumbers.data);
-    console.info('getMobileNumbers1.data = ' + getMobileNumbers1.data);
     for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
       phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
     };
@@ -399,10 +416,8 @@
     for (var item : getWorkerDetails.data){
         personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
-          console.info('item is not empty');
         var q = 0;
           for( var child : item){
-            console.info('dependent = ' + child);
             if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
              personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
               q = q+1;
@@ -415,7 +430,6 @@
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
-    console.info('pageVariables.phoneNumbers ' + json:asJSON(pageVariables.phoneNumbers));
   %>",
   "onSubmit": "<%
 
@@ -685,7 +699,6 @@
               "type": "grid",
               "rows": "<% [] %>",
               "id": "allNumbers",
-              "isArrayOutBinding": true,
               "rowVariableName": "contactDetailsData",
               "label": "<% 'Phone Numbers you are travelling with' %>",
               "columns": [
@@ -699,35 +712,62 @@
                       {
                         "type": "instanceList",
                         "id": "nameCell",
-                        "displayKey": "number",
+                        "displayKey": "name",
                         "required": true,
                         "values": "<% pageVariables.phoneNumbers %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
-                            console.info('selectedNumberData = ' + selectedNumberData);
-                            notesCol.value = selectedNumberData.notes;
+                                console.info('selectedNumberData = ' + json:asJSON(selectedNumberData));
+                            numberId.value = selectedNumberData.id;
                             numberName.value = selectedNumberData.name;
+                            phoneNameCell.value = selectedNumberData.name;      
                                 //TODO
                             //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
                             phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
+                            notesCol.value = selectedNumberData.notes;
+                            phoneNameCell.enabled=false;
                           }
+                          else if(self.selectedEntries[0].id == 'other' || empty(self.selectedEntries[0].name)){
+                            numberId.value = 'other';
+                            phoneNameCell.enabled=true;    
+                          }    
                           else{
-                            notesCol.value = '';
+                            numberId.value = '';
+                            numberName.value = '';
                                 //TODO
                             //phoneCodeList.setValues = '';
                             phoneNumberCol.value = '';
+                            notesCol.value = '';
+                            phoneNameCell.enabled=false;
                           }
                         %>"
                   },
                       {
                         "type": "hidden",
                         "id": "numberName",
-                        "valueOutBinding": "createMobileNumbers.data[].name",
-                        "value": "<% !empty(nameCell.selectedEnteries[0].name) ? nameCell.selectedEnteries[0].name : '' %>"
+                        "_valueOutBinding": "createMobileNumbers.data[].name",
+                        "value": "<% %>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "numberId",
+                        "_valueOutBinding": "createMobileNumbers.data[].name",
+                        "value": "<%  %>"
                       }
                       ]
                     }
+                },
+                {
+                  "type": "column",
+                  "columnId": "phoneNameCol",
+                  "label": "<% 'Name' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneNameCell",
+                    "enabled": false,
+                    "value": ""
+                  }
                 },
                 {
                   "type": "column",
@@ -742,7 +782,7 @@
                     "idKey": "phoneCode",
                     "displayKey": "phoneCode",
                     "multiSelect": false,
-                    "valueOutBinding": "createMobileNumbers.data[].countryCode"
+                    "_valueOutBinding": "createMobileNumbers.data[].countryCode"
                   }
                 },
                 {
@@ -754,7 +794,7 @@
                     "id": "phoneNumberCol",
                     "value": "",
                     "required": true,
-                    "valueOutBinding": "createMobileNumbers.data[].number",
+                    "_valueOutBinding": "createMobileNumbers.data[].number",
                     "onChange": "<%
                       self.clearError();
                       if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
@@ -771,7 +811,7 @@
                     "type": "text",
                     "id": "notesCol",
                     "value": "",
-                    "valueOutBinding": "createMobileNumbers.data[].notes"
+                    "_valueOutBinding": "createMobileNumbers.data[].notes"
                   }
                 }
               ]
