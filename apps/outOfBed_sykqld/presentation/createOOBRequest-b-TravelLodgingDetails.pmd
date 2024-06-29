@@ -28,23 +28,18 @@
     }
 
     var toggleWidgets = function(values, widgetsMap, id) {
-        //console.info('widgetsMap' + json:asJSON(widgetsMap));
       if(widgetsMap.childrenMap){
         for (var widget : widgetsMap.childrenMap) {
-          console.info('widget = ' + json:asJSON(widget));
           if(!empty(widget.childrenMap) &&  !empty(widget.title) && widget.title.lowerCase().contains(id) ){
             widget.setVisible(true);
             for (var subwidget : widget.childrenMap) {
-              console.info('subwidget show = ' + json:asJSON(subwidget));
               empty(subwidget.children) ? subwidget.setVisible(true) : '';
               empty(subwidget.children) ? subwidget.setRequired(true) : '';
-              //!empty(subwidget.children) ? subwidget.children[0].visible = true : subwidget.setVisible(true);
-              //!empty(subwidget.children) ? subwidget.children[0].required = true : subwidget.setRequired(true);
+
             }
           }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains(id) ){
             widget.setVisible(false);
             for (var subwidget : widget.childrenMap) {
-              console.info('subwidget hide = ' + json:asJSON(subwidget));
               empty(subwidget.children) ? subwidget.setVisible(false) : '';
               empty(subwidget.children) ? subwidget.setRequired(false) : '';
             }
@@ -152,12 +147,12 @@
                       "enabled": true,
                       "values": "<% OOB.getModeOfTransport() %>",
                       "onChange": "<%
-                      if(!empty(self.selectedEntries[0].id)){
+                        if(!empty(self.selectedEntries[0].id)){
                           toggleWidgets(OOB.getModeOfTransport(), TravelDetails, self.selectedEntries[0].id);
-                      }
-                      else{
+                        }
+                        else{
                           toggleWidgets(OOB.getModeOfTransport(), TravelDetails, 'hide');
-                      }
+                        }
                       %>"
                     },
                     {
