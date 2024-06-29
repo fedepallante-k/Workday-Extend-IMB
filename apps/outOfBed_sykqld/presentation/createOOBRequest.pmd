@@ -318,7 +318,7 @@
           {
             "outboundPath": "accompanyingTravellers",
             "exclude": "<% createAccompanyingTravellers.data %>",
-            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}})
+            "value": "<% createAccompanyingTravellers.data
             /*
               var travellers = []
               if(!empty(fieldMemeberGrid.getSelectedRows())){
@@ -458,7 +458,8 @@
               "required": true,
               "enabled": true,
               "trueLabel": "True Label",
-              "falseLabel": "False Label"
+              "falseLabel": "False Label",
+              "value": true
             },
             {
               "type": "text",
@@ -466,7 +467,7 @@
               "id": "tripNameTxt",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "Test value"
             },
             {
               "type": "textArea",
@@ -474,7 +475,7 @@
               "id": "tripPurposeTxtA",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "Trip purpose"
             },
             {
               "type": "date",
@@ -509,6 +510,7 @@
               "required": true,
               "enabled": true,
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
+              "selectedValuesAndDescriptors": "<% [{'id': 'visitFriends', 'descriptor': 'I am visiting friends'}] %>",
               "searchEndPoint": "<% %>",
               "searchResultValues": "<% [] %>",
               "onChange": "<% self.selectedEntries[0].id == 'other' ? otherStsTxt.setVisible(true) : otherStsTxt.setVisible(false) %>"
@@ -665,7 +667,7 @@
               "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "Test info for arrangements for your dependent children"
             },
             {
               "type": "grid",

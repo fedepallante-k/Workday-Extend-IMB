@@ -1,0 +1,360 @@
+{
+  "id": "createOOBRequest-b-TravelLodgingDetails",
+  "endPoints": [
+  ],
+  "outboundData": {
+    "outboundEndPoints": [
+    ]
+  },
+  "include": [
+    "OOB.script",
+    "Dates.script"
+  ],
+  "script": "<%
+    var toggleWidgetVisible = function(toggle) {
+       for (var widget : air.childrenMap) {
+           if(widget.getlabel().contains('air'))
+               empty(widget.setVisible(toggle));
+       }
+    }
+
+    var toggleWidgetRequired = function(toggle, widgetsMap) {
+        console.info('widgetsMap' + json:asJSON(widgetsMap));
+        widgetsMap.setVisible(toggle);
+        for (var widget : widgetsMap.childrenMap) {
+            widget.setRequired(toggle);
+            widget.setVisible(toggle);
+        }
+    }
+
+    var toggleWidgets = function(values, widgetsMap, id, toggle) {
+        //console.info('widgetsMap' + json:asJSON(widgetsMap));
+      if(widgetsMap.childrenMap){
+        for (var widget : widgetsMap.childrenMap) {
+          console.info('widget = ' + json:asJSON(widget));
+          if(!empty(widget.childrenMap) && !empty(widget.title) && widget.title.lowerCase().contains(id) ){
+            widget.setVisible(true);
+            for (var subwidget : widget.childrenMap) {
+              //console.info('subwidget = ' + json:asJSON(subwidget));
+              subwidget.setVisible(true);
+              subwidget.setRequired(true);
+            }
+          }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains(id) ){
+            widget.setVisible(false);
+            for (var subwidget : widget.childrenMap) {
+              subwidget.setVisible(false);
+              subwidget.setRequired(false);
+            }
+          }
+        }
+      }
+    }
+
+  %>",
+  "onLoad": "<%
+             pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
+             pageVariables.sts = 'This is the STS';
+
+             %>",
+  "presentation": {
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
+    "title": {
+      "type": "title",
+      "label": "Workday Extend"
+    },
+    "body": {
+      "type": "section",
+      "horizontal": false,
+      "children": [
+        {
+          "type": "fieldSet",
+          "title": "Travel and Lodging Information",
+          "children": [
+            {
+              "type": "text",
+              "label": "accompanyingTravellers",
+              "id": "accompanyingTravellersTxt",
+              "required": false,
+              "enabled": false,
+              "value": "<% !empty(pageVariables.accompanyingTravellers) ? json:asJSON(pageVariables.accompanyingTravellers) : 'Empty' %>"
+            },
+            {
+              "type" : "loop",
+              "label": "Loop",
+              "on" : "<% pageVariables.accompanyingTravellers %>",
+              "as" : "objectToLoopOn",
+              "index": "i",
+              "children" : [
+                {
+                  "type": "fieldSet",
+                  "id": "TravelDetails",
+                  "title": "<% (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                  "collapsible": true,
+                  "children": [
+                    {
+                      "type" : "text",
+                      "label": "<% 'Segment Specific STS' %>",
+                      "value" : "<% pageVariables.sts %>"
+                    },
+                    {
+                      "type": "section",
+                      "columnWidthRatios": [0.2,0.8],
+                      "horizontal": true,
+                      "children": [
+                        {
+                          "type": "date",
+                          "label": "Depature Date",
+                          "id": "<% 'depatureDateDt' + objectToLoopOn.body.id %>",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>"
+                        },
+                        {
+                          "type": "text",
+                          "label": "Departure Time",
+                          "id": "departureTimeTxt",
+                          "required": true,
+                          "enabled": true
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "horizontal": true,
+                      "children": [
+                        {
+                          "type": "date",
+                          "label": "Arrival Date",
+                          "id": "arrivalDateDt",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>"
+                        },
+                        {
+                          "type": "text",
+                          "label": "Arrival Time",
+                          "id": "arrivalTimeTxt",
+                          "required": true,
+                          "enabled": true
+                        }
+                      ]
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "Mode of Transport",
+                      "id": "modeOfTransportIL",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "values": "<% OOB.getModeOfTransport() %>",
+                      "onChange": "<%
+                      if(!empty(self.selectedEntries[0].id)){
+                          toggleWidgets(OOB.getModeOfTransport(), TravelDetails, self.selectedEntries[0].id,self.selectedEntries[0].id=='air');
+                          /*
+                      self.selectedEntries[0].id == 'air' ? toggleWidgetRequired(true, air) : '';
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'air', air);
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'car', car);
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'bus', bus);
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'train', train);
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'boat', boat);
+                      toggleWidgetRequired((self.selectedEntries[0].id == 'train' || self.selectedEntries[0].id == 'bus'), busOrTrain);
+                      toggleWidgetRequired(self.selectedEntries[0].id == 'other', other);
+
+                      }
+                      else
+
+                      toggleWidgetRequired(false, air);
+                      toggleWidgetRequired(false, car);
+                      toggleWidgetRequired(false, bus);
+                      toggleWidgetRequired(false, boat);
+                      toggleWidgetRequired(false, busOrTrain);
+                      toggleWidgetRequired(false, other);
+                      */
+                      }
+                      %>"
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "air",
+                      "title": "Air",
+                      "label": "Air",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "text",
+                          "label": "Departure Airport",
+                          "id": "<% 'departureAirportTxt' %>",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        },
+                        {
+                          "type": "text",
+                          "label": "Arrival Airport",
+                          "id": "arrivalAirportTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        },
+                        {
+                          "type": "text",
+                          "label": "Airline",
+                          "id": "airlineTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "car",
+                      "title": "Car",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "radioGroup",
+                          "label": "Is this your assigned vehicle?",
+                          "id": "yourVehicleRG",
+                          "required": false,
+                          "enabled": true,
+                          "instanceList": [
+                            {
+                              "id": "yes",
+                              "descriptor": "Yes"
+                            },
+                            {
+                              "id": "no",
+                              "descriptor": "No"
+                            }
+                          ],
+                          "onChange": "<%
+                            if(self.value == ['yes']){
+                              giveCarDetailsTxt.setVisible(true);
+                              giveCarDetailsTxt.setRequired(true);
+                            }
+                            else{
+                              giveCarDetailsTxt.setVisible(false);
+                              giveCarDetailsTxt.setRequired(false);
+                            }
+                          %>"
+                        },
+                        {
+                          "type": "text",
+                          "label": "Give car details",
+                          "id": "giveCarDetailsTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "bus",
+                      "title": "Bus",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "text",
+                          "label": "Bus Number",
+                          "id": "busNumberTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "train",
+                      "title": "Train",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "text",
+                          "label": "TestField",
+                          "id": "testFieldTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": "Value"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "busOrTrain",
+                      "title": "Bus or Train",
+                      "visible": false,
+                      "children": [
+                        {
+                          "type": "text",
+                          "label": "Departure Station",
+                          "id": "departureStationTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        },
+                        {
+                          "type": "text",
+                          "label": "Arrival Station",
+                          "id": "arrivalStationTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "boat",
+                      "title": "Boat",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "text",
+                          "label": "TestBoat",
+                          "id": "testBoatTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": "Test boat"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "fieldSet",
+                      "id": "other",
+                      "title": "Other",
+                      "visible": false,
+                      "children":[
+                        {
+                          "type": "text",
+                          "label": "Mode Of Transport Other",
+                          "id": "modeOfTransportOtherTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": ""
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "children": [
+        {
+          "type": "richText",
+          "enabled": "false",
+          "value": "Powered By Workday Extend"
+        }
+      ]
+    }
+  }
+}

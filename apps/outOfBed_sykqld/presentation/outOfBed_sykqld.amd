@@ -44,7 +44,7 @@
           "transitions": [
             {
               "order": "a",
-              "value": "createOOBPart2",
+              "value": "oobRequestTravelLodging",
               "condition": "<% flowVariables.proceed %>"
             },
             {
@@ -56,7 +56,7 @@
           "taskId": "createOOBRequest"
         },
         {
-          "id": "createOOBPart2",
+          "id": "oobRequestTravelLodging",
           "transitions": [
             {
               "order": "a",
@@ -74,7 +74,7 @@
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
-          "taskId": "createOOBProfile"
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
         },
         {
           "id": "createOOBBackToRequest",
@@ -181,6 +181,13 @@
       "routingPattern": "createOOBReview",
       "page": {
         "id": "createOOBReview"
+      }
+    },
+    {
+      "id": "createOOBRequest-b-TravelLodgingDetails",
+      "routingPattern": "createOOBRequest-b-TravelLodgingDetails",
+      "page": {
+        "id": "createOOBRequest-b-TravelLodgingDetails"
       }
     }
   ],
