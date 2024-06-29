@@ -27,23 +27,26 @@
         }
     }
 
-    var toggleWidgets = function(values, widgetsMap, id, toggle) {
+    var toggleWidgets = function(values, widgetsMap, id) {
         //console.info('widgetsMap' + json:asJSON(widgetsMap));
       if(widgetsMap.childrenMap){
         for (var widget : widgetsMap.childrenMap) {
           console.info('widget = ' + json:asJSON(widget));
-          if(!empty(widget.childrenMap) && !empty(widget.title) && widget.title.lowerCase().contains(id) ){
+          if(!empty(widget.childrenMap) &&  !empty(widget.title) && widget.title.lowerCase().contains(id) ){
             widget.setVisible(true);
             for (var subwidget : widget.childrenMap) {
-              //console.info('subwidget = ' + json:asJSON(subwidget));
-              subwidget.setVisible(true);
-              subwidget.setRequired(true);
+              console.info('subwidget show = ' + json:asJSON(subwidget));
+              empty(subwidget.children) ? subwidget.setVisible(true) : '';
+              empty(subwidget.children) ? subwidget.setRequired(true) : '';
+              //!empty(subwidget.children) ? subwidget.children[0].visible = true : subwidget.setVisible(true);
+              //!empty(subwidget.children) ? subwidget.children[0].required = true : subwidget.setRequired(true);
             }
           }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains(id) ){
             widget.setVisible(false);
             for (var subwidget : widget.childrenMap) {
-              subwidget.setVisible(false);
-              subwidget.setRequired(false);
+              console.info('subwidget hide = ' + json:asJSON(subwidget));
+              empty(subwidget.children) ? subwidget.setVisible(false) : '';
+              empty(subwidget.children) ? subwidget.setRequired(false) : '';
             }
           }
         }
@@ -150,27 +153,10 @@
                       "values": "<% OOB.getModeOfTransport() %>",
                       "onChange": "<%
                       if(!empty(self.selectedEntries[0].id)){
-                          toggleWidgets(OOB.getModeOfTransport(), TravelDetails, self.selectedEntries[0].id,self.selectedEntries[0].id=='air');
-                          /*
-                      self.selectedEntries[0].id == 'air' ? toggleWidgetRequired(true, air) : '';
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'air', air);
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'car', car);
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'bus', bus);
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'train', train);
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'boat', boat);
-                      toggleWidgetRequired((self.selectedEntries[0].id == 'train' || self.selectedEntries[0].id == 'bus'), busOrTrain);
-                      toggleWidgetRequired(self.selectedEntries[0].id == 'other', other);
-
+                          toggleWidgets(OOB.getModeOfTransport(), TravelDetails, self.selectedEntries[0].id);
                       }
-                      else
-
-                      toggleWidgetRequired(false, air);
-                      toggleWidgetRequired(false, car);
-                      toggleWidgetRequired(false, bus);
-                      toggleWidgetRequired(false, boat);
-                      toggleWidgetRequired(false, busOrTrain);
-                      toggleWidgetRequired(false, other);
-                      */
+                      else{
+                          toggleWidgets(OOB.getModeOfTransport(), TravelDetails, 'hide');
                       }
                       %>"
                     },
@@ -231,22 +217,28 @@
                           ],
                           "onChange": "<%
                             if(self.value == ['yes']){
-                              giveCarDetailsTxt.setVisible(true);
-                              giveCarDetailsTxt.setRequired(true);
+                                carDetailsFS.setVisible(true);
+                                    giveCarDetailsTxt.setRequired(true);
                             }
                             else{
-                              giveCarDetailsTxt.setVisible(false);
-                              giveCarDetailsTxt.setRequired(false);
+                                carDetailsFS.setVisible(false);
+                                    giveCarDetailsTxt.setRequired(false);
                             }
                           %>"
                         },
                         {
-                          "type": "text",
-                          "label": "Give car details",
-                          "id": "giveCarDetailsTxt",
-                          "required": false,
-                          "enabled": true,
-                          "value": ""
+                          "type": "fieldSet",
+                          "id": "carDetailsFS",
+                          "visible": false,
+                          "children": [
+                            {
+                              "type": "text",
+                              "label": "Give car details",
+                              "id": "giveCarDetailsTxt",
+                              "required": false,
+                              "enabled": true
+                            }
+                          ]
                         }
                       ]
                     },
