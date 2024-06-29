@@ -59,6 +59,33 @@
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "mapAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          var updateList = [];
+          var updateMap = {:};
+
+                   console.info('createDestinations.data' + json:asJSON(createDestinations.data));
+                   console.info('updateAccompanyingTravellers.data' + json:asJSON(updateAccompanyingTravellers.data));
+                   var destinationList = createDestinations.data.map(x=> {{'id' : x.body.id}});
+                   var accTravellerList = updateAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
+                   console.info('destinationList = ' + destinationList);
+                   console.info('accTravellerList = ' + accTravellerList);
+
+          var counter = 0;
+        for(var x : accTravellerList){
+          updateList.add({'id' : x.id, 'lodging':destinationList[counter]});
+            counter += 1;
+        }
+          updateMap.add('data', updateList);
+        console.info('map = ' + json:asJSON(updateMap));
+                   %>"
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -151,6 +178,7 @@
             {
               "type" : "loop",
               "label": "Loop",
+              "id": "loopId",
               "on" : "<% pageVariables.accompanyingTravellers %>",
               "as" : "objectToLoopOn",
               "index": "i",
@@ -182,7 +210,7 @@
                         {
                           "type": "date",
                           "label": "Depature Date",
-                          "id": "<% 'depatureDateDt' + objectToLoopOn.body.id %>",
+                          "id": "depatureDateDt",
                           "required": true,
                           "enabled": true,
                           "value": "<% Dates.getDateTimeNowFormatted() %>",
@@ -193,7 +221,8 @@
                           "label": "Departure Time",
                           "id": "departureTimeTxt",
                           "required": true,
-                          "enabled": true
+                          "enabled": true,
+                          "value": "Test data"
                         }
                       ]
                     },
@@ -215,7 +244,8 @@
                           "label": "Arrival Time",
                           "id": "arrivalTimeTxt",
                           "required": true,
-                          "enabled": true
+                          "enabled": true,
+                          "value": "Test data"
                         }
                       ]
                     },
@@ -224,7 +254,7 @@
                       "label": "Mode of Transport",
                       "id": "modeOfTransportIL",
                       "multiSelect": false,
-                      "required": true,
+                      "required": false,
                       "enabled": true,
                       "values": "<% OOB.getModeOfTransport() %>",
                       "onChange": "<%
@@ -257,8 +287,8 @@
                           "id": "<% 'departureAirportTxt' %>",
                           "required": false,
                           "enabled": true,
-                          "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                          "value": "Test data",
+                          "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -266,8 +296,8 @@
                           "id": "arrivalAirportTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                          "value": "Test data",
+                          "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         },
                         {
                           "type": "text",
@@ -275,7 +305,7 @@
                           "id": "airlineTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "",
+                          "value": "test",
                           "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
@@ -461,7 +491,7 @@
                       "label": "Lodging/Destination Name",
                       "id": "lodgingIL",
                       "multiSelect": false,
-                      "required": true,
+                      "required": false,
                       "enabled": true,
                       "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
                       "onChange": "<%
@@ -487,7 +517,7 @@
                       "required": false,
                       "enabled": true,
                       "visible": true,
-                      "value": "",
+                      "value": "Test",
                       "valueOutBinding": "createDestinations.data[].name"
                     },
                     {
@@ -495,7 +525,7 @@
                       "label": "Country",
                       "id": "countryIl",
                       "multiSelect": false,
-                      "required": true,
+                      "required": false,
                       "enabled": true,
                       "visible": true,
                       "searchEndPoint": "<% endpoints.getCountrySearch %>",
@@ -530,7 +560,7 @@
                       "id": "addressLine1Txt",
                       "required": true,
                       "enabled": true,
-                      "value": "",
+                      "value": "1",
                       "valueOutBinding": "createDestinations.data[].addressLine1"
                     },
                     {
@@ -539,7 +569,7 @@
                       "id": "addressLine2Txt",
                       "required": false,
                       "enabled": true,
-                      "value": "",
+                      "value": "2",
                       "valueOutBinding": "createDestinations.data[].addressLine2"
                     },
                     {
@@ -548,14 +578,14 @@
                       "id": "addressLine3Txt",
                       "required": false,
                       "enabled": true,
-                      "value": "",
+                      "value": "3",
                       "valueOutBinding": "createDestinations.data[].addressLine3"
                     },
                     {
                       "type": "instanceList",
                       "label": "City",
                       "id": "cityIl",
-                      "required": true,
+                      "required": false,
                       "enabled": true,
                       "visible": true,
                       "idKey": "workdayID",
@@ -567,7 +597,7 @@
                       "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
                     },
                     {
-                      "type":"text",
+                      "type":"hidden",
                       "id": "cityText",
                       "value": "",
                       "valueOutBinding": "createDestinations.data[].city"
@@ -583,7 +613,7 @@
                       "onChange": "<% empty(self.selectedEntries[0]) ? (stateText.value = '') : (stateText.value = self.selectedEntries[0].descriptor) %>"
                     },
                     {
-                      "type":"text",
+                      "type":"hidden",
                       "id": "stateText",
                       "value": "",
                       "valueOutBinding": "createDestinations.data[].state"
@@ -594,7 +624,7 @@
                       "id": "postalCodeTxt",
                       "required": false,
                       "enabled": true,
-                      "value": "",
+                      "value": "<% i %> ",
                       "valueOutBinding": "createDestinations.data[].postalCode"
                     },
                     {
@@ -603,7 +633,7 @@
                       "id": "contactNumberOfDestinationTxt",
                       "required": false,
                       "enabled": true,
-                      "value": "",
+                      "value": "2",
                       "valueOutBinding": "createDestinations.data[].contactNumber"
                     },
                     {
