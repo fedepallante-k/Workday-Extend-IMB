@@ -29,9 +29,16 @@ var getModeOfTransport = function() {
   ];
 }
 
+var getStates = function(){
+    var query ='';
+    query = 'SELECT workdayID AS id, primaryAddress_StateProvince AS descriptor FROM locations (locationUsagesForLocation = (92b913cbeafb1000136edb3ea6df1349,6ec4cb72635310000ea06db19466001c,80a4c5e33475100010c66409e35f18f7,18aabff0e27710001792251dd8780016,9dbd28c0b4b610000ed4b8c501a40012,0d696403177610002174d1cc6e250038,744c7732706210000a5d7299e4f5026b,edb93c26ba0a100008ccb510e01f5951,e93aab9e7a7e100037a7757417bf7289,b60d72493d43100026e8f68f33f60044,16cf5f232c25100004f914cd8acd0008,fbe0f826480e46978f80b361d35f31df,4301eb420b084911a80ed549049bd1da,46db411c4a5245fbb39834d8b2cba049)) WHERE primaryAddress_StateProvince is not null ORDER BY primaryAddress_StateProvince ASC';
+    return query.urlEncode();
+}
+
 {
     "getCurrentTime": getCurrentTime,
     "getWorkerDetails": getWorkerDetails,
     "getSTS": getSTS,
-    "getModeOfTransport": getModeOfTransport
+    "getModeOfTransport": getModeOfTransport,
+    "getStates": getStates
 }
