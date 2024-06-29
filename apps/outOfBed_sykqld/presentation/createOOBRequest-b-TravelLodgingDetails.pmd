@@ -1,9 +1,78 @@
 {
   "id": "createOOBRequest-b-TravelLodgingDetails",
   "endPoints": [
+    {
+      "name": "getLodging",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID as id, Destination, name AS descriptor FROM outOfBed_sykqld_destinations ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getCountrySearch",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries WHERE countryName CONTAINS \"' + instanceListQuery.replace('+',' ') + '\"').urlEncode() %>",
+      "authType": "wcpisu",
+      "exclude": "<% empty instanceListQuery %>",
+      "deferred": true
+    },
+    {
+      "name": "getCitiesSearch",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, travelCity, travelCityName as descriptor, inactive FROM travelCities WHERE inactive = false AND travelCityName CONTAINS \"' + instanceListQuery.replace('+',' ') + '\" ORDER BY travelCityName ASC, country ASC').urlEncode() %>",
+      "authType": "wcpisu",
+      "exclude": "<% empty instanceListQuery %>",
+      "deferred": true
+    },
+    {
+      "name": "getCountriesSearch",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT country FROM countries WHERE countryName contains \\''+ instanceListQuery +'\\'').urlEncode() %>",
+      "authType": "wcpisu",
+      "deferred": true,
+      "exclude": "<% empty instanceListQuery %>"
+    },
+    {
+      "name": "getStates",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + OOB.getStates() %>",
+      "authType": "sso"
+    }
   ],
   "outboundData": {
     "outboundEndPoints": [
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "_onSend": "<% %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "transitionOutboundVars",
+        "type": "outboundVariable",
+        "variableScope": "flow",
+        "values": [
+          {
+            "outboundPath": "saveForLater",
+            "value": "<% !empty(saveForLaterBtn.value) %>"
+          },
+          {
+            "outboundPath": "proceed",
+            "value": "<% !empty(nextBtn.value) %>"
+          }
+        ]
+      }
     ]
   },
   "include": [
@@ -50,7 +119,9 @@
 
   %>",
   "onLoad": "<%
-             pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
+             pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
+             pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
+
              pageVariables.sts = 'This is the STS';
 
              %>",
@@ -87,13 +158,21 @@
                 {
                   "type": "fieldSet",
                   "id": "TravelDetails",
-                  "title": "<% (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                  "title": "<% 'Travel Details - '+ (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
                   "collapsible": true,
                   "children": [
                     {
+                      "type": "text",
+                      "label": "id",
+                      "enabled": false,
+                      "value": "<% !empty(objectToLoopOn.body.id) ? objectToLoopOn.body.id : 'empty'%>",
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].id"
+                    },
+                    {
                       "type" : "text",
                       "label": "<% 'Segment Specific STS' %>",
-                      "value" : "<% pageVariables.sts %>"
+                      "value" : "<% pageVariables.sts %>",
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].sts"
                     },
                     {
                       "type": "section",
@@ -106,7 +185,8 @@
                           "id": "<% 'depatureDateDt' + objectToLoopOn.body.id %>",
                           "required": true,
                           "enabled": true,
-                          "value": "<% date:now().format('yyyy-MM-dd') %>"
+                          "value": "<% Dates.getDateTimeNowFormatted() %>",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departureDate"
                         },
                         {
                           "type": "text",
@@ -127,7 +207,8 @@
                           "id": "arrivalDateDt",
                           "required": true,
                           "enabled": true,
-                          "value": "<% date:now().format('yyyy-MM-dd') %>"
+                          "value": "<% Dates.getDateTimeNowFormatted() %>",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalDate"
                         },
                         {
                           "type": "text",
@@ -149,11 +230,19 @@
                       "onChange": "<%
                         if(!empty(self.selectedEntries[0].id)){
                           toggleWidgets(OOB.getModeOfTransport(), TravelDetails, self.selectedEntries[0].id);
+                          modeOfTransportName.value = self.selectedEntries[0].descriptor;
                         }
                         else{
                           toggleWidgets(OOB.getModeOfTransport(), TravelDetails, 'hide');
+                          modeOfTransportName.value = '';
                         }
                       %>"
+                    },
+                    {
+                      "type":"hidden",
+                      "id": "modeOfTransportName",
+                      "value":"",
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
                     },
                     {
                       "type": "fieldSet",
@@ -168,7 +257,8 @@
                           "id": "<% 'departureAirportTxt' %>",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -176,7 +266,8 @@
                           "id": "arrivalAirportTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         },
                         {
                           "type": "text",
@@ -184,7 +275,8 @@
                           "id": "airlineTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
                     },
@@ -231,7 +323,8 @@
                               "label": "Give car details",
                               "id": "giveCarDetailsTxt",
                               "required": false,
-                              "enabled": true
+                              "enabled": true,
+                              "_test": "<%/*TODO no object to save field*/%>"
                             }
                           ]
                         }
@@ -249,7 +342,8 @@
                           "id": "busNumberTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
                     },
@@ -265,7 +359,8 @@
                           "id": "testFieldTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "Value"
+                          "value": "Value",
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
                     },
@@ -281,7 +376,8 @@
                           "id": "departureStationTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -289,7 +385,8 @@
                           "id": "arrivalStationTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         }
                       ]
                     },
@@ -305,7 +402,8 @@
                           "id": "testBoatTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "Test boat"
+                          "value": "Test boat",
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
                     },
@@ -321,25 +419,227 @@
                           "id": "modeOfTransportOtherTxt",
                           "required": false,
                           "enabled": true,
-                          "value": ""
+                          "value": "",
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
+                    }
+                  ]
+                },
+                {
+                  "type":"fieldSet",
+                  "id": "LodgingDetails",
+                  "title": "<% 'Lodging/Destination Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                  "children": [
+                    {
+                      "type": "section",
+                      "columnWidthRatios": [0.5,0.5],
+                      "horizontal": true,
+                      "children": [
+                        {
+                          "type": "date",
+                          "label": "Start Date",
+                          "id": "lodgingStartDateDt",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>",
+                          "valueOutBinding": "createDestinations.data[].startDate"
+                        },
+                        {
+                          "type": "date",
+                          "label": "End Date",
+                          "id": "lodgingEndDateDt",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>",
+                          "valueOutBinding": "createDestinations.data[].endDate"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "Lodging/Destination Name",
+                      "id": "lodgingIL",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
+                      "onChange": "<%
+                        if(empty(self.selectedEntries[0])){
+                          lodgingOtherTxt.value = '';
+                          lodgingOtherTxt.setVisible(false);
+                          lodgingOtherTxt.setRequired(false);
+                        }else if(self.selectedEntries[0].id == 'other'){
+                          lodgingOtherTxt.value = '';
+                          lodgingOtherTxt.setVisible(true);
+                          lodgingOtherTxt.setRequired(true);
+                        }else{
+                          lodgingOtherTxt.value = self.selectedEntries[0].descriptor;
+                          lodgingOtherTxt.setVisible(false);
+                          lodgingOtherTxt.setRequired(false);
+                        }
+                      %>"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Lodging Other",
+                      "id": "lodgingOtherTxt",
+                      "required": false,
+                      "enabled": true,
+                      "visible": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].name"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "Country",
+                      "id": "countryIl",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "visible": true,
+                      "searchEndPoint": "<% endpoints.getCountrySearch %>",
+                      "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
+                      "values": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
+                      "onChange": "<%
+                      if(empty(self.selectedEntries[0])){
+                        countryText.value = '';
+                        countryCodeText.value = '';
+                      }else{
+                        countryText.value = self.selectedEntries[0].descriptor;
+                        countryCodeText.value = self.selectedEntries[0].id;
+                      }
+                      %>"
+                    },
+                    {
+                      "type":"hidden",
+                      "id": "countryText",
+                      "value": ""
+                    },
+                    {
+                      "type":"text",
+                      "id": "countryCodeText",
+                      "label": "Country Code",
+                      "enabled": false,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].countryCode"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 1",
+                      "id": "addressLine1Txt",
+                      "required": true,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine1"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 2",
+                      "id": "addressLine2Txt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine2"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 3",
+                      "id": "addressLine3Txt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine3"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "City",
+                      "id": "cityIl",
+                      "required": true,
+                      "enabled": true,
+                      "visible": true,
+                      "idKey": "workdayID",
+                      "displayKey": "descriptor",
+                      "searchEndPoint": "<% endpoints.getCitiesSearch %>",
+                      "searchResultValues": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
+                      "values": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
+                      "selectedValuesAndDescriptors":"<% [] %>",
+                      "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
+                    },
+                    {
+                      "type":"text",
+                      "id": "cityText",
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].city"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "State/Province/County",
+                      "id": "stateIl",
+                      "required": "<% false %>",
+                      "enabled": true,
+                      "values": "<% !empty(getStates.data) ? getStates.data : []  %>",
+                      "visible": "<% true %>",
+                      "onChange": "<% empty(self.selectedEntries[0]) ? (stateText.value = '') : (stateText.value = self.selectedEntries[0].descriptor) %>"
+                    },
+                    {
+                      "type":"text",
+                      "id": "stateText",
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].state"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Postal Code",
+                      "id": "postalCodeTxt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].postalCode"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Contact Number of Destination",
+                      "id": "contactNumberOfDestinationTxt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].contactNumber"
+                    },
+                    {
+                      "type": "checkBox",
+                      "label": "Add this location to my frequent destination list",
+                      "id": "freqDestChbx",
+                      "required": false,
+                      "enabled": true,
+                      "trueLabel": "True Label",
+                      "falseLabel": "False Label",
+                      "value": ""
                     }
                   ]
                 }
               ]
             }
           ]
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "children": [
+        },
         {
-          "type": "richText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
+          "type": "editButtonBar",
+          "editButtons": [
+            {
+              "type": "editButton",
+              "label": "<% 'Next' %>",
+              "buttonType": "PRIMARY",
+              "sortOrder": "a",
+              "id": "nextBtn"
+            },
+            {
+              "type": "editButton",
+              "label": "<% 'Save For Later' %>",
+              "id": "saveForLaterBtn",
+              "sortOrder": "b",
+              "buttonType": "AUXILIARY"
+            }
+          ]
         }
       ]
     }
