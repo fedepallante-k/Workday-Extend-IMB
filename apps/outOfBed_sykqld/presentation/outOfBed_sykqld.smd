@@ -1,5 +1,5 @@
 {
-  "id": "AM_outOfBed_sykqld",
+  "id": "outOfBed_sykqld",
   "languages": [
     {
       "code": "en-US",
@@ -22,8 +22,8 @@
       }
     ]
   },
-  "siteId": "AM_outOfBed_sykqld",
+  "siteId": "outOfBed_sykqld",
   "cdnEnabled": true,
   "siteProperties": [],
-  "applicationId": "AM_outOfBed_sykqld"
+  "applicationId": "outOfBed_sykqld"
 }

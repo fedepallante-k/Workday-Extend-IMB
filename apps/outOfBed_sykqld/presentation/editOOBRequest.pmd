@@ -50,7 +50,7 @@
       "url": "Unable to be generated"
     }
   ],
-  "_securityDomains": [ ],
+  "securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "edit",

@@ -10,7 +10,7 @@
       "httpMethod": "GET"
     }
   ],
-  "_securityDomains": [ ],
+  "securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "view",

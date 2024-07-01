@@ -432,7 +432,7 @@
   "onSubmit": "<%
 
   %>",
-  "_securityDomains": [ ],
+  "securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "edit",
