@@ -144,11 +144,32 @@
         }
       }
     }
+
+  var mapData = function(widgetsMap, indexPos){
+      console.info('widgetsMap for index ' + indexPos + ' = ' + json:asJSON(widgetsMap) );
+      if(!empty(widgetsMap.childrenMap)){
+          for (var widget : widgetsMap.childrenMap) {
+              console.info('widget for index ' + indexPos + ' = ' + json:asJSON(widget) );
+              if(!empty(widget.childrenMap) &&  !empty(widget.title) && widget.title.lowerCase().contains('air') ){
+                  widget.setVisible(true);
+                      for (var subwidget : widget.childrenMap) {
+                          console.info('subwidget for index ' + indexPos + ' = ' + json:asJSON(subwidget) );
+                      }
+              }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains('air') ){
+
+
+              }
+          }
+      }
+      //pageVariables.mapOfTravelData[indexPos].add({'travelDetails': indexPos});
+      console.info('pageVariables.mapOfTravelData = ' + pageVariables.mapOfTravelData );
+  }
   %>",
   "onLoad": "<%
              pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
              pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
              pageVariables.sts = 'This is the STS';
+             pageVariables.mapOfTravelData = [];
 
              %>",
   "presentation": {
@@ -180,11 +201,11 @@
               "id": "loopId",
               "on" : "<% pageVariables.accompanyingTravellers %>",
               "as" : "objectToLoopOn",
-              "index": "i",
+              "index": "loopIndex",
               "children" : [
                 {
                   "type": "fieldSet",
-                  "id": "<% 'TravelDetails' + i %>",
+                  "id": "TravelDetails",
                   "title": "<% 'Travel Details - '+ (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
                   "collapsible": true,
                   "children": [
@@ -198,7 +219,7 @@
                     {
                       "type": "hidden",
                       "id": "indexId",
-                      "value": "<% i %>"
+                      "value": "<% loopIndex %>"
                     },
                     {
                       "type" : "text",
@@ -487,12 +508,14 @@
                       "value": "",
                       "onChange":"<%
                       if(self.value){
+                          console.info('loop = ' + loopId);
+                          //mapData(TravelDetails);
+                      /*
                           for (var x :  TravelDetails0.childrenMap){
-                              //loop has rows
+                              loop has rows
                       console.info('loop = ' + loopId);
-                      //console.info('Traveldetails = ' + TravelDetails0.childrenMap);
-                      }
-                      
+                      console.info('Traveldetails = ' + TravelDetails.childrenMap);
+                      }*/
                       }
                       %>"
                     },
@@ -503,6 +526,15 @@
                       "required": false,
                       "enabled": false,
                       "value": "empty"
+                    },
+                    {
+                      "type": "hidden",
+                      "id": "afterLoad",
+                      "value": "<%
+                                pageVariables.mapOfTravelData.add({'id': loopIndex});
+                                mapData(TravelDetails, loopIndex);
+
+                                %>"
                     }
                   ]
                 },
@@ -698,6 +730,14 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "text",
+              "label": "loop",
+              "id": "loopTxt",
+              "required": true,
+              "enabled": false,
+              "value": "<% loopId %> "
             }
           ]
         },
