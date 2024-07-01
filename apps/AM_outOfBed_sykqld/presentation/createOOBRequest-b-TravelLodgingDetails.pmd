@@ -68,13 +68,13 @@
         "onSend": "<%
           var updateList = [];
           var updateMap = {:};
+          var destinationList = createDestinations.data.map(x=> {{'id' : x.body.id}});
+          var accTravellerList = updateAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
 
-                   console.info('createDestinations.data' + json:asJSON(createDestinations.data));
-                   console.info('updateAccompanyingTravellers.data' + json:asJSON(updateAccompanyingTravellers.data));
-                   var destinationList = createDestinations.data.map(x=> {{'id' : x.body.id}});
-                   var accTravellerList = updateAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
-                   console.info('destinationList = ' + destinationList);
-                   console.info('accTravellerList = ' + accTravellerList);
+          console.info('createDestinations.data' + json:asJSON(createDestinations.data));
+          console.info('updateAccompanyingTravellers.data' + json:asJSON(updateAccompanyingTravellers.data));
+          console.info('destinationList = ' + destinationList);
+          console.info('accTravellerList = ' + accTravellerList);
 
           var counter = 0;
         for(var x : accTravellerList){
@@ -131,24 +131,23 @@
             for (var subwidget : widget.childrenMap) {
               empty(subwidget.children) ? subwidget.setVisible(true) : '';
               empty(subwidget.children) ? subwidget.setRequired(true) : '';
-
+              empty(subwidget.children) ? subwidget.setEnabled(true) : '';
             }
           }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains(id) ){
             widget.setVisible(false);
             for (var subwidget : widget.childrenMap) {
               empty(subwidget.children) ? subwidget.setVisible(false) : '';
               empty(subwidget.children) ? subwidget.setRequired(false) : '';
+              empty(subwidget.children) ? subwidget.setEnabled(false) : '';
             }
           }
         }
       }
     }
-
   %>",
   "onLoad": "<%
              pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
              pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
-
              pageVariables.sts = 'This is the STS';
 
              %>",
@@ -185,7 +184,7 @@
               "children" : [
                 {
                   "type": "fieldSet",
-                  "id": "TravelDetails",
+                  "id": "<% 'TravelDetails' + i %>",
                   "title": "<% 'Travel Details - '+ (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
                   "collapsible": true,
                   "children": [
@@ -195,6 +194,11 @@
                       "enabled": false,
                       "value": "<% !empty(objectToLoopOn.body.id) ? objectToLoopOn.body.id : 'empty'%>",
                       "valueOutBinding": "updateAccompanyingTravellers.data[].id"
+                    },
+                    {
+                      "type": "hidden",
+                      "id": "indexId",
+                      "value": "<% i %>"
                     },
                     {
                       "type" : "text",
@@ -222,7 +226,7 @@
                           "id": "departureTimeTxt",
                           "required": true,
                           "enabled": true,
-                          "value": "Test data"
+                          "value": ""
                         }
                       ]
                     },
@@ -245,7 +249,7 @@
                           "id": "arrivalTimeTxt",
                           "required": true,
                           "enabled": true,
-                          "value": "Test data"
+                          "value": ""
                         }
                       ]
                     },
@@ -254,7 +258,7 @@
                       "label": "Mode of Transport",
                       "id": "modeOfTransportIL",
                       "multiSelect": false,
-                      "required": false,
+                      "required": true,
                       "enabled": true,
                       "values": "<% OOB.getModeOfTransport() %>",
                       "onChange": "<%
@@ -287,8 +291,8 @@
                           "id": "<% 'departureAirportTxt' %>",
                           "required": false,
                           "enabled": true,
-                          "value": "Test data",
-                          "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -296,8 +300,8 @@
                           "id": "arrivalAirportTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "Test data",
-                          "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         },
                         {
                           "type": "text",
@@ -305,7 +309,7 @@
                           "id": "airlineTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "test",
+                          "value": "",
                           "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
@@ -389,7 +393,7 @@
                           "id": "testFieldTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "Value",
+                          "value": "",
                           "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
@@ -432,8 +436,26 @@
                           "id": "testBoatTxt",
                           "required": false,
                           "enabled": true,
-                          "value": "Test boat",
+                          "value": "",
                           "_test": "<%/*TODO no object to save field*/%>"
+                        },
+                        {
+                          "type": "text",
+                          "label": "Departure location",
+                          "id": "<% 'departureAirportTxt' %>",
+                          "required": false,
+                          "enabled": true,
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                        },
+                        {
+                          "type": "text",
+                          "label": "Arrival location",
+                          "id": "arrivalAirportTxt",
+                          "required": false,
+                          "enabled": true,
+                          "value": "",
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         }
                       ]
                     },
@@ -453,6 +475,34 @@
                           "_test": "<%/*TODO no object to save field*/%>"
                         }
                       ]
+                    },
+                    {
+                      "type": "checkBox",
+                      "label": "Add this location to my frequent destination list",
+                      "id": "copyTravelDetails",
+                      "required": false,
+                      "enabled": true,
+                      "trueLabel": "True Label",
+                      "falseLabel": "False Label",
+                      "value": "",
+                      "onChange":"<%
+                      if(self.value){
+                          for (var x :  TravelDetails0.childrenMap){
+                              //loop has rows
+                      console.info('loop = ' + loopId);
+                      //console.info('Traveldetails = ' + TravelDetails0.childrenMap);
+                      }
+                      
+                      }
+                      %>"
+                    },
+                    {
+                      "type": "text",
+                      "label": "test",
+                      "id": "testTxt",
+                      "required": false,
+                      "enabled": false,
+                      "value": "empty"
                     }
                   ]
                 },
@@ -491,33 +541,32 @@
                       "label": "Lodging/Destination Name",
                       "id": "lodgingIL",
                       "multiSelect": false,
-                      "required": false,
+                      "required": true,
                       "enabled": true,
                       "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
                       "onChange": "<%
                         if(empty(self.selectedEntries[0])){
                           lodgingOtherTxt.value = '';
-                          lodgingOtherTxt.setVisible(false);
+                          //lodgingOtherTxt.setVisible(false);
                           lodgingOtherTxt.setRequired(false);
                         }else if(self.selectedEntries[0].id == 'other'){
                           lodgingOtherTxt.value = '';
-                          lodgingOtherTxt.setVisible(true);
+                          //lodgingOtherTxt.setVisible(true);
                           lodgingOtherTxt.setRequired(true);
                         }else{
                           lodgingOtherTxt.value = self.selectedEntries[0].descriptor;
-                          lodgingOtherTxt.setVisible(false);
+                          //lodgingOtherTxt.setVisible(false);
                           lodgingOtherTxt.setRequired(false);
                         }
                       %>"
                     },
                     {
                       "type": "text",
-                      "label": "Lodging Other",
+                      "label": "Lodging Name",
                       "id": "lodgingOtherTxt",
                       "required": false,
-                      "enabled": true,
+                      "enabled": false,
                       "visible": true,
-                      "value": "Test",
                       "valueOutBinding": "createDestinations.data[].name"
                     },
                     {
@@ -525,7 +574,7 @@
                       "label": "Country",
                       "id": "countryIl",
                       "multiSelect": false,
-                      "required": false,
+                      "required": true,
                       "enabled": true,
                       "visible": true,
                       "searchEndPoint": "<% endpoints.getCountrySearch %>",
@@ -560,7 +609,7 @@
                       "id": "addressLine1Txt",
                       "required": true,
                       "enabled": true,
-                      "value": "1",
+                      "value": "",
                       "valueOutBinding": "createDestinations.data[].addressLine1"
                     },
                     {
@@ -569,7 +618,7 @@
                       "id": "addressLine2Txt",
                       "required": false,
                       "enabled": true,
-                      "value": "2",
+                      "value": "",
                       "valueOutBinding": "createDestinations.data[].addressLine2"
                     },
                     {
@@ -578,14 +627,14 @@
                       "id": "addressLine3Txt",
                       "required": false,
                       "enabled": true,
-                      "value": "3",
+                      "value": "",
                       "valueOutBinding": "createDestinations.data[].addressLine3"
                     },
                     {
                       "type": "instanceList",
                       "label": "City",
                       "id": "cityIl",
-                      "required": false,
+                      "required": true,
                       "enabled": true,
                       "visible": true,
                       "idKey": "workdayID",
@@ -624,7 +673,7 @@
                       "id": "postalCodeTxt",
                       "required": false,
                       "enabled": true,
-                      "value": "<% i %> ",
+                      "value": "",
                       "valueOutBinding": "createDestinations.data[].postalCode"
                     },
                     {
@@ -633,7 +682,7 @@
                       "id": "contactNumberOfDestinationTxt",
                       "required": false,
                       "enabled": true,
-                      "value": "2",
+                      "value": "",
                       "valueOutBinding": "createDestinations.data[].contactNumber"
                     },
                     {

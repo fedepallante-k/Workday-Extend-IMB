@@ -19,7 +19,7 @@
       "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>"
     }
   ],
-  "securityDomains": [ ],
+  "_securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "edit",

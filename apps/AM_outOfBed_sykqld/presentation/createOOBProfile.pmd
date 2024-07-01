@@ -27,7 +27,7 @@
       "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>"
     }
   ],
-  "securityDomains": [ ],
+  "_securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "edit",
