@@ -107,6 +107,7 @@
     "Dates.script"
   ],
   "script": "<%
+  /*
     var toggleWidgetVisible = function(toggle) {
        for (var widget : air.childrenMap) {
            if(widget.getlabel().contains('air'))
@@ -164,6 +165,35 @@
       //pageVariables.mapOfTravelData[indexPos].add({'travelDetails': indexPos});
       console.info('pageVariables.mapOfTravelData = ' + pageVariables.mapOfTravelData );
   }
+  */
+/*
+  var panelInfo = function(){
+  console.info('Enter Panel function');
+  console.info('travelPanel = ' + json:asJSON(travelPanel));
+
+  var travelList = [];
+
+    for(var q : travelPanel.getPanels()){
+        console.info('panels = ' + travelPanel.getPanels());
+        if(empty q.getChildren()[0].value){
+            var questionDetails = getTravelPayload(q);
+             travelList.add(questionDetails);
+        }else{
+            console.info('value is not empty');
+        }
+        console.info('travelList = ' + travelList);
+    }
+  }
+  */
+/*
+    var getTravelPayload = function(quest){
+        var travelDetailMap = {:};
+            travelDetailMap.add('id', quest.getChildren()[0].value);
+        var questionBody = quest.getChildren()[1].value;
+        travelDetailMap.add('questionBody', questionBody);
+        return travelDetailMap;
+    }
+*/
   %>",
   "onLoad": "<%
              pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
@@ -182,6 +212,8 @@
              pageVariables.departureLocation = [];
              pageVariables.arrivalLocation = [];
              pageVariables.other = [];
+
+
              %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -207,12 +239,12 @@
               "value": "<%!empty(pageVariables.accompanyingTravellers) ? json:asJSON(pageVariables.accompanyingTravellers) : 'Empty' %>"
             },
             {
-              "type" : "loop",
-              "label": "Loop",
-              "id": "loopId",
-              "on" : "<% pageVariables.accompanyingTravellers %>",
-              "as" : "objectToLoopOn",
-              "index": "loopIndex",
+              "type": "panelList",
+              "label": "Expense Items",
+              "id": "travelPanel",
+              "panels": "<% pageVariables.accompanyingTravellers %>",
+              "panelName": "travelAndLodging",
+              "indexVariableName": "loopIndex",
               "children" : [
                 {
                   "type": "fieldSet",
@@ -239,7 +271,7 @@
                       "onChange":"<%
                       //TODO - check not empty
                       if(self.value){
-                        console.info('Full list = ' + json:asJSON(pageVariables.sts));
+                        //console.info('Full list = ' + json:asJSON(pageVariables.sts));
                         var postion = string:toInt(indexId.value) -1;
                         stsValue.setValue(pageVariables.sts[postion]);
                         depatureDateDt.setValue(pageVariables.departureDate[postion]);
@@ -342,7 +374,7 @@
                                   pageVariables.departureLocation[loopIndex].set(loopIndex, accompanyingTravellerId.value);
                                   pageVariables.arrivalLocation[loopIndex].set(loopIndex, accompanyingTravellerId.value);
                                 }
-                                console.info('Initialise the lists = ' + json:asJSON(pageVariables.sts));
+                                //console.info('Initialise the lists = ' + json:asJSON(pageVariables.sts));
                                 %>"
                     },
                     {
@@ -352,13 +384,13 @@
                       "value" : "<% pageVariables.sts %>",
                       "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
                       "onChange": "<%
-                        var position = string:toInt(indexId.value)
-                                   if(!empty(pageVariables.sts)){
-                                       pageVariables.sts.set(position, self.value);
-                                   }
-                                   console.info('sts change list = ' + pageVariables.sts);
+                        //var position = string:toInt(indexId.value)
+                         //          if(!empty(pageVariables.sts)){
+                        //               pageVariables.sts.set(position, self.value);
+                         //          }
+                                   //console.info('sts change list = ' + pageVariables.sts);
+                        panelInfo();
                                    %>"
-
                     },
                     {
                       "type": "section",
