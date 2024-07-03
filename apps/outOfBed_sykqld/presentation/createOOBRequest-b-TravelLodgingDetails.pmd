@@ -156,8 +156,6 @@
                           console.info('subwidget for index ' + indexPos + ' = ' + json:asJSON(subwidget) );
                       }
               }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains('air') ){
-
-
               }
           }
       }
@@ -176,7 +174,8 @@
     var getTravelDetails = function (travelWidget){
         var travelPayload = {:};
         travelPayload.add()
-        for(var values : travelWidget.childrenMap){
+        if(!empty(travelWidget.childrenMap)){
+        for(var values : travelWidget[0].childrenMap){
              travelPayload.add('sts',  values.departureStationTxt.value);
       travelPayload.add('sts',  values.departureStationTxt.value);
       travelPayload.add('departureDate',  values.departureStationTxt.value);
@@ -188,6 +187,8 @@
       travelPayload.add('fromProfile', values.departureStationTxt.value);
       travelPayload.add('lastName', values.departureStationTxt.value);
         }
+  }
+        return travelPayload;
 
     }
 
@@ -208,8 +209,9 @@
 
                 for (var TravelDetails : TravelLodging.getChildren()) {
                  console.info('TravelDetails = ' + json:asJSON(TravelDetails));
-                     getTravelDetails(TravelDetails);
+                    var payload = getTravelDetails(TravelDetails);
              }
+                console.info('payload = ' + json:asJSON(payload));
 
                 /*
                 if(empty q.getChildren()[0].value){
@@ -228,7 +230,6 @@
              pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
              pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
              pageVariables.sts = 'This is the STS';
-
              %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -253,12 +254,19 @@
               "enabled": false,
               "value": "<%!empty(pageVariables.accompanyingTravellers) ? json:asJSON(pageVariables.accompanyingTravellers) : 'Empty' %>"
             },
+              //section to wrap everything so i can iterate on the children to save data
+            //wrap in loop (loop is invisible)
+           //loop will iterate on logan
+          //wrap the below in a section
+          //create two fieldsets (2 field sets within
+          //within the fields sets is the two panel lists - travel and Lodging
+          // when storing the accompanying traveller to the OOB request. Can we have multiple panels per accompany traveller?
             {
               "type": "panelList",
-              "label": "Expense Items",
+              "label": "Travel Events",
               "id": "travelPanel",
               "panels": "<% pageVariables.accompanyingTravellers %>",
-              "panelName": "travelAndLodging",
+              "panelName": "travelDeatilsPanels",
               "indexVariableName": "loopIndex",
               "children" : [
                 {
@@ -296,25 +304,14 @@
                       "valueOutBinding": "updateAccompanyingTravellers.data[].id"
                     },
                     {
-                      "type": "instanceList",
-                      "label": "Travller",
-                      "id": "travellerIL",
-                      "multiSelect": false,
-                      "required": true,
-                      "enabled": true,
-                      "values": "<% travelAndLodging.body.map(x => {{'id': x.id, 'descriptor': x.firstName }}) %>",
-                      "onChange": "<%   %>"
-                    },
-                    {
                       "type" : "text",
                       "id": "stsValue",
                       "label": "<% 'Segment Specific STS' %>",
                       "value" : "",
                       "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
                       "onChange": "<%
-                                   panelInfo();
-                                   %>"
-
+                       panelInfo();
+                      %>"
                     },
 
                         {
@@ -528,13 +525,212 @@
 
               ]
             },
+          //wrap
             {
-              "type": "text",
-              "label": "loop",
-              "id": "loopTxt",
-              "required": true,
-              "enabled": false,
-              "value": "<% 'test' %> "
+              "type": "panelList",
+              "label": "Lodging Events",
+              "id": "LodgingPanel",
+              "panels": "<% pageVariables.accompanyingTravellers %>",
+              "panelName": "lodgingDetailsPanels",
+              "indexVariableName": "loopIndex",
+              "children" : [
+                {
+                  "type":"fieldSet",
+                  "id": "LodgingDetails",
+                  "title": "<% 'Lodging/Destination Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                  "collapsible": true,
+                  "children": [
+                    {
+                      "type": "section",
+                      "columnWidthRatios": [0.5,0.5],
+                      "horizontal": true,
+                      "children": [
+                        {
+                          "type": "date",
+                          "label": "Start Date",
+                          "id": "lodgingStartDateDt",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>",
+                          "valueOutBinding": "createDestinations.data[].startDate"
+                        },
+                        {
+                          "type": "date",
+                          "label": "End Date",
+                          "id": "lodgingEndDateDt",
+                          "required": true,
+                          "enabled": true,
+                          "value": "<% date:now().format('yyyy-MM-dd') %>",
+                          "valueOutBinding": "createDestinations.data[].endDate"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "Lodging/Destination Name",
+                      "id": "lodgingIL",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
+                      "onChange": "<%
+                                   if(empty(self.selectedEntries[0])){
+                                       lodgingOtherTxt.value = '';
+                                           //lodgingOtherTxt.setVisible(false);
+                                           lodgingOtherTxt.setRequired(false);
+                                   }else if(self.selectedEntries[0].id == 'other'){
+                                       lodgingOtherTxt.value = '';
+                                           //lodgingOtherTxt.setVisible(true);
+                                           lodgingOtherTxt.setRequired(true);
+                                   }else{
+                                       lodgingOtherTxt.value = self.selectedEntries[0].descriptor;
+                                           //lodgingOtherTxt.setVisible(false);
+                                           lodgingOtherTxt.setRequired(false);
+                                   }
+                                   %>"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Lodging Name",
+                      "id": "lodgingOtherTxt",
+                      "required": false,
+                      "enabled": false,
+                      "visible": true,
+                      "valueOutBinding": "createDestinations.data[].name"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "Country",
+                      "id": "countryIl",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "visible": true,
+                      "searchEndPoint": "<% endpoints.getCountrySearch %>",
+                      "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
+                      "values": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
+                      "onChange": "<%
+                                   if(empty(self.selectedEntries[0])){
+                                       countryText.value = '';
+                                           countryCodeText.value = '';
+                                   }else{
+                                       countryText.value = self.selectedEntries[0].descriptor;
+                                           countryCodeText.value = self.selectedEntries[0].id;
+                                   }
+                                   %>"
+                    },
+                    {
+                      "type":"hidden",
+                      "id": "countryText",
+                      "value": ""
+                    },
+                    {
+                      "type":"text",
+                      "id": "countryCodeText",
+                      "label": "Country Code",
+                      "enabled": false,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].countryCode"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 1",
+                      "id": "addressLine1Txt",
+                      "required": true,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine1"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 2",
+                      "id": "addressLine2Txt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine2"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Address Line 3",
+                      "id": "addressLine3Txt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].addressLine3"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "City",
+                      "id": "cityIl",
+                      "required": true,
+                      "enabled": true,
+                      "visible": true,
+                      "idKey": "workdayID",
+                      "displayKey": "descriptor",
+                      "searchEndPoint": "<% endpoints.getCitiesSearch %>",
+                      "searchResultValues": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
+                      "values": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
+                      "selectedValuesAndDescriptors":"<% [] %>",
+                      "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
+                    },
+                    {
+                      "type":"hidden",
+                      "id": "cityText",
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].city"
+                    },
+                    {
+                      "type": "instanceList",
+                      "label": "State/Province/County",
+                      "id": "stateIl",
+                      "required": "<% false %>",
+                      "enabled": true,
+                      "values": "<% !empty(getStates.data) ? getStates.data : []  %>",
+                      "visible": "<% true %>",
+                      "onChange": "<% empty(self.selectedEntries[0]) ? (stateText.value = '') : (stateText.value = self.selectedEntries[0].descriptor) %>"
+                    },
+                    {
+                      "type":"hidden",
+                      "id": "stateText",
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].state"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Postal Code",
+                      "id": "postalCodeTxt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].postalCode"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Contact Number of Destination",
+                      "id": "contactNumberOfDestinationTxt",
+                      "required": false,
+                      "enabled": true,
+                      "value": "",
+                      "valueOutBinding": "createDestinations.data[].contactNumber"
+                    },
+                    {
+                      "type": "checkBox",
+                      "label": "Add this location to my frequent destination list",
+                      "id": "freqDestChbx",
+                      "required": false,
+                      "enabled": true,
+                      "trueLabel": "True Label",
+                      "falseLabel": "False Label",
+                      "value": ""
+                    }
+                  ]
+                }
+
+
+
+
+              ]
             }
           ]
         },
