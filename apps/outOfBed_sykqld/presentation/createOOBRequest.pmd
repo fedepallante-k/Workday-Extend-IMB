@@ -90,6 +90,11 @@
           }
         }
 
+        if(!empty(staffMemeberGrid.getSelectedRows())){
+            for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+                addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' ')});
+            }
+        }
         if(!empty(fieldMemeberGrid.getSelectedRows())){
           for ( var i : fieldMemeberGrid.getSelectedRows()) {
             addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' ')});
@@ -624,6 +629,7 @@
                   "children":[
                     {
                       "type": "grid",
+                      "id": "staffMemeberGrid",
                       "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
                       "render": "<% !pageVariables.isField %>",
