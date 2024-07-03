@@ -401,15 +401,15 @@
           },
           {
             "outboundPath": "lodging.id",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "cancelConfirmation",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "status",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "initiator",
@@ -444,7 +444,7 @@
         var i = 0;
         for( var child : item.dependent){
             if(child.isSpouse != true){
-          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
           }
           i = i+1;
         }
@@ -464,13 +464,14 @@
         var q = 0;
           for( var child : item){
             if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
-             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
               q = q+1;
             }
         }
         i=0;
       }
     };
+
     
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
@@ -480,7 +481,31 @@
 
   %>",
   "securityDomains": [ ],
-  "script": "",
+  "script": "<%
+
+             var childrenArrangments = function(){
+                 var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+
+                 for(var children : counter){
+                     console.info('childern = ' + json:asJSON(children));
+                     if(!children.isSelected()){
+                         alternativeTxtA.setVisible(true);
+                         alternativeTxtA.setRequired(true);
+                         AlternativeRTxt.setVisible(true);
+                     }else{
+                         alternativeTxtA.setVisible(false);
+                         alternativeTxtA.setRequired(false);
+                         AlternativeRTxt.setVisible(false);
+                     }
+                 }
+
+                 if(!empty(fieldMemeberGrid.getSelectedRows())){
+                     for ( var selectedMembers : fieldMemeberGrid.getSelectedRows()) {
+
+                     }
+                 }
+             }
+             %>",
   "presentation": {
     "pageType": "edit",
     "title": {
@@ -583,6 +608,7 @@
               "children": [
                 {
                   "type": "fieldSet",
+                  "render": "<% pageVariables.isField %>",
                   "children": [
                     {
                       "type": "grid",
@@ -590,6 +616,7 @@
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
                       "render": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
+                      "onRowSelect": "<% childrenArrangments() %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
@@ -616,6 +643,11 @@
                                 "type": "hidden",
                                 "id": "staffId",
                                 "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "relationship",
+                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.relationship : '' %>"
                               }
                             ]
                           }
@@ -626,6 +658,7 @@
                 },
                 {
                   "type": "fieldSet",
+                  "render": "<% !pageVariables.isField %>",
                   "children":[
                     {
                       "type": "grid",
@@ -664,6 +697,23 @@
               ]
             },
             {
+              "type": "richText",
+              "label": "Alternative arrangements for Dependent Children ",
+              "id": "AlternativeRTxt",
+              "required": false,
+              "visible": "<% pageVariables.isField %>",
+              "enabled": false
+            },
+            {
+              "type": "textArea",
+              "id": "alternativeTxtA",
+              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
+              "required": "<% pageVariables.isField %>",
+              "enabled": true,
+              "visible": "<% pageVariables.isField %>",
+              "value": ""
+            },
+            {
               "type": "checkBox",
               "label": "Other individuals (not list above) that will be traveling",
               "id": "otherIndividualsChbx",
@@ -699,21 +749,6 @@
                   }
                 }
               ]
-            },
-            {
-              "type": "richText",
-              "label": "Alternative arrangements for Dependent Children ",
-              "id": "AlternativeRTxt",
-              "required": false,
-              "enabled": false
-            },
-            {
-              "type": "textArea",
-              "id": "alternativeTxtA",
-              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
-              "required": true,
-              "enabled": true,
-              "value": ""
             },
             {
               "type": "grid",
@@ -765,12 +800,12 @@
                       {
                         "type": "hidden",
                         "id": "numberName",
-                        "value": "<% %>"
+                        "value": ""
                       },
                       {
                         "type": "hidden",
                         "id": "numberId",
-                        "value": "<%  %>"
+                        "value": ""
                       }
                       ]
                     }
