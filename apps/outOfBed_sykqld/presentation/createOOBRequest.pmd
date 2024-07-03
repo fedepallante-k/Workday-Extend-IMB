@@ -43,7 +43,7 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
       "authType": "sso"
     },
     {
@@ -476,7 +476,8 @@
     
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
-    pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
+    //pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
+    pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
   %>",
   "onSubmit": "<%
 
