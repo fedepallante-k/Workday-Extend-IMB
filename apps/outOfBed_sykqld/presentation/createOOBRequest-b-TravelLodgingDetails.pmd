@@ -164,24 +164,71 @@
       //pageVariables.mapOfTravelData[indexPos].add({'travelDetails': indexPos});
       console.info('pageVariables.mapOfTravelData = ' + pageVariables.mapOfTravelData );
   }
+
+    var getTravelPayload = function(quest){
+        var travelDetailMap = {:};
+        travelDetailMap.add('id', quest.getChildren()[0].value);
+        var questionBody = quest.getChildren()[1].value;
+        travelDetailMap.add('questionBody', questionBody);
+        return travelDetailMap;
+    }
+
+    var getTravelDetails = function (travelWidget){
+        var travelPayload = {:};
+        travelPayload.add()
+        for(var values : travelWidget.childrenMap){
+             travelPayload.add('sts',  values.departureStationTxt.value);
+      travelPayload.add('sts',  values.departureStationTxt.value);
+      travelPayload.add('departureDate',  values.departureStationTxt.value);
+      travelPayload.add('arrivalDate',  values.departureStationTxt.value);
+      travelPayload.add('modeOfTransport',  values.departureStationTxt.value);
+            travelPayload.add('departurePoint', values.departureStationTxt.value);
+            travelPayload.add('arrivalPoint', values.departureStationTxt.value);
+             travelPayload.add('lodging', values.departureStationTxt.value);
+      travelPayload.add('fromProfile', values.departureStationTxt.value);
+      travelPayload.add('lastName', values.departureStationTxt.value);
+        }
+
+    }
+
+
+    var panelInfo = function(){
+        console.info('Enter Panel function');
+        console.info('travelPanel = ' + json:asJSON(travelPanel));
+        console.info('travelPanel.getPanels() = ' + json:asJSON(travelPanel.getPanels()));
+
+        var travelPayload = {:};
+        var travelList = [];
+
+        for(var TravelLodging : travelPanel.getPanels()){
+            console.info('Travel and Loding = ' + json:asJSON(TravelLodging));
+            console.info('children = ' + json:asJSON(TravelLodging.getChildren()));
+                console.info('children[0] = ' + json:asJSON(TravelLodging.getChildren()[0]));
+                console.info('children[0].title = ' + json:asJSON(TravelLodging.getChildren()[0].title));
+
+                for (var TravelDetails : TravelLodging.getChildren()) {
+                 console.info('TravelDetails = ' + json:asJSON(TravelDetails));
+                     getTravelDetails(TravelDetails);
+             }
+
+                /*
+                if(empty q.getChildren()[0].value){
+
+                        console.info('qchildren = ' + qchildren);
+                    var questionDetails = getTravelPayload(q);
+                        travelList.add(questionDetails);
+                }
+*/
+        }
+
+    }
+
   %>",
   "onLoad": "<%
              pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
              pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
              pageVariables.sts = 'This is the STS';
-             pageVariables.mapOfTravelData = [];
 
-             pageVariables.sts = [];
-             pageVariables.departureDate = [];
-             pageVariables.arrivalDate = [];
-             pageVariables.modeOfTransport = [];
-             pageVariables.carAssigned = [];
-             pageVariables.carDetails = [];
-             pageVariables.airline = [];
-             pageVariables.busNumber = [];
-             pageVariables.departureLocation = [];
-             pageVariables.arrivalLocation = [];
-             pageVariables.other = [];
              %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -207,17 +254,17 @@
               "value": "<%!empty(pageVariables.accompanyingTravellers) ? json:asJSON(pageVariables.accompanyingTravellers) : 'Empty' %>"
             },
             {
-              "type" : "loop",
-              "label": "Loop",
-              "id": "loopId",
-              "on" : "<% pageVariables.accompanyingTravellers %>",
-              "as" : "objectToLoopOn",
-              "index": "loopIndex",
+              "type": "panelList",
+              "label": "Expense Items",
+              "id": "travelPanel",
+              "panels": "<% pageVariables.accompanyingTravellers %>",
+              "panelName": "travelAndLodging",
+              "indexVariableName": "loopIndex",
               "children" : [
                 {
                   "type": "fieldSet",
                   "id": "TravelDetails",
-                  "title": "<% 'Travel Details - '+ (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                  "title": "<% 'Travel Details - '%>",
                   "collapsible": true,
                   "children": [
                     {
@@ -238,76 +285,6 @@
                       "value": "",
                       "onChange":"<%
                       //TODO - check not empty
-                      if(self.value){
-                        console.info('Full list = ' + json:asJSON(pageVariables.sts));
-                        var postion = string:toInt(indexId.value) -1;
-                        stsValue.setValue(pageVariables.sts[postion]);
-                        depatureDateDt.setValue(pageVariables.departureDate[postion]);
-                        arrivalDateDt.setValue(pageVariables.arrivalDate[postion]);
-                        modeOfTransportIL.setValue([pageVariables.modeOfTransport[postion].id]);
-                        modeOfTransportName.setValue(pageVariables.modeOfTransport[postion].descriptor);
-
-                        if(!empty(pageVariables.modeOfTransport[postion].id)){
-                          toggleWidgets(TravelDetails, pageVariables.modeOfTransport[postion].id )
-                        }else{
-                          toggleWidgets(TravelDetails, 'hide');
-                          modeOfTransportName.value = '';
-                        }
-
-                        if(pageVariables.modeOfTransport[postion].id == 'air'){
-                          departureAirportTxt.setValue(pageVariables.departureLocation[postion]);
-                          arrivalAirportTxt.setValue(pageVariables.arrivalLocation[postion]);
-                          airlineTxt.setValue(pageVariables.airline[postion]);
-                          departureStationTxt.setValue('');
-                          yourVehicleRG.setValue(null);
-                          giveCarDetailsTxt.setValue('');
-                          busNumberTxt.setValue('');
-                        }else if(pageVariables.modeOfTransport[postion].id == 'train'){
-                          departureStationTxt.setValue(pageVariables.departureLocation[postion]);
-                          departureAirportTxt.setValue('');
-                          arrivalAirportTxt.setValue('');
-                          airlineTxt.setValue('');
-                          yourVehicleRG.setValue(null);
-                          giveCarDetailsTxt.setValue('');
-                          busNumberTxt.setValue('');
-                        }else if(pageVariables.modeOfTransport[postion].id == 'car'){
-                          yourVehicleRG.setValue([pageVariables.carAssigned[postion]]);
-                          giveCarDetailsTxt.setVisible(true);
-                          giveCarDetailsTxt.setValue(pageVariables.carDetails[postion]);
-                          departureAirportTxt.setValue('');
-                          arrivalAirportTxt.setValue('');
-                          airlineTxt.setValue('');
-                          departureStationTxt.setValue('');
-                          busNumberTxt.setValue('');
-                        }else if(pageVariables.modeOfTransport[postion].id == 'bus'){
-                          busNumberTxt.setValue(pageVariables.busNumber[postion]);
-                          departureAirportTxt.setValue('');
-                          arrivalAirportTxt.setValue('');
-                          airlineTxt.setValue('');
-                          departureStationTxt.setValue('');
-                          yourVehicleRG.setValue(null);
-                          giveCarDetailsTxt.setValue('');
-                        }else{
-                          departureAirportTxt.setValue('');
-                          arrivalAirportTxt.setValue('');
-                          airlineTxt.setValue('');
-                          departureStationTxt.setValue('');
-                          yourVehicleRG.setValue(null);
-                          giveCarDetailsTxt.setValue('');
-                          busNumberTxt.setValue('');
-                        }
-                      }else{
-                          departureAirportTxt.setValue('');
-                          arrivalAirportTxt.setValue('');
-                          airlineTxt.setValue('');
-                          departureStationTxt.setValue('');
-                          yourVehicleRG.setValue(null);
-                          giveCarDetailsTxt.setValue('');
-                          busNumberTxt.setValue('');
-                          toggleWidgets(TravelDetails, 'hide');
-                          modeOfTransportName.value = '';
-                          giveCarDetailsTxt.setVisible(false);
-                      }
                       %>"
                     },
                     {
@@ -319,52 +296,27 @@
                       "valueOutBinding": "updateAccompanyingTravellers.data[].id"
                     },
                     {
-                      "type": "hidden",
-                      "id": "initialiseLists",
-                      "value": "<%
-                                if(empty(pageVariables.sts) || empty(pageVariables.sts[loopIndex])){
-                                pageVariables.sts.add(' ');
-                                pageVariables.departureDate.add(' ');
-                                pageVariables.arrivalDate.add(' ');
-                                pageVariables.modeOfTransport.add(' ');
-                                pageVariables.departureLocation.add(' ');
-                                pageVariables.arrivalLocation.add(' ');
-                                pageVariables.airline.add(' ');
-                                pageVariables.carAssigned.add(' ');
-                                pageVariables.carDetails.add(' ');
-                                pageVariables.busNumber.add(' ');
-                                pageVariables.other = [];
-                                } else{
-                                  pageVariables.sts[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                  pageVariables.departureDate[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                  pageVariables.arrivalDate[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                  pageVariables.modeOfTransport[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                  pageVariables.departureLocation[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                  pageVariables.arrivalLocation[loopIndex].set(loopIndex, accompanyingTravellerId.value);
-                                }
-                                console.info('Initialise the lists = ' + json:asJSON(pageVariables.sts));
-                                %>"
+                      "type": "instanceList",
+                      "label": "Travller",
+                      "id": "travellerIL",
+                      "multiSelect": false,
+                      "required": true,
+                      "enabled": true,
+                      "values": "<% travelAndLodging.body.map(x => {{'id': x.id, 'descriptor': x.firstName }}) %>",
+                      "onChange": "<%   %>"
                     },
                     {
                       "type" : "text",
                       "id": "stsValue",
                       "label": "<% 'Segment Specific STS' %>",
-                      "value" : "<% pageVariables.sts %>",
+                      "value" : "",
                       "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
                       "onChange": "<%
-                        var position = string:toInt(indexId.value)
-                                   if(!empty(pageVariables.sts)){
-                                       pageVariables.sts.set(position, self.value);
-                                   }
-                                   console.info('sts change list = ' + pageVariables.sts);
+                                   panelInfo();
                                    %>"
 
                     },
-                    {
-                      "type": "section",
-                      "columnWidthRatios": [0.2,0.8],
-                      "horizontal": true,
-                      "children": [
+
                         {
                           "type": "date",
                           "label": "Depature Date",
@@ -374,12 +326,6 @@
                           "value": "<% Dates.getDateTimeNowFormatted() %>",
                           "valueOutBinding": "updateAccompanyingTravellers.data[].departureDate",
                           "onChange": "<%
-                             var position = string:toInt(indexId.value)
-                               if(!empty(pageVariables.departureDate)){
-                                   console.info('date object = ' + json:asJSON(self.value));
-                                 pageVariables.departureDate.set(position, self.value);
-                               }
-                             console.info('departureDate list = ' + pageVariables.departureDate);
                            %>"
                         },
                         {
@@ -389,13 +335,8 @@
                           "required": true,
                           "enabled": true,
                           "value": ""
-                        }
-                      ]
+
                     },
-                    {
-                      "type": "fieldSet",
-                      "horizontal": true,
-                      "children": [
                         {
                           "type": "date",
                           "label": "Arrival Date",
@@ -405,11 +346,6 @@
                           "value": "<% Dates.getDateTimeNowFormatted() %>",
                           "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalDate",
                           "onChange": "<%
-                           var position = string:toInt(indexId.value)
-                           if(!empty(pageVariables.arrivalDate) && !empty(pageVariables.arrivalDate[position])){
-                               pageVariables.arrivalDate.set(position, string:toString(self.value.format('yyyy-MM-dd')));
-                           }
-                           console.info('arrivalDate list = ' + pageVariables.arrivalDate);
                            %>"
                         },
                         {
@@ -420,8 +356,7 @@
                           "enabled": true,
                           "value": ""
                         }
-                      ]
-                    },
+                      ,
                     {
                       "type": "instanceList",
                       "label": "Mode of Transport",
@@ -431,20 +366,6 @@
                       "enabled": true,
                       "values": "<% OOB.getModeOfTransport() %>",
                       "onChange": "<%
-                        if(!empty(self.selectedEntries[0].id)){
-                          toggleWidgets(TravelDetails, self.selectedEntries[0].id);
-                          modeOfTransportName.value = self.selectedEntries[0].descriptor;
-                        }
-                        else{
-                          toggleWidgets(TravelDetails, 'hide');
-                          modeOfTransportName.value = '';
-                        }
-
-                        var position = string:toInt(indexId.value)
-                        if(!empty(pageVariables.modeOfTransport) && !empty(pageVariables.modeOfTransport[position]) && !empty(self.selectedEntries[0].id)){
-                            pageVariables.modeOfTransport.set(position, self.selectedEntries[0]);
-                        }
-                        console.info('modeOfTransport list = ' + pageVariables.modeOfTransport);
 
                       %>"
                     },
@@ -454,13 +375,6 @@
                       "value":"",
                       "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "air",
-                      "title": "Air",
-                      "label": "Air",
-                      "visible": false,
-                      "children":[
                         {
                           "type": "text",
                           "label": "Departure Airport",
@@ -468,14 +382,7 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint",
-                          "onChange":"<%
-                            var position = string:toInt(indexId.value)
-                            if(!empty(pageVariables.departureLocation) && !empty(pageVariables.departureLocation[position])){
-                                pageVariables.departureLocation.set(position, self.value);
-                            }
-                            console.info('departureLocation list = ' + pageVariables.departureLocation);
-                          %>"
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -484,14 +391,7 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint",
-                          "onChange":"<%
-                            var position = string:toInt(indexId.value)
-                            if(!empty(pageVariables.arrivalLocation) && !empty(pageVariables.arrivalLocation[position])){
-                                pageVariables.arrivalLocation.set(position, self.value);
-                            }
-                            console.info('arrivalLocation list = ' + pageVariables.arrivalLocation);
-                          %>"
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                         },
                         {
                           "type": "text",
@@ -500,23 +400,10 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "_test": "<%/*TODO no object to save field*/%>",
-                          "onChange":"<%
-                            var position = string:toInt(indexId.value)
-                            if(!empty(pageVariables.airline) && !empty(pageVariables.airline[position])){
-                              pageVariables.airline.set(position, self.value);
-                            }
-                            console.info('airline list = ' + pageVariables.airline);
-                          %>"
-                        }
-                      ]
+                          "_test": "<%/*TODO no object to save field*/%>"
+
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "car",
-                      "title": "Car",
-                      "visible": false,
-                      "children":[
+
                         {
                           "type": "radioGroup",
                           "label": "Is this your assigned vehicle?",
@@ -532,54 +419,19 @@
                               "id": "no",
                               "descriptor": "No"
                             }
-                          ],
-                          "onChange": "<%
-                           var position = string:toInt(indexId.value)
-                           if(!empty(pageVariables.carAssigned) && !empty(pageVariables.carAssigned[position])){
-                               pageVariables.carAssigned.set(position, self.value);
-                           }
-                           console.info('carAssigned list = ' + pageVariables.carAssigned);
-
-                            if(self.value == ['yes']){
-                                carDetailsFS.setVisible(true);
-                                    giveCarDetailsTxt.setRequired(true);
-                            }
-                            else{
-                                carDetailsFS.setVisible(false);
-                                    giveCarDetailsTxt.setRequired(false);
-                            }
-                          %>"
+                          ]
                         },
-                        {
-                          "type": "fieldSet",
-                          "id": "carDetailsFS",
-                          "visible": false,
-                          "children": [
+
                             {
                               "type": "text",
                               "label": "Give car details",
                               "id": "giveCarDetailsTxt",
                               "required": false,
                               "enabled": true,
-                              "_test": "<%/*TODO no object to save field*/%>",
-                              "onChange":"<%
-                                var position = string:toInt(indexId.value)
-                                if(!empty(pageVariables.carDetails) && !empty(pageVariables.carDetails[position])){
-                                    pageVariables.carDetails.set(position, self.value);
-                                }
-                                console.info('carDetails list = ' + pageVariables.carDetails);
-                              %>"
-                            }
-                          ]
-                        }
-                      ]
+                              "_test": "<%/*TODO no object to save field*/%>"
+
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "bus",
-                      "title": "Bus",
-                      "visible": false,
-                      "children":[
+
                         {
                           "type": "text",
                           "label": "Bus Number",
@@ -588,15 +440,7 @@
                           "enabled": true,
                           "value": "",
                           "_test": "<%/*TODO no object to save field*/%>"
-                        }
-                      ]
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "train",
-                      "title": "Train",
-                      "visible": false,
-                      "children":[
                         {
                           "type": "text",
                           "label": "TestField",
@@ -605,15 +449,8 @@
                           "enabled": true,
                           "value": "",
                           "_test": "<%/*TODO no object to save field*/%>"
-                        }
-                      ]
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "busOrTrain",
-                      "title": "Bus or Train",
-                      "visible": false,
-                      "children": [
+
                         {
                           "type": "text",
                           "label": "Departure Station",
@@ -621,14 +458,7 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint",
-                          "onChange":"<%
-                                      var position = string:toInt(indexId.value)
-                                      if(!empty(pageVariables.departureLocation) && !empty(pageVariables.departureLocation[position])){
-                                          pageVariables.departureLocation.set(position, self.value);
-                                      }
-                                      console.info('departureLocation list = ' + pageVariables.departureLocation);
-                                      %>"
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -637,23 +467,10 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint",
-                          "onChange":"<%
-                                      var position = string:toInt(indexId.value)
-                                      if(!empty(pageVariables.arrivalLocation) && !empty(pageVariables.arrivalLocation[position])){
-                                          pageVariables.arrivalLocation.set(position, self.value);
-                                      }
-                                      console.info('arrivalLocation list = ' + pageVariables.arrivalLocation);
-                                      %>"
-                        }
-                      ]
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "boat",
-                      "title": "Boat",
-                      "visible": false,
-                      "children":[
+
                         {
                           "type": "text",
                           "label": "TestBoat",
@@ -670,14 +487,7 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint",
-                          "onChange":"<%
-                                      var position = string:toInt(indexId.value)
-                                      if(!empty(pageVariables.departureLocation) && !empty(pageVariables.departureLocation[position])){
-                                          pageVariables.departureLocation.set(position, self.value);
-                                      }
-                                      console.info('departureLocation list = ' + pageVariables.departureLocation);
-                                      %>"
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                         },
                         {
                           "type": "text",
@@ -686,23 +496,10 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint",
-                          "onChange":"<%
-                          var position = string:toInt(indexId.value)
-                          if(!empty(pageVariables.arrivalLocation) && !empty(pageVariables.arrivalLocation[position])){
-                              pageVariables.sts.arrivalLocation.set(position, self.value);
-                          }
-                          console.info('arrivalLocation list = ' + pageVariables.arrivalLocation);
-                          %>"
-                        }
-                      ]
+                          "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+
                     },
-                    {
-                      "type": "fieldSet",
-                      "id": "other",
-                      "title": "Other",
-                      "visible": false,
-                      "children":[
+
                         {
                           "type": "text",
                           "label": "Mode Of Transport Other",
@@ -710,17 +507,9 @@
                           "required": false,
                           "enabled": true,
                           "value": "",
-                          "_test": "<%/*TODO no object to save field*/%>",
-                          "onChange":"<%
-                            var position = string:toInt(indexId.value)
-                            if(!empty(pageVariables.other) && !empty(pageVariables.other[position])){
-                                pageVariables.other.set(position, self.value);
-                            }
-                            console.info('other list = ' + pageVariables.other);
-                          %>"
+                          "_test": "<%/*TODO no object to save field*/%>"
                         }
-                      ]
-                    },
+                      ,
                     {
                       "type": "checkBox",
                       "label": "Add this location to my frequent destination list",
@@ -729,231 +518,14 @@
                       "enabled": true,
                       "trueLabel": "True Label",
                       "falseLabel": "False Label",
-                      "value": "",
-                      "onChange":"<%
-                      if(self.value){
-                          testTxt.value = pageVariables.mapOfTravelData.find(x => {x.id == 0});
-
-                              testTxt2.value = pageVariables.mapOfTravelData.find(x => {x.id == 0}).id;
-                              testTxt2.value = pageVariables.mapOfTravelData;
-                      }
-                      %>"
-                    },
-                    {
-                      "type": "hidden",
-                      "id": "afterLoad",
-                      "value": "<%
-                                pageVariables.mapOfTravelData.add({
-                                    'id': loopIndex,
-                                    'sts': '1',
-                                    'departureDate': '',
-                                    'departureTime': '',
-                                    'arrivalDate': '',
-                                    'arrivalTime': '',
-                                    'modeOfTransport': '',
-                                    'departureLocation': '',
-                                    'arrivalLocation': ''
-                                  }
-                                );
-                                //console.info('pageVariables.mapOfTravelData after index' + loopIndex + ' = ' + json:asJSON(pageVariables.mapOfTravelData));
-                                //mapData(TravelDetails, loopIndex);
-
-                                %>"
-                    }
-                  ]
-                },
-                {
-                  "type":"fieldSet",
-                  "id": "LodgingDetails",
-                  "title": "<% 'Lodging/Destination Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
-                  "collapsible": true,
-                  "children": [
-                    {
-                      "type": "section",
-                      "columnWidthRatios": [0.5,0.5],
-                      "horizontal": true,
-                      "children": [
-                        {
-                          "type": "date",
-                          "label": "Start Date",
-                          "id": "lodgingStartDateDt",
-                          "required": true,
-                          "enabled": true,
-                          "value": "<% date:now().format('yyyy-MM-dd') %>",
-                          "valueOutBinding": "createDestinations.data[].startDate"
-                        },
-                        {
-                          "type": "date",
-                          "label": "End Date",
-                          "id": "lodgingEndDateDt",
-                          "required": true,
-                          "enabled": true,
-                          "value": "<% date:now().format('yyyy-MM-dd') %>",
-                          "valueOutBinding": "createDestinations.data[].endDate"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "instanceList",
-                      "label": "Lodging/Destination Name",
-                      "id": "lodgingIL",
-                      "multiSelect": false,
-                      "required": true,
-                      "enabled": true,
-                      "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
-                      "onChange": "<%
-                        if(empty(self.selectedEntries[0])){
-                          lodgingOtherTxt.value = '';
-                          //lodgingOtherTxt.setVisible(false);
-                          lodgingOtherTxt.setRequired(false);
-                        }else if(self.selectedEntries[0].id == 'other'){
-                          lodgingOtherTxt.value = '';
-                          //lodgingOtherTxt.setVisible(true);
-                          lodgingOtherTxt.setRequired(true);
-                        }else{
-                          lodgingOtherTxt.value = self.selectedEntries[0].descriptor;
-                          //lodgingOtherTxt.setVisible(false);
-                          lodgingOtherTxt.setRequired(false);
-                        }
-                      %>"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Lodging Name",
-                      "id": "lodgingOtherTxt",
-                      "required": false,
-                      "enabled": false,
-                      "visible": true,
-                      "valueOutBinding": "createDestinations.data[].name"
-                    },
-                    {
-                      "type": "instanceList",
-                      "label": "Country",
-                      "id": "countryIl",
-                      "multiSelect": false,
-                      "required": true,
-                      "enabled": true,
-                      "visible": true,
-                      "searchEndPoint": "<% endpoints.getCountrySearch %>",
-                      "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
-                      "values": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
-                      "onChange": "<%
-                      if(empty(self.selectedEntries[0])){
-                        countryText.value = '';
-                        countryCodeText.value = '';
-                      }else{
-                        countryText.value = self.selectedEntries[0].descriptor;
-                        countryCodeText.value = self.selectedEntries[0].id;
-                      }
-                      %>"
-                    },
-                    {
-                      "type":"hidden",
-                      "id": "countryText",
-                      "value": ""
-                    },
-                    {
-                      "type":"text",
-                      "id": "countryCodeText",
-                      "label": "Country Code",
-                      "enabled": false,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].countryCode"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Address Line 1",
-                      "id": "addressLine1Txt",
-                      "required": true,
-                      "enabled": true,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].addressLine1"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Address Line 2",
-                      "id": "addressLine2Txt",
-                      "required": false,
-                      "enabled": true,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].addressLine2"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Address Line 3",
-                      "id": "addressLine3Txt",
-                      "required": false,
-                      "enabled": true,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].addressLine3"
-                    },
-                    {
-                      "type": "instanceList",
-                      "label": "City",
-                      "id": "cityIl",
-                      "required": true,
-                      "enabled": true,
-                      "visible": true,
-                      "idKey": "workdayID",
-                      "displayKey": "descriptor",
-                      "searchEndPoint": "<% endpoints.getCitiesSearch %>",
-                      "searchResultValues": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
-                      "values": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
-                      "selectedValuesAndDescriptors":"<% [] %>",
-                      "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
-                    },
-                    {
-                      "type":"hidden",
-                      "id": "cityText",
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].city"
-                    },
-                    {
-                      "type": "instanceList",
-                      "label": "State/Province/County",
-                      "id": "stateIl",
-                      "required": "<% false %>",
-                      "enabled": true,
-                      "values": "<% !empty(getStates.data) ? getStates.data : []  %>",
-                      "visible": "<% true %>",
-                      "onChange": "<% empty(self.selectedEntries[0]) ? (stateText.value = '') : (stateText.value = self.selectedEntries[0].descriptor) %>"
-                    },
-                    {
-                      "type":"hidden",
-                      "id": "stateText",
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].state"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Postal Code",
-                      "id": "postalCodeTxt",
-                      "required": false,
-                      "enabled": true,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].postalCode"
-                    },
-                    {
-                      "type": "text",
-                      "label": "Contact Number of Destination",
-                      "id": "contactNumberOfDestinationTxt",
-                      "required": false,
-                      "enabled": true,
-                      "value": "",
-                      "valueOutBinding": "createDestinations.data[].contactNumber"
-                    },
-                    {
-                      "type": "checkBox",
-                      "label": "Add this location to my frequent destination list",
-                      "id": "freqDestChbx",
-                      "required": false,
-                      "enabled": true,
-                      "trueLabel": "True Label",
-                      "falseLabel": "False Label",
                       "value": ""
                     }
                   ]
                 }
+
+
+
+
               ]
             },
             {
@@ -962,7 +534,7 @@
               "id": "loopTxt",
               "required": true,
               "enabled": false,
-              "value": "<% loopId %> "
+              "value": "<% 'test' %> "
             }
           ]
         },
