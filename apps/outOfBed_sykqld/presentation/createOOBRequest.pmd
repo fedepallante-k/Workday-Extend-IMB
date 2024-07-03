@@ -268,6 +268,30 @@
         ]
       },
       {
+        "name": "createPersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+         self.data = {'data':[]};
+
+         for (var personalTimeOff : personalTimeGrid.getRows()) {
+             if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
+                 self.data.data.add({
+                     'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
+                     'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
+                     'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
+                     'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
+                     'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
+                 });
+             }
+         }
+          console.info('create Personal time self.data' + self.data);
+         self.data;
+         %>"
+      },
+      {
         "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateOOBProfile",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + '5673ac5b801f9001a44bb09bcdc90000' %>",
@@ -838,6 +862,7 @@
               "id": "personalTimeGrid",
               "rows": "<% [] %>",
               "visible": false,
+              "isArrayOutBinding": "true",
               "rowVariableName": "timeOffData",
               "label": "<% 'Personal Time Off Details' %>",
               "columns": [
@@ -853,7 +878,7 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "countryCodeCol",
+                  "columnId": "absenceTypeCol",
                   "label": "<% 'Absence Type' %>",
                   "cellTemplate": {
                     "type": "instanceList",
@@ -863,7 +888,7 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "Start DateCol",
+                  "columnId": "startDateCol",
                   "label": "<% 'Start Date' %>",
                   "cellTemplate": {
                     "type": "date",
