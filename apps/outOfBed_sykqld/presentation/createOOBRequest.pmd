@@ -139,7 +139,8 @@
               self.data.data.add({
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
                 'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
-                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : ''
+                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : '',
+                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : ''
               });
             }
           }
@@ -772,27 +773,37 @@
                         "values": "<% pageVariables.phoneNumbers %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                              console.info('entered update phone');
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
                             numberId.value = selectedNumberData.id;
                             numberName.value = selectedNumberData.name;
                             phoneNameCell.value = selectedNumberData.name;      
                                 //TODO
-                            //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
+                                phoneCodeList.setValue([selectedNumberData.countryCode ?: '']);
+
+                                //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
                             phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
                             notesCol.value = selectedNumberData.notes;
                             phoneNameCell.enabled=false;
                           }
-                          else if(self.selectedEntries[0].id == 'other' || empty(self.selectedEntries[0].name)){
+                          else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                              console.info('entered other');
                             numberId.value = 'other';
-                            phoneNameCell.enabled=true;    
+                            phoneNameCell.value = '';
+                            phoneCodeList.setValue([]);
+                            phoneNumberCol.value = '';
+                            phoneNameCell.enabled=true;
+                            notesCol.value = '';
                           }    
                           else{
+                              console.info('entered else phone');
                             numberId.value = '';
                             numberName.value = '';
                                 //TODO
-                            //phoneCodeList.setValues = '';
+                            phoneCodeList.setValue([]);
                             phoneNumberCol.value = '';
                             notesCol.value = '';
+                            phoneNameCell.value = '';
                             phoneNameCell.enabled=false;
                           }
                         %>"
