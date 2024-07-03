@@ -43,13 +43,13 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
       "authType": "sso"
     },
     {
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -141,6 +141,23 @@
 
         self.data;
         %>"
+      },
+      {
+        "name": "createStatus",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/status` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "values": [
+          {
+            "outboundPath": "statusID",
+            "value": "<% 'Status ID 1' %>"
+          },
+          {
+            "outboundPath": "description",
+            "value": "<% 'In Progress' %>"
+          }
+        ]
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
@@ -241,9 +258,8 @@
             "value": "<% 'true' %>"
           },
           {
-            "outboundPath": "status",
-            "exclude": true,
-            "value": "<% 'singleInstance' %>"
+            "outboundPath": "status.id",
+            "value": "<% createStatus.id %>"
           },
           {
             "outboundPath": "affinity",
@@ -398,7 +414,9 @@
       if(!empty(item)){
         var i = 0;
         for( var child : item.dependent){
+            if(child.isSpouse != true){
           familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+          }
           i = i+1;
         }
         i=0;
