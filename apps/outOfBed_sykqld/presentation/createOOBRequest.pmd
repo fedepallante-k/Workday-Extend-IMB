@@ -43,13 +43,13 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
       "authType": "sso"
     },
     {
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -90,6 +90,11 @@
           }
         }
 
+        if(!empty(staffMemeberGrid.getSelectedRows())){
+            for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+                addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' ')});
+            }
+        }
         if(!empty(fieldMemeberGrid.getSelectedRows())){
           for ( var i : fieldMemeberGrid.getSelectedRows()) {
             addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' ')});
@@ -134,13 +139,31 @@
               self.data.data.add({
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
                 'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
-                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : ''
+                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : '',
+                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : ''
               });
             }
           }
 
         self.data;
         %>"
+      },
+      {
+        "name": "createStatus",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/status` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "values": [
+          {
+            "outboundPath": "statusID",
+            "value": "<% 'Status ID 1' %>"
+          },
+          {
+            "outboundPath": "description",
+            "value": "<% 'In Progress' %>"
+          }
+        ]
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
@@ -241,15 +264,38 @@
             "value": "<% 'true' %>"
           },
           {
-            "outboundPath": "status",
-            "exclude": true,
-            "value": "<% 'singleInstance' %>"
+            "outboundPath": "status.id",
+            "value": "<% createStatus.id %>"
           },
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
           }
         ]
+      },
+      {
+        "name": "createPersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+         self.data = {'data':[]};
+
+         for (var personalTimeOff : personalTimeGrid.getRows()) {
+             if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
+                 self.data.data.add({
+                     'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
+                     'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
+                     'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
+                     'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
+                     'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
+                 });
+             }
+         }
+          console.info('create Personal time self.data' + self.data);
+         self.data;
+         %>"
       },
       {
         "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
@@ -319,15 +365,15 @@
             "outboundPath": "accompanyingTravellers",
             "exclude": "<% createAccompanyingTravellers.data %>",
             "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}})
-                      /*
-                        var travellers = []
-                        if(!empty(fieldMemeberGrid.getSelectedRows())){
-                          for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                            travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                          }
-                        }
-                        return travellers;
-                      */
+            /*
+              var travellers = []
+              if(!empty(fieldMemeberGrid.getSelectedRows())){
+                for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
+                }
+              }
+              return travellers;
+            */
             %>"
           },
           {
@@ -356,15 +402,15 @@
           },
           {
             "outboundPath": "lodging.id",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "cancelConfirmation",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "status",
-            "value": "<% %>"
+            "value": "''"
           },
           {
             "outboundPath": "initiator",
@@ -398,7 +444,9 @@
       if(!empty(item)){
         var i = 0;
         for( var child : item.dependent){
-          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+            if(child.isSpouse != true){
+          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+          }
           i = i+1;
         }
         i=0;
@@ -417,23 +465,49 @@
         var q = 0;
           for( var child : item){
             if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
-             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationshiop': child.relationship.descriptor});
+             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
               q = q+1;
             }
         }
         i=0;
       }
     };
-    
+
+
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
-    pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
+    //pageVariables.isField = !empty(queryParams.isField) ? queryParams.isField : true;
+    pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
   %>",
   "onSubmit": "<%
 
   %>",
   "securityDomains": [ ],
-  "script": "",
+  "script": "<%
+
+             var childrenArrangments = function(){
+                 var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+
+                 for(var children : counter){
+                     console.info('childern = ' + json:asJSON(children));
+                     if(!children.isSelected()){
+                         alternativeTxtA.setVisible(true);
+                         alternativeTxtA.setRequired(true);
+                         AlternativeRTxt.setVisible(true);
+                     }else{
+                         alternativeTxtA.setVisible(false);
+                         alternativeTxtA.setRequired(false);
+                         AlternativeRTxt.setVisible(false);
+                     }
+                 }
+
+                 if(!empty(fieldMemeberGrid.getSelectedRows())){
+                     for ( var selectedMembers : fieldMemeberGrid.getSelectedRows()) {
+
+                     }
+                 }
+             }
+             %>",
   "presentation": {
     "pageType": "edit",
     "title": {
@@ -458,8 +532,7 @@
               "required": true,
               "enabled": true,
               "trueLabel": "True Label",
-              "falseLabel": "False Label",
-              "value": true
+              "falseLabel": "False Label"
             },
             {
               "type": "text",
@@ -467,7 +540,7 @@
               "id": "tripNameTxt",
               "required": true,
               "enabled": true,
-              "value": "Test value"
+              "value": ""
             },
             {
               "type": "textArea",
@@ -475,7 +548,7 @@
               "id": "tripPurposeTxtA",
               "required": true,
               "enabled": true,
-              "value": "Trip purpose"
+              "value": ""
             },
             {
               "type": "date",
@@ -510,7 +583,6 @@
               "required": true,
               "enabled": true,
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
-              "selectedValuesAndDescriptors": "<% [{'id': 'visitFriends', 'descriptor': 'I am visiting friends'}] %>",
               "searchEndPoint": "<% %>",
               "searchResultValues": "<% [] %>",
               "onChange": "<% self.selectedEntries[0].id == 'other' ? otherStsTxt.setVisible(true) : otherStsTxt.setVisible(false) %>"
@@ -538,6 +610,7 @@
               "children": [
                 {
                   "type": "fieldSet",
+                  "render": "<% pageVariables.isField %>",
                   "children": [
                     {
                       "type": "grid",
@@ -545,6 +618,7 @@
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
                       "render": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
+                      "onRowSelect": "<% childrenArrangments() %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
@@ -571,6 +645,11 @@
                                 "type": "hidden",
                                 "id": "staffId",
                                 "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "relationship",
+                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.relationship : '' %>"
                               }
                             ]
                           }
@@ -581,9 +660,11 @@
                 },
                 {
                   "type": "fieldSet",
+                  "render": "<% !pageVariables.isField %>",
                   "children":[
                     {
                       "type": "grid",
+                      "id": "staffMemeberGrid",
                       "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
                       "render": "<% !pageVariables.isField %>",
@@ -616,6 +697,23 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "richText",
+              "label": "Alternative arrangements for Dependent Children ",
+              "id": "AlternativeRTxt",
+              "required": false,
+              "visible": "<% pageVariables.isField %>",
+              "enabled": false
+            },
+            {
+              "type": "textArea",
+              "id": "alternativeTxtA",
+              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
+              "required": "<% pageVariables.isField %>",
+              "enabled": true,
+              "visible": "<% pageVariables.isField %>",
+              "value": ""
             },
             {
               "type": "checkBox",
@@ -655,21 +753,6 @@
               ]
             },
             {
-              "type": "richText",
-              "label": "Alternative arrangements for Dependent Children ",
-              "id": "AlternativeRTxt",
-              "required": false,
-              "enabled": false
-            },
-            {
-              "type": "textArea",
-              "id": "alternativeTxtA",
-              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
-              "required": true,
-              "enabled": true,
-              "value": "Test info for arrangements for your dependent children"
-            },
-            {
               "type": "grid",
               "rows": "<% [] %>",
               "id": "allNumbers",
@@ -691,27 +774,37 @@
                         "values": "<% pageVariables.phoneNumbers %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                              console.info('entered update phone');
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
                             numberId.value = selectedNumberData.id;
                             numberName.value = selectedNumberData.name;
                             phoneNameCell.value = selectedNumberData.name;      
                                 //TODO
-                            //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
+                                phoneCodeList.setValue([selectedNumberData.countryCode ?: '']);
+
+                                //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
                             phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
                             notesCol.value = selectedNumberData.notes;
                             phoneNameCell.enabled=false;
                           }
-                          else if(self.selectedEntries[0].id == 'other' || empty(self.selectedEntries[0].name)){
+                          else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                              console.info('entered other');
                             numberId.value = 'other';
-                            phoneNameCell.enabled=true;    
+                            phoneNameCell.value = '';
+                            phoneCodeList.setValue([]);
+                            phoneNumberCol.value = '';
+                            phoneNameCell.enabled=true;
+                            notesCol.value = '';
                           }    
                           else{
+                              console.info('entered else phone');
                             numberId.value = '';
                             numberName.value = '';
                                 //TODO
-                            //phoneCodeList.setValues = '';
+                            phoneCodeList.setValue([]);
                             phoneNumberCol.value = '';
                             notesCol.value = '';
+                            phoneNameCell.value = '';
                             phoneNameCell.enabled=false;
                           }
                         %>"
@@ -719,12 +812,12 @@
                       {
                         "type": "hidden",
                         "id": "numberName",
-                        "value": "<% %>"
+                        "value": ""
                       },
                       {
                         "type": "hidden",
                         "id": "numberId",
-                        "value": "<%  %>"
+                        "value": ""
                       }
                       ]
                     }
@@ -822,6 +915,7 @@
               "id": "personalTimeGrid",
               "rows": "<% [] %>",
               "visible": false,
+              "isArrayOutBinding": "true",
               "rowVariableName": "timeOffData",
               "label": "<% 'Personal Time Off Details' %>",
               "columns": [
@@ -837,7 +931,7 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "countryCodeCol",
+                  "columnId": "absenceTypeCol",
                   "label": "<% 'Absence Type' %>",
                   "cellTemplate": {
                     "type": "instanceList",
@@ -847,7 +941,7 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "Start DateCol",
+                  "columnId": "startDateCol",
                   "label": "<% 'Start Date' %>",
                   "cellTemplate": {
                     "type": "date",
