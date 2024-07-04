@@ -318,16 +318,16 @@
           {
             "outboundPath": "accompanyingTravellers",
             "exclude": "<% createAccompanyingTravellers.data %>",
-            "value": "<% createAccompanyingTravellers.data
-            /*
-              var travellers = []
-              if(!empty(fieldMemeberGrid.getSelectedRows())){
-                for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                }
-              }
-              return travellers;
-            */
+            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}})
+                      /*
+                        var travellers = []
+                        if(!empty(fieldMemeberGrid.getSelectedRows())){
+                          for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                            travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
+                          }
+                        }
+                        return travellers;
+                      */
             %>"
           },
           {

@@ -36,6 +36,12 @@
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + OOB.getStates() %>",
       "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
     }
   ],
   "outboundData": {
@@ -65,7 +71,7 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [{"code":400},{"code":403}],
-        "onSend": "<%
+        "_onSend": "<%
           var updateList = [];
           var updateMap = {:};
           var destinationList = createDestinations.data.map(x=> {{'id' : x.body.id}});
@@ -163,19 +169,16 @@
       console.info('pageVariables.mapOfTravelData = ' + pageVariables.mapOfTravelData );
   }
 
-    var getTravelPayload = function(quest){
-        var travelDetailMap = {:};
-        travelDetailMap.add('id', quest.getChildren()[0].value);
-        var questionBody = quest.getChildren()[1].value;
-        travelDetailMap.add('questionBody', questionBody);
-        return travelDetailMap;
-    }
 
     var getTravelDetails = function (travelWidget){
       var travelPayload = {:};
       console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
 
-          //console.info('in loop, values = ' + json:asJSON(values));
+      //console.info('in loop, values = ' + json:asJSON(values));
+
+      travelPayload.add('panelId',  travelWidget.indexId.value ?: '');
+      travelPayload.add('id',  travelWidget.travellerId.value ?: '');
+      travelPayload.add('descriptor',  travelWidget.travellerName.value ?: '');
       travelPayload.add('sts',  travelWidget.stsValue.value ?: '');
       travelPayload.add('departureDate',  travelWidget.departureDateDt.value ?: '');
       travelPayload.add('arrivalDate',  travelWidget.arrivalDateDt.value ?: '');
@@ -212,11 +215,19 @@
             console.info('childrenMap = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap));
             console.info('childrenMap.stsValue = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap.stsValue));
         for (var TravelDetails : TravelLodging.getChildren()) {
+/*
+              if(travelList.find(x => {x.panelId == TravelDetails.indexId})){
+
+            }
+*/
+
           var payload = getTravelDetails(TravelDetails);
               travelList.add(payload);
         }
         console.info('travelList = ' + json:asJSON(travelList));
-
+        travelPayload.add('data',travelList);
+            console.info('travelPayload = ' + json:asJSON(travelPayload));
+        return travelPayload;
       }
     }
 /*
@@ -231,10 +242,14 @@
 */
   %>",
   "onLoad": "<%
-             pageVariables.accompanyingTravellers = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},{'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
-             pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
-             pageVariables.sts = 'This is the STS';
-             %>",
+   pageVariables.accompanyingTravellers1 = [
+    {'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}, 'status':201},
+    {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
+    {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
+   pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
+   pageVariables.accompanyingTravellers = getAccompanyTravllers.data;
+   pageVariables.sts = 'This is the STS';
+   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
     "pageType": "edit",
@@ -252,34 +267,51 @@
             {
               "type" : "loop",
               "label": "Loop",
-              "on" : "<% pageVariables.accompanyingTravellers1 %>",
+              "on" : "<% pageVariables.accompanyingTravellers %>",
               "as" : "objectToLoopOn",
+              "index": "loopIndex",
               "children" : [
                 {
                   "type": "section",
                   "children": [
                     {
                       "type": "fieldSet",
+                      "collapsible": true,
+                      "title": "<% 'Travel Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '') %>",
                       "id": "travelFieldSet",
                       "children":[
                         {
                           "type": "panelList",
                           "label": "Travel Events",
                           "id": "travelPanel",
-                          "panels": "<% pageVariables.accompanyingTravellers %>",
+                          "panels": "<% [1] %>",
+                          "isArrayOutBinding": true,
                           "panelName": "travelDeatilsPanels",
-                          "indexVariableName": "travelIndex",
+                          "indexVariableName": "travelPanelIndex",
                           "children": [
                             {
                               "type": "fieldSet",
+                              "collapsible": true,
+                              "title": "Travel Event Details",
                               "children": [
-
                             {
                               "type": "text",
                               "id": "indexId",
                               "enabled": false,
-                              "value": "<% travelIndex %>"
+                              "value": "<% travelPanelIndex %>"
                             },
+                                {
+                                  "type": "text",
+                                  "id": "travellerName",
+                                  "enabled": false,
+                                  "value": "<% (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '') %>"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "travellerId",
+                                  "enabled": false,
+                                  "value": "<% !empty(objectToLoopOn.body.id) ? objectToLoopOn.body.id : 'no Id' %>"
+                                },
                             {
                               "type": "checkBox",
                               "label": "Copy Travel details from previous travller",
@@ -288,11 +320,30 @@
                               "enabled": true,
                               "trueLabel": "True Label",
                               "falseLabel": "False Label",
-                              "visible": "<% travelIndex!=0 %>",
+                              "visible": "<% loopIndex!=0 %>",
                               "value": "",
                               "onChange": "<%
-                                          //TODO - check not empty
-                                          %>"
+                                //TODO - check not empty
+                                if(self.value){
+                                    panelInfo();
+                                        existingTravelDetailsIL.setVisible(true);
+                                        existingTravelDetailsIL.setValues(panelInfo().data);
+
+                                }
+                              %>"
+                            },
+                            {
+                              "type": "instanceList",
+                              "label": "Existing Travelers Details",
+                              "id": "existingTravelDetailsIL",
+                              "multiSelect": false,
+                              "required": false,
+                              "enabled": true,
+                              "visible": "<% false %>",
+                              "values": "<% !empty(panelInfo()) ? panelInfo.data[0] : [] %>",
+                              "onChange": "<%
+
+                                           %>"
                             },
                             {
                               "type": "text",
@@ -351,8 +402,7 @@
                               "required": true,
                               "enabled": true,
                               "value": ""
-                            }
-                          ,
+                            },
                             {
                               "type": "instanceList",
                               "label": "Mode of Transport",
@@ -365,41 +415,42 @@
 
                                            %>"
                             },
-                            {
-                              "type":"hidden",
-                              "id": "modeOfTransportName",
-                              "value":"",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Departure Airport",
-                              "id": "<% 'departureAirportTxt' %>",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Arrival Airport",
-                              "id": "arrivalAirportTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Airline",
-                              "id": "airlineTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
+                                    {
+                                      "type":"hidden",
+                                      "id": "modeOfTransportName",
+                                      "value":"",
+                                      "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "label": "Departure Airport",
+                                      "id": "<% 'departureAirportTxt' %>",
+                                      "required": false,
+                                      "enabled": true,
+                                      "value": "",
+                                      "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "label": "Arrival Airport",
+                                      "id": "arrivalAirportTxt",
+                                      "required": false,
+                                      "enabled": true,
+                                      "value": "",
+                                      "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "label": "Airline",
+                                      "id": "airlineTxt",
+                                      "required": false,
+                                      "enabled": true,
+                                      "value": "",
+                                      "_test": "<%/*TODO no object to save field*/%>"
 
-                            },
+                                    }
 
+                              ,
                             {
                               "type": "radioGroup",
                               "label": "Is this your assigned vehicle?",
@@ -525,19 +576,21 @@
                     {
                       "type": "fieldSet",
                       "id": "lodgingFieldSet",
+                      "collapsible": true,
+                      "title": "<% 'Lodging Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
                       "children": [
                         {
                           "type": "panelList",
                           "label": "Lodging Events",
                           "id": "LodgingPanel",
-                          "panels": "<% pageVariables.accompanyingTravellers %>",
+                          "panels": "<% [1] %>",
                           "panelName": "lodgingDetailsPanels",
-                          "indexVariableName": "travelIndex",
+                          "indexVariableName": "travelPanelIndex",
                           "children" : [
                             {
                               "type":"fieldSet",
                               "id": "LodgingDetails",
-                              "title": "<% 'Lodging/Destination Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '')%>",
+                              "title": "<% 'Lodging Details'%>",
                               "collapsible": true,
                               "children": [
                                 {
