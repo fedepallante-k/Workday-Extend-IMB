@@ -65,7 +65,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "_onSend": "<% %>",
+        "_onSend":"<% console.info('Destinations Create self.data' + json:asJSON(self.data))%>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -74,7 +74,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
+        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -104,6 +104,28 @@
           updateMap.add('data', updateList);
         console.info('map = ' + json:asJSON(updateMap));
                    %>"
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": true,
+        "onSend": "<%
+        //TODO add flowVariables.oobRequest
+          console.info('createDestinations' + json:asJSON(createDestinations)) ;
+          self.data = {'data':[]};
+          var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
+          for(var x : listOfDestinations){
+              self.data.data.add({'id' : '661f38b0479890082bd6b26d6d380000', 'lodging' : {'id' : x.id}});
+          }
+          console.info('Obb update destination self.data = ' + json:asJSON(self.data));
+          self.data;
+
+
+        %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
         "name": "transitionOutboundVars",
@@ -228,16 +250,22 @@
         console.info('children = ' + json:asJSON(TravelLodging.getChildren()));
             console.info('childrenMap = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap));
             console.info('childrenMap.stsValue = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap.stsValue));
-        for (var TravelDetails : TravelLodging.getChildren()) {
-/*
-              if(travelList.find(x => {x.panelId == TravelDetails.indexId})){
 
+        for (var TravelDetails : TravelLodging.getChildren()) {
+
+            /*
+              if(!empty(TravelDetails.getChildren())){
+              for(var x : TravelDetails.getChildren())
+              {
+                  if(!empty(x.title) && x.title=='Air')
+                  console.info('has child data = ' + json:asJSON(x));
+              }
             }
 */
-
           var payload = getTravelDetails(TravelDetails);
               travelList.add(payload);
         }
+
         console.info('travelList = ' + json:asJSON(travelList));
         travelPayload.add('data',travelList);
             console.info('travelPayload = ' + json:asJSON(travelPayload));
@@ -252,6 +280,19 @@
       var getAllData = getAccompanyTravllers2.data;
       updateMap.data.add(getAllData);
   return updateMap;
+  }
+
+  var togglewidgets2 = function(enableWidgets, disableWidgets){
+      for(var x : enableWidgets){
+      x.setVisible(true);
+      x.setRequired(true);
+      }
+      for(var x : disableWidgets){
+          x.setVisible(false);
+              x.setRequired(false);
+              x.setValue('');
+      }
+
   }
 
 /*
@@ -317,7 +358,7 @@
                           "label": "Travel Events",
                           "id": "travelPanel",
                           "panels": "<% [1] %>",
-                          "isArrayOutBinding": true,
+                          "isArrayOutBinding": false,
                           "panelName": "travelDeatilsPanels",
                           "indexVariableName": "travelPanelIndex",
                           "children": [
@@ -357,10 +398,9 @@
                               "onChange": "<%
                                 //TODO - check not empty
                                 if(self.value){
-                                    panelInfo();
-                                        existingTravelDetailsIL.setVisible(true);
-                                        existingTravelDetailsIL.setValues(panelInfo().data);
-
+                                  panelInfo();
+                                  existingTravelDetailsIL.setVisible(true);
+                                  existingTravelDetailsIL.setValues(panelInfo().data);
                                 }
                               %>"
                             },
@@ -444,8 +484,45 @@
                               "enabled": true,
                               "values": "<% OOB.getModeOfTransport() %>",
                               "onChange": "<%
+                                !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) : '';
 
-                                           %>"
+                                if(self.selectedEntries[0].id == 'air'){
+                                  departureAirportTxt.setVisible(true); departureAirportTxt.setRequired(true); departureAirportTxt.setEnabled(true);
+                                  arrivalAirportTxt.setVisible(true); arrivalAirportTxt.setRequired(true); arrivalAirportTxt.setEnabled(true);
+                                  airlineTxt.setVisible(true); airlineTxt.setRequired(true); airlineTxt.setEnabled(true);
+
+                                  modeOfTransportOtherTxt.setVisible(false); modeOfTransportOtherTxt.setRequired(false); modeOfTransportOtherTxt.setEnabled(false); modeOfTransportOtherTxt.setValue('');
+                                  busNumberTxt.setVisible(false); busNumberTxt.setRequired(false); busNumberTxt.setEnabled(false); busNumberTxt.setValue('');
+                                  giveCarDetailsTxt.setVisible(false); giveCarDetailsTxt.setRequired(false); giveCarDetailsTxt.setEnabled(false); giveCarDetailsTxt.setValue('');
+                                  yourVehicleRG.setVisible(false); yourVehicleRG.setRequired(false); yourVehicleRG.setEnabled(false); yourVehicleRG.setValue('');
+                                }else if (self.selectedEntries[0].id == 'car'){
+                                    var toggleOn = [yourVehicleRG, yourVehicleRG];
+                                    var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt];
+                                  /*
+                                  giveCarDetailsTxt.setVisible(true); giveCarDetailsTxt.setRequired(true); giveCarDetailsTxt.setEnabled(true); giveCarDetailsTxt.setValue('');
+                                  yourVehicleRG.setVisible(false); yourVehicleRG.setRequired(false); yourVehicleRG.setEnabled(false); yourVehicleRG.setValue('');
+
+                                  departureAirportTxt.setVisible(false); departureAirportTxt.setRequired(false); departureAirportTxt.setEnabled(false); departureAirportTxt.setValue('');
+                                  arrivalAirportTxt.setVisible(false); arrivalAirportTxt.setRequired(false); arrivalAirportTxt.setEnabled(false); arrivalAirportTxt.setValue('');
+                                  airlineTxt.setVisible(false); airlineTxt.setRequired(false); airlineTxt.setEnabled(false); airlineTxt.setValue('');
+                                  modeOfTransportOtherTxt.setVisible(false); modeOfTransportOtherTxt.setRequired(false); modeOfTransportOtherTxt.setEnabled(false); modeOfTransportOtherTxt.setValue('');
+                                  busNumberTxt.setVisible(false); busNumberTxt.setRequired(false); busNumberTxt.setEnabled(false); busNumberTxt.setValue('');
+                                  */
+                                        togglewidgets2(toggleOn,toggleOff );
+
+                                        togglewidgets2();
+                                }else if (self.selectedEntries[0].id == 'bus'){
+                                    togglewidgets2();
+                                }else if (self.selectedEntries[0].id == 'train'){
+
+                                }else if (self.selectedEntries[0].id == 'boat'){
+
+                                }else if (self.selectedEntries[0].id == 'other'){
+
+                                }
+
+
+                              %>"
                             },
                                     {
                                       "type":"hidden",
@@ -453,10 +530,11 @@
                                       "value":"",
                                       "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
                                     },
+
                                     {
                                       "type": "text",
                                       "label": "Departure Airport",
-                                      "id": "<% 'departureAirportTxt' %>",
+                                      "id": "departureAirportTxt",
                                       "required": false,
                                       "enabled": true,
                                       "value": "",
@@ -481,6 +559,8 @@
                                       "_test": "<%/*TODO no object to save field*/%>"
 
                                     }
+
+
 
                               ,
                             {
@@ -618,6 +698,7 @@
                           "panels": "<% [1] %>",
                           "panelName": "lodgingDetailsPanels",
                           "indexVariableName": "travelPanelIndex",
+                          "isArrayOutBinding": true,
                           "children" : [
                             {
                               "type":"fieldSet",
@@ -773,12 +854,13 @@
                                   "enabled": true,
                                   "values": "<% !empty(getStates.data) ? getStates.data : []  %>",
                                   "visible": "<% true %>",
-                                  "onChange": "<% empty(self.selectedEntries[0]) ? (stateText.value = '') : (stateText.value = self.selectedEntries[0].descriptor) %>"
+                                  "onChange": "<% empty(self.selectedEntries[0]) ? stateText.value = '' : stateText.value = self.selectedEntries[0].descriptor %>"
                                 },
                                 {
-                                  "type":"hidden",
+                                  "type":"text",
                                   "id": "stateText",
                                   "value": "",
+                                  "enabled": false,
                                   "valueOutBinding": "createDestinations.data[].state"
                                 },
                                 {
