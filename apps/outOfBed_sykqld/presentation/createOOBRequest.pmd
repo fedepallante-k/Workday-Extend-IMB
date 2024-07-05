@@ -325,6 +325,31 @@
         ]
       },
       {
+        "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateAccompanyTravellers",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": false,
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "onSend":"<%
+          self.data = {'data':[]};
+          var listOfAccompanyTravellers = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
+          for(var x : listOfAccompanyTravellers){
+              self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : createOOBRequest.id}});
+          }
+          console.info('self.data = ' + json:asJSON(self.data));
+        self.data;
+        %>"
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -419,6 +444,10 @@
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
+          },
+          {
+            "outboundPath": "oobRequest",
+            "value": "<% !empty(createOOBRequest.id) ?  createOOBRequest.id : '' %>"
           }
         ]
       }

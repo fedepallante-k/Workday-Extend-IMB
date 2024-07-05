@@ -40,7 +40,20 @@
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers ORDER BY createdMoment DESC').urlEncode() %>",
+      "exclude": true,
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllersHardCoded",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (661f38b0479890082bd6b26d6d380000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers2",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id FROM outOfBed_sykqld_accompanyingTravellers ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
   ],
@@ -61,7 +74,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
+        "onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -69,6 +82,7 @@
         "name": "mapAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
+        "exclude": true,
         "httpMethod": "PATCH",
         "failOnStatusCodes": [{"code":400},{"code":403}],
         "_onSend": "<%
@@ -230,6 +244,16 @@
         return travelPayload;
       }
     }
+
+  var getAlltravellers = function(){
+      var updateList = [];
+      var updateMap = {'data':[]};
+
+      var getAllData = getAccompanyTravllers2.data;
+      updateMap.data.add(getAllData);
+  return updateMap;
+  }
+
 /*
      TODO - Logic for page
      section to wrap everything so i can iterate on the children to save data
@@ -247,7 +271,7 @@
     {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
    pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
-   pageVariables.accompanyingTravellers = getAccompanyTravllers.data;
+   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllersHardCoded.data) ? getAccompanyTravllersHardCoded.data : [];
    pageVariables.sts = 'This is the STS';
    %>",
   "presentation": {
@@ -261,6 +285,14 @@
       "type": "section",
       "horizontal": false,
       "children": [
+        {
+          "type": "text",
+          "label": "test",
+          "id": "testTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getAccompanyTravllers.data) ? json:asJSON(getAccompanyTravllers.data) : 'empty' %>"
+        },
         {
           "type": "section",
           "children": [
@@ -277,7 +309,7 @@
                     {
                       "type": "fieldSet",
                       "collapsible": true,
-                      "title": "<% 'Travel Details - ' + (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '') %>",
+                      "title": "<% 'Travel Details - ' + (objectToLoopOn.firstName ?? '') + ' ' + (objectToLoopOn.lastName ?? '') %>",
                       "id": "travelFieldSet",
                       "children":[
                         {
@@ -304,13 +336,13 @@
                                   "type": "text",
                                   "id": "travellerName",
                                   "enabled": false,
-                                  "value": "<% (objectToLoopOn.body.firstName ?? '') + ' ' + (objectToLoopOn.body.lastName ?? '') %>"
+                                  "value": "<% (objectToLoopOn.firstName ?? '') + ' ' + (objectToLoopOn.lastName ?? '') %>"
                                 },
                                 {
                                   "type": "text",
                                   "id": "travellerId",
                                   "enabled": false,
-                                  "value": "<% !empty(objectToLoopOn.body.id) ? objectToLoopOn.body.id : 'no Id' %>"
+                                  "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'no Id' %>"
                                 },
                             {
                               "type": "checkBox",
@@ -350,14 +382,14 @@
                               "label": "id",
                               "id": "accompanyingTravellerId",
                               "enabled": false,
-                              "value": "<%  !empty(objectToLoopOn.body.id) ? objectToLoopOn.body.id : 'empty'              %>",
+                              "value": "<%  !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'empty'              %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].id"
                             },
                             {
                               "type" : "text",
                               "id": "stsValue",
                               "label": "<% 'Segment Specific STS' %>",
-                              "value" : "",
+                              "value" : "<% objectToLoopOn.sts %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
                               "onChange": "<%
                                            panelInfo();
@@ -505,7 +537,7 @@
                               "required": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                             },
                             {
                               "type": "text",
@@ -514,7 +546,7 @@
                               "required": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
 
                             },
 
@@ -534,7 +566,7 @@
                               "required": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                             },
                             {
                               "type": "text",
@@ -543,7 +575,7 @@
                               "required": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
 
                             },
 
