@@ -68,15 +68,6 @@
       "enableSearch": false
     },
     {
-      "id": 7,
-      "name": "lodging",
-      "type": "SINGLE_INSTANCE",
-      "useForDisplay": false,
-      "isPurgeable": false,
-      "target": "Destination",
-      "secureByTarget": false
-    },
-    {
       "id": 8,
       "name": "firstName",
       "type": "TEXT",

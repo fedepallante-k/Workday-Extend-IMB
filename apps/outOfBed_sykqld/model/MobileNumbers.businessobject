@@ -3,7 +3,7 @@
   "name": "MobileNumbers",
   "label": "Mobile Numbers",
   "defaultSecurityDomains": [
-    "AdminOOBRequests"
+    "CreateOOBRequests"
   ],
   "defaultCollection": {
     "name": "mobileNumbers",
@@ -11,44 +11,44 @@
   },
   "fields": [
     {
-      "enableSearch": false,
-      "enableIndex": false,
-      "isPurgeable": false,
-      "useForDisplay": false,
-      "isReferenceId": false,
-      "type": "TEXT",
+      "id": 1,
       "name": "name",
-      "id": 1
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     },
     {
-      "enableSearch": false,
-      "enableIndex": false,
-      "isPurgeable": false,
-      "useForDisplay": false,
-      "isReferenceId": false,
-      "type": "TEXT",
+      "id": 2,
       "name": "countryCode",
-      "id": 2
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     },
     {
-      "enableSearch": false,
-      "enableIndex": false,
-      "isPurgeable": false,
-      "useForDisplay": false,
-      "isReferenceId": false,
-      "type": "TEXT",
+      "id": 3,
       "name": "number",
-      "id": 3
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     },
     {
-      "enableSearch": false,
-      "enableIndex": false,
-      "isPurgeable": false,
-      "useForDisplay": false,
-      "isReferenceId": false,
-      "type": "TEXT",
+      "id": 4,
       "name": "notes",
-      "id": 4
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     }
   ]
 }

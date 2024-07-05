@@ -139,11 +139,9 @@
     {
       "id": 15,
       "name": "lodging",
-      "type": "SINGLE_INSTANCE",
-      "useForDisplay": false,
+      "type": "MULTI_INSTANCE",
       "isPurgeable": false,
-      "target": "Destination",
-      "secureByTarget": false
+      "target": "Destination"
     },
     {
       "id": 16,
@@ -182,6 +180,13 @@
       "isPurgeable": false,
       "enableIndex": false,
       "enableSearch": false
+    },
+    {
+      "id": 20,
+      "name": "lodgingAccompanyingTravellers",
+      "type": "MULTI_INSTANCE",
+      "isPurgeable": false,
+      "target": "Destination"
     }
   ]
 }

@@ -125,6 +125,16 @@
       "isPurgeable": false,
       "enableIndex": false,
       "precision": "DAY"
+    },
+    {
+      "id": 13,
+      "name": "travellerName",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     }
   ]
 }
