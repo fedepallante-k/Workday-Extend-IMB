@@ -38,14 +38,14 @@
       "authType": "sso"
     },
     {
-      "name": "getAccompanyTravllers",
+      "name": "getOOBRequest1",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": true,
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
-      "name": "getAccompanyTravllersHardCoded",
+      "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (661f38b0479890082bd6b26d6d380000) ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
@@ -236,7 +236,6 @@
       return travelPayload;
     }
 
-
     var panelInfo = function(){
       console.info('Enter Panel function');
       console.info('travelPanel = ' + json:asJSON(travelPanel));
@@ -283,15 +282,22 @@
   }
 
   var togglewidgets2 = function(enableWidgets, disableWidgets){
-      for(var x : enableWidgets){
-      x.setVisible(true);
-      x.setRequired(true);
+      if(!empty(enableWidgets)){
+        for(var x : enableWidgets){
+          x.setVisible(true);
+          x.setRequired(true);
+          x.setEnabled(true);
+          empty(x.value) ? '' : x.setValue('');
+        }
       }
+      if(!empty(disableWidgets)){
       for(var x : disableWidgets){
-          x.setVisible(false);
-              x.setRequired(false);
-              x.setValue('');
+        x.setVisible(false);
+        x.setRequired(false);
+        x.setEnabled(false);
+        empty(x.value) ? '' : x.setValue('');
       }
+     }
 
   }
 
@@ -312,7 +318,7 @@
     {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
    pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
-   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllersHardCoded.data) ? getAccompanyTravllersHardCoded.data : [];
+   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [];
    pageVariables.sts = 'This is the STS';
    %>",
   "presentation": {
@@ -373,18 +379,18 @@
                               "enabled": false,
                               "value": "<% travelPanelIndex %>"
                             },
-                                {
-                                  "type": "text",
-                                  "id": "travellerName",
-                                  "enabled": false,
-                                  "value": "<% (objectToLoopOn.firstName ?? '') + ' ' + (objectToLoopOn.lastName ?? '') %>"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "travellerId",
-                                  "enabled": false,
-                                  "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'no Id' %>"
-                                },
+                            {
+                              "type": "text",
+                              "id": "travellerName",
+                              "enabled": false,
+                              "value": "<% (objectToLoopOn.firstName ?? '') + ' ' + (objectToLoopOn.lastName ?? '') %>"
+                            },
+                            {
+                              "type": "text",
+                              "id": "travellerId",
+                              "enabled": false,
+                              "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'no Id' %>"
+                            },
                             {
                               "type": "checkBox",
                               "label": "Copy Travel details from previous travller",
@@ -413,9 +419,7 @@
                               "enabled": true,
                               "visible": "<% false %>",
                               "values": "<% !empty(panelInfo()) ? panelInfo.data[0] : [] %>",
-                              "onChange": "<%
-
-                                           %>"
+                              "onChange": "<%%>"
                             },
                             {
                               "type": "text",
@@ -431,9 +435,7 @@
                               "label": "<% 'Segment Specific STS' %>",
                               "value" : "<% objectToLoopOn.sts %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
-                              "onChange": "<%
-                                           panelInfo();
-                                           %>"
+                              "onChange": "<%  panelInfo();   %>"
                             },
 
                             {
@@ -444,8 +446,7 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].departureDate",
-                              "onChange": "<%
-                                           %>"
+                              "onChange": "<%%>"
                             },
                             {
                               "type": "text",
@@ -454,7 +455,6 @@
                               "required": true,
                               "enabled": true,
                               "value": ""
-
                             },
                             {
                               "type": "date",
@@ -464,8 +464,7 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalDate",
-                              "onChange": "<%
-                                           %>"
+                              "onChange": "<%  %>"
                             },
                             {
                               "type": "text",
@@ -484,90 +483,98 @@
                               "enabled": true,
                               "values": "<% OOB.getModeOfTransport() %>",
                               "onChange": "<%
-                                !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) : '';
-
-                                if(self.selectedEntries[0].id == 'air'){
-                                  departureAirportTxt.setVisible(true); departureAirportTxt.setRequired(true); departureAirportTxt.setEnabled(true);
-                                  arrivalAirportTxt.setVisible(true); arrivalAirportTxt.setRequired(true); arrivalAirportTxt.setEnabled(true);
-                                  airlineTxt.setVisible(true); airlineTxt.setRequired(true); airlineTxt.setEnabled(true);
-
-                                  modeOfTransportOtherTxt.setVisible(false); modeOfTransportOtherTxt.setRequired(false); modeOfTransportOtherTxt.setEnabled(false); modeOfTransportOtherTxt.setValue('');
-                                  busNumberTxt.setVisible(false); busNumberTxt.setRequired(false); busNumberTxt.setEnabled(false); busNumberTxt.setValue('');
-                                  giveCarDetailsTxt.setVisible(false); giveCarDetailsTxt.setRequired(false); giveCarDetailsTxt.setEnabled(false); giveCarDetailsTxt.setValue('');
-                                  yourVehicleRG.setVisible(false); yourVehicleRG.setRequired(false); yourVehicleRG.setEnabled(false); yourVehicleRG.setValue('');
-                                }else if (self.selectedEntries[0].id == 'car'){
-                                    var toggleOn = [yourVehicleRG, yourVehicleRG];
-                                    var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt];
-                                  /*
-                                  giveCarDetailsTxt.setVisible(true); giveCarDetailsTxt.setRequired(true); giveCarDetailsTxt.setEnabled(true); giveCarDetailsTxt.setValue('');
-                                  yourVehicleRG.setVisible(false); yourVehicleRG.setRequired(false); yourVehicleRG.setEnabled(false); yourVehicleRG.setValue('');
-
-                                  departureAirportTxt.setVisible(false); departureAirportTxt.setRequired(false); departureAirportTxt.setEnabled(false); departureAirportTxt.setValue('');
-                                  arrivalAirportTxt.setVisible(false); arrivalAirportTxt.setRequired(false); arrivalAirportTxt.setEnabled(false); arrivalAirportTxt.setValue('');
-                                  airlineTxt.setVisible(false); airlineTxt.setRequired(false); airlineTxt.setEnabled(false); airlineTxt.setValue('');
-                                  modeOfTransportOtherTxt.setVisible(false); modeOfTransportOtherTxt.setRequired(false); modeOfTransportOtherTxt.setEnabled(false); modeOfTransportOtherTxt.setValue('');
-                                  busNumberTxt.setVisible(false); busNumberTxt.setRequired(false); busNumberTxt.setEnabled(false); busNumberTxt.setValue('');
-                                  */
-                                        togglewidgets2(toggleOn,toggleOff );
-
-                                        togglewidgets2();
-                                }else if (self.selectedEntries[0].id == 'bus'){
-                                    togglewidgets2();
-                                }else if (self.selectedEntries[0].id == 'train'){
-
-                                }else if (self.selectedEntries[0].id == 'boat'){
-
-                                }else if (self.selectedEntries[0].id == 'other'){
-
-                                }
-
-
+                                !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
+                                if(!empty(self.selectedEntries[0])) {
+                                  if(self.selectedEntries[0].id == 'air'){
+                                    var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
+                                    var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
+                                    togglewidgets2(toggleOn,toggleOff);
+                                    }else if (self.selectedEntries[0].id == 'car'){
+                                      var toggleOn = [yourVehicleRG];
+                                      var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }else if (self.selectedEntries[0].id == 'bus'){
+                                      var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                                      var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt,yourVehicleRG];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }else if (self.selectedEntries[0].id == 'train'){
+                                      var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                                      var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }else if (self.selectedEntries[0].id == 'boat'){
+                                      var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                                      var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }else if (self.selectedEntries[0].id == 'other'){
+                                      var toggleOn = [modeOfTransportOtherTxt];
+                                      var toggleOff = [airlineTxt, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }else{
+                                      var toggleOn = [];
+                                      var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                                      togglewidgets2(toggleOn,toggleOff );
+                                    }
+                                  }else{
+                                   var toggleOn = [];
+                                   var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                                   togglewidgets2(toggleOn,toggleOff );
+                                  }
                               %>"
                             },
-                                    {
-                                      "type":"hidden",
-                                      "id": "modeOfTransportName",
-                                      "value":"",
-                                      "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
-                                    },
+                            {
+                              "type":"hidden",
+                              "id": "modeOfTransportName",
+                              "value":"",
+                              "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
+                            },
+                            {
+                              "type": "text",
+                              "label": "Bus/Train/Boat Number",
+                              "id": "busNumberTxt",
+                              "required": false,
+                              "visible": false,
+                              "enabled": true,
+                              "value": "",
+                              "_test": "<%/*TODO no object to save field*/%>"
+                            },
+                            {
+                              "type": "text",
+                              "label": "Airline",
+                              "visible": false,
+                              "id": "airlineTxt",
+                              "required": false,
+                              "enabled": true,
+                              "value": "",
+                              "_test": "<%/*TODO no object to save field*/%>"
 
-                                    {
-                                      "type": "text",
-                                      "label": "Departure Airport",
-                                      "id": "departureAirportTxt",
-                                      "required": false,
-                                      "enabled": true,
-                                      "value": "",
-                                      "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "label": "Arrival Airport",
-                                      "id": "arrivalAirportTxt",
-                                      "required": false,
-                                      "enabled": true,
-                                      "value": "",
-                                      "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "label": "Airline",
-                                      "id": "airlineTxt",
-                                      "required": false,
-                                      "enabled": true,
-                                      "value": "",
-                                      "_test": "<%/*TODO no object to save field*/%>"
-
-                                    }
-
-
-
-                              ,
+                            },
+                            {
+                              "type": "text",
+                              "label": "Departure location",
+                              "id": "departureAirportTxt",
+                              "required": false,
+                              "visible": false,
+                              "enabled": true,
+                              "value": "",
+                              "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                            },
+                            {
+                              "type": "text",
+                              "label": "Arrival location",
+                              "id": "arrivalAirportTxt",
+                              "required": false,
+                              "visible": false,
+                              "enabled": true,
+                              "value": "",
+                              "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                            },
                             {
                               "type": "radioGroup",
                               "label": "Is this your assigned vehicle?",
                               "id": "yourVehicleRG",
                               "required": false,
+                              "hideDisplayOption": true,
+                              "visible": false,
                               "enabled": true,
                               "instanceList": [
                                 {
@@ -578,92 +585,35 @@
                                   "id": "no",
                                   "descriptor": "No"
                                 }
-                              ]
+                              ],
+                              "onChange": "<%
+                                if(self.selectedEntries[0].id == 'yes'){
+                                  giveCarDetailsTxt.setEnabled(true);
+                                  giveCarDetailsTxt.setVisible(true);
+                                  giveCarDetailsTxt.setRequired(true);
+                                }else{
+                                  giveCarDetailsTxt.setEnabled(false);
+                                  giveCarDetailsTxt.setVisible(false);
+                                  giveCarDetailsTxt.setRequired(false);
+                                  giveCarDetailsTxt.setValue('');
+                                }
+                              %>"
                             },
-
                             {
                               "type": "text",
                               "label": "Give car details",
                               "id": "giveCarDetailsTxt",
+                              "visible": false,
                               "required": false,
                               "enabled": true,
                               "_test": "<%/*TODO no object to save field*/%>"
-
                             },
-
-                            {
-                              "type": "text",
-                              "label": "Bus Number",
-                              "id": "busNumberTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
-                            },
-                            {
-                              "type": "text",
-                              "label": "TestField",
-                              "id": "testFieldTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
-                            },
-
-                            {
-                              "type": "text",
-                              "label": "Departure Station",
-                              "id": "departureStationTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Arrival Station",
-                              "id": "arrivalStationTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
-
-                            },
-
-                            {
-                              "type": "text",
-                              "label": "TestBoat",
-                              "id": "testBoatTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Departure location",
-                              "id": "<% 'departureAirportTxt' %>",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
-                            },
-                            {
-                              "type": "text",
-                              "label": "Arrival location",
-                              "id": "arrivalAirportTxt",
-                              "required": false,
-                              "enabled": true,
-                              "value": "",
-                              "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
-
-                            },
-
                             {
                               "type": "text",
                               "label": "Mode Of Transport Other",
                               "id": "modeOfTransportOtherTxt",
                               "required": false,
+                              "visible": false,
                               "enabled": true,
                               "value": "",
                               "_test": "<%/*TODO no object to save field*/%>"
@@ -673,6 +623,7 @@
                               "label": "Add this location to my frequent destination list",
                               "id": "addToFrequentTravels",
                               "required": false,
+                              "visible": false,
                               "enabled": true,
                               "trueLabel": "True Label",
                               "falseLabel": "False Label",
@@ -680,7 +631,6 @@
                             }
                             ]
                           }
-
                           ]
                         }
                       ]
@@ -740,20 +690,14 @@
                                   "enabled": true,
                                   "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
                                   "onChange": "<%
-                                               if(empty(self.selectedEntries[0])){
-                                                   lodgingOtherTxt.value = '';
-                                                       //lodgingOtherTxt.setVisible(false);
-                                                       lodgingOtherTxt.setRequired(false);
-                                               }else if(self.selectedEntries[0].id == 'other'){
-                                                   lodgingOtherTxt.value = '';
-                                                       //lodgingOtherTxt.setVisible(true);
-                                                       lodgingOtherTxt.setRequired(true);
-                                               }else{
-                                                   lodgingOtherTxt.value = self.selectedEntries[0].descriptor;
-                                                       //lodgingOtherTxt.setVisible(false);
-                                                       lodgingOtherTxt.setRequired(false);
-                                               }
-                                               %>"
+                                    if(empty(self.selectedEntries[0])){
+                                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
+                                    }else if(self.selectedEntries[0].id == 'other'){
+                                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
+                                    }else{
+                                      lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
+                                    }
+                                  %>"
                                 },
                                 {
                                   "type": "text",
@@ -776,14 +720,14 @@
                                   "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
                                   "values": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
                                   "onChange": "<%
-                                               if(empty(self.selectedEntries[0])){
-                                                   countryText.value = '';
-                                                       countryCodeText.value = '';
-                                               }else{
-                                                   countryText.value = self.selectedEntries[0].descriptor;
-                                                       countryCodeText.value = self.selectedEntries[0].id;
-                                               }
-                                               %>"
+                                   if(empty(self.selectedEntries[0])){
+                                     countryText.value = '';
+                                     countryCodeText.value = '';
+                                   }else{
+                                     countryText.value = self.selectedEntries[0].descriptor;
+                                     countryCodeText.value = self.selectedEntries[0].id;
+                                   }
+                                   %>"
                                 },
                                 {
                                   "type":"hidden",
@@ -893,10 +837,6 @@
                                 }
                               ]
                             }
-
-
-
-
                           ]
                         }
                       ]

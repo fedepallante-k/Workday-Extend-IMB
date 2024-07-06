@@ -1,9 +1,29 @@
 {
   "id": "createOOBReview",
   "endPoints": [
+    {
+      "name": "getOOBRequest1",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": true,
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getOOBRequest",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getPersonalTimeOff",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    }
   ],
   "presentation": {
     "headerSize": "VPS_DEFAULT",
+    "preferredLabelPosition": "ASIDE",
     "title": {
       "type": "title",
       "label": "Workday Extend"
@@ -13,20 +33,256 @@
       "horizontal": false,
       "children": [
         {
-          "type": "text",
-          "id": "hello",
-          "label": "Hello World!",
-          "value": "Welcome from Workday!"
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "children": [
+          "type": "fieldSet",
+          "id": "tripDetailsFS",
+          "title": "Trip Details",
+          "collapsible": true,
+          "children": [
+            {
+              "type": "text",
+              "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
+              "id": "vismoTxt"
+            },
+            {
+              "type": "text",
+              "label": "Trip Name",
+              "id": "tripNameTxt",
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].name : '' %>"
+            },
+            {
+              "type": "textArea",
+              "label": "Trip Purpose",
+              "id": "tripPurposeTxtA",
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].purpose : '' %>"
+            },
+            {
+              "type": "date",
+              "label": "Start Date",
+              "id": "startDateDt",
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].startDate : '' %>"
+            },
+            {
+              "type": "date",
+              "label": "End Date ",
+              "id": "endDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].endDate : '' %>"
+            },
+            {
+              "type": "date",
+              "label": "End Date (or Expected End Date)",
+              "id": "endDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].expectedEndDate : '' %>"
+            },
+            {
+              "type": "text",
+              "label": "STS",
+              "id": "stsIL",
+              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].sts : '' %>"
+            },
+            {
+              "type": "text",
+              "label": "Other - STS specific to this Trip",
+              "id": "otherStsTxt",
+              "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) %>",
+              "value": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) ? getOOBRequest.data[0].otherSTS : '' %>"
+            }
+          ]
+        },
         {
-          "type": "richText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
+          "type": "fieldSet",
+          "id": "tripDetailsFS",
+          "title": "Travelers included in OOB",
+          "collapsible": true,
+          "children": [
+            {
+              "type": "grid",
+              "id": "fieldMemeberGrid",
+              "rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0] : [] %>",
+              "_visible": "<% !empty(pageVariables.isField) ? pageVariables.isField : false %>",
+              "visible": true,
+              "rowVariableName": "fieldMemeberData",
+              "label": "<% 'For Field Family Members' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "familyMemberCol",
+                  "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
+                  "cellTemplate": {
+                    "type":"fieldSet",
+                    "children": [
+
+                      {
+                        "id": "traveller",
+                        "type": "text",
+                        "visible": true,
+                        "render": true,
+                        "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName + ' ' + fieldMemeberData.lastName) : '' %>",
+                        "enabled": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "fieldMemberNameCol",
+                  "label": "<% 'If Other selected - Add to OOB Profile?' %>",
+                  "cellTemplate": {
+                    "type":"fieldSet",
+                    "children": [
+                      {
+                        "id": "addToOOB",
+                        "type": "text",
+                        "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.formProfile ? 'Yes' : 'No' : '' %>",
+                        "enabled": false
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "richText",
+              "label": "Alternative arrangements for Dependent Children ",
+              "id": "AlternativeRTxt",
+              "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].alternateArrangementForChildren) %>",
+              "value": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].alternateArrangementForChildren) ? getOOBRequest.data[0].alternateArrangementForChildren : '' %>"
+            },
+            {
+              "type": "grid",
+              "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
+              "id": "allNumbers",
+              "rowVariableName": "contactDetailsData",
+              "label": "<% 'Phone Numbers you are travelling with' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "phoneNameCol",
+                  "label": "<% 'Name' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneNameCell",
+                    "enabled": false,
+                    "value": "<% !empty(contactDetailsData.name) ? contactDetailsData.name : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "countryCodeCol",
+                  "label": "<% 'Country Phone Code' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneCodeList",
+                    "value": "<% !empty(contactDetailsData.countryCode) ? contactDetailsData.countryCode : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "phoneNumberCol",
+                  "label": "<% 'Phone Number' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneNumberCol",
+                    "value": "<% !empty(contactDetailsData.number) ? contactDetailsData.number : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "notesCol",
+                  "label": "<% 'Notes' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "notesCol",
+                    "value": "<% !empty(contactDetailsData.notes) ? contactDetailsData.notes : '' %>"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type":"fieldSet",
+          "title": "Personal Time",
+          "collapsible": true,
+          "children":[
+            {
+              "type": "text",
+              "label": "Trip includes Vacation, Bereavement or Holiday days",
+              "id": "PersonalLeaveRG",
+              "value": "<% !empty(getPersonalTimeOff.data) ? 'Yes' : 'No' %>"
+            },
+            {
+              "type": "grid",
+              "id": "personalTimeGrid",
+              "rows": "<% !empty(getPersonalTimeOff.data) ? getPersonalTimeOff.data : [] %>",
+              "visible": true,
+              "rowVariableName": "timeOffData",
+              "label": "<% 'Personal Time Off Details' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "workerTimeOffCol",
+                  "label": "<% 'Workers taking time off' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% !empty(timeOffData.worker) ? timeOffData.worker.descriptor : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "absenceTypeCol",
+                  "label": "<% 'Absence Type' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "absenceTypeIL",
+                    "value": "<% !empty(timeOffData.type) ? timeOffData.type : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "startDateCol",
+                  "label": "<% 'Start Date' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "endDateCol",
+                  "label": "<% 'End Date' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "label": "Is this an Elevated Risk Situation",
+              "id": "elevatedRiskRG",
+              "value": "<% !empty(getOOBRequest.data[0].elevatedRisk) ? getOOBRequest.data[0] ? 'Yes' : 'No' : '' %>"
+            },
+            {
+              "type": "textArea",
+              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+              "id": "elevatedRiskTxtA",
+              "visible": "<% !empty(getOOBRequest.data[0].elevatedRiskSituation) %>",
+              "value": "<% !empty(getOOBRequest.data[0].elevatedRiskSituation) ? getOOBRequest.data[0].elevatedRiskSituation : '' %>"
+            },
+            {
+              "type": "textArea",
+              "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
+              "id": "addCommentsOnBehalfOfTxtA",
+              "_render": "<% !pageVariables.isField %>",
+              "render": "<% true %>",
+              "value": "<% !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
+            }
+          ]
         }
       ]
     }
