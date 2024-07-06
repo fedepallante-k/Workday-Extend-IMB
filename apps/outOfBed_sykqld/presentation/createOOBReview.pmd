@@ -2,22 +2,27 @@
   "id": "createOOBReview",
   "endPoints": [
     {
-      "name": "getOOBRequest1",
+      "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": true,
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
-      "name": "getOOBRequest",
+      "name": "getOOBRequest1",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
-      "name": "getPersonalTimeOff",
+      "name": "getPersonalTimeOff1",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getPersonalTimeOff",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+  flowVariables.oobRequest  +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
   ],
@@ -32,6 +37,14 @@
       "type": "section",
       "horizontal": false,
       "children": [
+        {
+          "type": "text",
+          "label": "testOOBREQUEST ID",
+          "id": "testOobrequestIdTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : ''%>"
+        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",

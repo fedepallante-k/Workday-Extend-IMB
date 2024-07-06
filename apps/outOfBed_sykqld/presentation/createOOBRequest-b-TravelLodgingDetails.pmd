@@ -45,9 +45,15 @@
       "authType": "sso"
     },
     {
-      "name": "getAccompanyTravllers",
+      "name": "getAccompanyTravllersOLD",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (661f38b0479890082bd6b26d6d380000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -111,14 +117,13 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "exclude": true,
         "onSend": "<%
         //TODO add flowVariables.oobRequest
           console.info('createDestinations' + json:asJSON(createDestinations)) ;
           self.data = {'data':[]};
           var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
           for(var x : listOfDestinations){
-              self.data.data.add({'id' : '661f38b0479890082bd6b26d6d380000', 'lodging' : {'id' : x.id}});
+              self.data.data.add({'id' : flowVariables.oobRequest, 'lodging' : {'id' : x.id}});
           }
           console.info('Obb update destination self.data = ' + json:asJSON(self.data));
           self.data;
