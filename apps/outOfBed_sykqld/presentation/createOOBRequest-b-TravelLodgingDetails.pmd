@@ -53,6 +53,7 @@
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
@@ -81,7 +82,23 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "exclude": true
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+                   var travellerPayload = panelInfo();
+
+        console.info('Panel paylod info' + travellerPayload);
+
+        %>"
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
@@ -154,71 +171,12 @@
     "Dates.script"
   ],
   "script": "<%
-    var toggleWidgetVisible = function(toggle) {
-       for (var widget : air.childrenMap) {
-           if(widget.getlabel().contains('air'))
-               empty(widget.setVisible(toggle));
-       }
-    }
-
-    var toggleWidgetRequired = function(toggle, widgetsMap) {
-        console.info('widgetsMap' + json:asJSON(widgetsMap));
-        widgetsMap.setVisible(toggle);
-        for (var widget : widgetsMap.childrenMap) {
-            widget.setRequired(toggle);
-            widget.setVisible(toggle);
-        }
-    }
-
-    var toggleWidgets = function(widgetsMap, id) {
-      if(widgetsMap.childrenMap){
-        for (var widget : widgetsMap.childrenMap) {
-          if(!empty(widget.childrenMap) &&  !empty(widget.title) && widget.title.lowerCase().contains(id) ){
-            widget.setVisible(true);
-            for (var subwidget : widget.childrenMap) {
-              empty(subwidget.children) ? subwidget.setVisible(true) : '';
-              empty(subwidget.children) ? subwidget.setRequired(true) : '';
-              empty(subwidget.children) ? subwidget.setEnabled(true) : '';
-            }
-          }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains(id) ){
-            widget.setVisible(false);
-            for (var subwidget : widget.childrenMap) {
-              empty(subwidget.children) ? subwidget.setVisible(false) : '';
-              empty(subwidget.children) ? subwidget.setRequired(false) : '';
-              empty(subwidget.children) ? subwidget.setEnabled(false) : '';
-            }
-          }
-        }
-      }
-    }
-
-  var mapData = function(widgetsMap, indexPos){
-      console.info('widgetsMap for index ' + indexPos + ' = ' + json:asJSON(widgetsMap) );
-      if(!empty(widgetsMap.childrenMap)){
-          for (var widget : widgetsMap.childrenMap) {
-              console.info('widget for index ' + indexPos + ' = ' + json:asJSON(widget) );
-              if(!empty(widget.childrenMap) &&  !empty(widget.title) && widget.title.lowerCase().contains('air') ){
-                  widget.setVisible(true);
-                      for (var subwidget : widget.childrenMap) {
-                          console.info('subwidget for index ' + indexPos + ' = ' + json:asJSON(subwidget) );
-                      }
-              }else if(!empty(widget.childrenMap) && !empty(widget.title) && !widget.title.lowerCase().contains('air') ){
-              }
-          }
-      }
-      //pageVariables.mapOfTravelData[indexPos].add({'travelDetails': indexPos});
-      console.info('pageVariables.mapOfTravelData = ' + pageVariables.mapOfTravelData );
-  }
-
-
     var getTravelDetails = function (travelWidget){
       var travelPayload = {:};
       console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
-
-      //console.info('in loop, values = ' + json:asJSON(values));
-
+      !empty(travelWidget.accompanyingTravellerId) ?  travelPayload.add('id',  accompanyingTravellerId.value ?: '') : null ;
       travelPayload.add('panelId',  travelWidget.indexId.value ?: '');
-      travelPayload.add('id',  travelWidget.travellerId.value ?: '');
+      //travelPayload.add('id',  travelWidget.travellerId.value ?: '');
       travelPayload.add('descriptor',  travelWidget.travellerName.value ?: '');
       travelPayload.add('sts',  travelWidget.stsValue.value ?: '');
       travelPayload.add('departureDate',  travelWidget.departureDateDt.value ?: '');
@@ -245,48 +203,57 @@
       console.info('Enter Panel function');
       console.info('travelPanel = ' + json:asJSON(travelPanel));
       console.info('travelPanel.getPanels() = ' + json:asJSON(travelPanel.getPanels()));
+      console.info('Number of Panels = ' + travelPanel.getPanels().size());
 
       var travelPayload = {:};
       var travelList = [];
-
+      var counter = 0;
       for(var TravelLodging : travelPanel.getPanels()){
         console.info('Travel and Loding = ' + json:asJSON(TravelLodging));
         console.info('children = ' + json:asJSON(TravelLodging.getChildren()));
-            console.info('childrenMap = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap));
-            console.info('childrenMap.stsValue = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap.stsValue));
+        console.info('childrenMap = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap));
+        console.info('childrenMap.stsValue = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap.stsValue));
+      console.info('Counter = ' + counter);
+      counter +=1;
 
         for (var TravelDetails : TravelLodging.getChildren()) {
-
-            /*
-              if(!empty(TravelDetails.getChildren())){
-              for(var x : TravelDetails.getChildren())
-              {
-                  if(!empty(x.title) && x.title=='Air')
-                  console.info('has child data = ' + json:asJSON(x));
-              }
-            }
-*/
           var payload = getTravelDetails(TravelDetails);
               travelList.add(payload);
-        }
 
+        }
         console.info('travelList = ' + json:asJSON(travelList));
         travelPayload.add('data',travelList);
             console.info('travelPayload = ' + json:asJSON(travelPayload));
-        return travelPayload;
+        //return travelPayload;
+        return travelList;
       }
     }
 
-  var getAlltravellers = function(){
-      var updateList = [];
-      var updateMap = {'data':[]};
+        var panelInfo2 = function(){
+      console.info('Enter Panel function');
+          console.info('travelPanel = ' + json:asJSON(travelPanel));
+      console.info('travelPanel.getPanels() = ' + json:asJSON(travelPanel.getPanels()));
+      console.info('Number of Panels = ' + travelPanel.getPanels().size());
 
-      var getAllData = getAccompanyTravllers2.data;
-      updateMap.data.add(getAllData);
-  return updateMap;
+      var travelPayload = {:};
+      var travelList = [];
+      var counter = 0;
+      for(var TravelLodging : travelPanel.getPanels()){
+      console.info('Travel and Loding = ' + json:asJSON(TravelLodging));
+          console.info('Counter = ' + counter);
+          counter +=1;
+
+
+      console.info('travelList = ' + json:asJSON(travelList));
+      travelPayload.add('data',travelList);
+      console.info('travelPayload = ' + json:asJSON(travelPayload));
+      //return travelPayload;
+      return travelList;
+  }
   }
 
-  var togglewidgets2 = function(enableWidgets, disableWidgets){
+
+  var togglewidgets = function(enableWidgets, disableWidgets){
       if(!empty(enableWidgets)){
         for(var x : enableWidgets){
           x.setVisible(true);
@@ -306,6 +273,12 @@
 
   }
 
+       var setDoNotAddPanelList = function() {
+  console.info('travelPanel' + json:asJSON(travelPanel));
+             travelPanel.setDoNotAdd(travelPanel.getPanels().size() <= 1);
+
+       }
+
 /*
      TODO - Logic for page
      section to wrap everything so i can iterate on the children to save data
@@ -322,8 +295,8 @@
     {'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}, 'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
-   pageVariables.accompanyingTravellers1 = [{'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}},{'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}}];
-   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [];
+   pageVariables.accompanyingTravellers1 = [{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}];
+   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : pageVariables.accompanyingTravellers1;
    pageVariables.sts = 'This is the STS';
    %>",
   "presentation": {
@@ -372,6 +345,11 @@
                           "isArrayOutBinding": false,
                           "panelName": "travelDeatilsPanels",
                           "indexVariableName": "travelPanelIndex",
+                          "onPanelAdd": "<%
+                            var travelPanels = self.getPanels();
+                            var newPanel = travelPanels[travelPanels.size() - 1];
+                            newPanel.getChildren()[0].accompanyingTravellerId.setValue('ANdy');
+                          %>",
                           "children": [
                             {
                               "type": "fieldSet",
@@ -381,6 +359,14 @@
                             {
                               "type": "text",
                               "id": "indexId",
+                              "label": "Accompany Traveller ID",
+                              "enabled": false,
+                              "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : '' %>"
+                            },
+                            {
+                              "type": "text",
+                              "id": "indexId",
+                              "label": "Traveller Panel ID",
                               "enabled": false,
                               "value": "<% travelPanelIndex %>"
                             },
@@ -392,9 +378,10 @@
                             },
                             {
                               "type": "text",
-                              "id": "travellerId",
+                              "id": "indexloopIDTxT",
+                              "label": "loopIndex",
                               "enabled": false,
-                              "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'no Id' %>"
+                              "value": "<% !empty(loopIndex) ? loopIndex : 'no Id' %>"
                             },
                             {
                               "type": "checkBox",
@@ -431,8 +418,8 @@
                               "label": "id",
                               "id": "accompanyingTravellerId",
                               "enabled": false,
-                              "value": "<%  !empty(objectToLoopOn.id) ? objectToLoopOn.id : 'empty'              %>",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].id"
+                              "value": "<%  !empty(objectToLoopOn.id) ? objectToLoopOn.id : '' %>",
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].id"
                             },
                             {
                               "type" : "text",
@@ -440,7 +427,11 @@
                               "label": "<% 'Segment Specific STS' %>",
                               "value" : "<% objectToLoopOn.sts %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
-                              "onChange": "<%  panelInfo();   %>"
+                              "onChange": "<%
+                                           panelInfo2();
+                                           //panelInfo();
+
+                                           %>"
                             },
 
                             {
@@ -493,36 +484,36 @@
                                   if(self.selectedEntries[0].id == 'air'){
                                     var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
                                     var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
-                                    togglewidgets2(toggleOn,toggleOff);
+                                    togglewidgets(toggleOn,toggleOff);
                                     }else if (self.selectedEntries[0].id == 'car'){
                                       var toggleOn = [yourVehicleRG];
                                       var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }else if (self.selectedEntries[0].id == 'bus'){
                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt,yourVehicleRG];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }else if (self.selectedEntries[0].id == 'train'){
                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }else if (self.selectedEntries[0].id == 'boat'){
                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }else if (self.selectedEntries[0].id == 'other'){
                                       var toggleOn = [modeOfTransportOtherTxt];
                                       var toggleOff = [airlineTxt, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }else{
                                       var toggleOn = [];
                                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                      togglewidgets2(toggleOn,toggleOff );
+                                      togglewidgets(toggleOn,toggleOff );
                                     }
                                   }else{
                                    var toggleOn = [];
                                    var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                   togglewidgets2(toggleOn,toggleOff );
+                                   togglewidgets(toggleOn,toggleOff );
                                   }
                               %>"
                             },

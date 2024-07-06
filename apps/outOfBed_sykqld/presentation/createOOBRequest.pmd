@@ -114,7 +114,6 @@
         "httpMethod": "POST",
         "onSend": "<%
           self.data = {'data':[]};
-          var addOtherMembers= [];
 
           for (var otherMembers : OtherMemberGrid.getRows()) {
             if(otherMembers.childrenMap.addToOOBCol.value){
@@ -293,7 +292,7 @@
                  });
              }
          }
-          console.info('create Personal time self.data' + self.data);
+          console.info('create Personal time self.data' + json:asJSON(self.data));
          self.data;
          %>"
       },
