@@ -112,18 +112,12 @@
                   "columnId": "familyMemberCol",
                   "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
                   "cellTemplate": {
-                    "type":"fieldSet",
-                    "children": [
-
-                      {
-                        "id": "traveller",
-                        "type": "text",
-                        "visible": true,
-                        "render": true,
-                        "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName + ' ' + fieldMemeberData.lastName) : '' %>",
-                        "enabled": false
-                      }
-                    ]
+                    "id": "traveller",
+                    "type": "text",
+                    "visible": true,
+                    "render": true,
+                    "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName + ' ' + fieldMemeberData.lastName) : '' %>",
+                    "enabled": false
                   }
                 },
                 {
@@ -131,21 +125,16 @@
                   "columnId": "fieldMemberNameCol",
                   "label": "<% 'If Other selected - Add to OOB Profile?' %>",
                   "cellTemplate": {
-                    "type":"fieldSet",
-                    "children": [
-                      {
-                        "id": "addToOOB",
-                        "type": "text",
-                        "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.formProfile ? 'Yes' : 'No' : '' %>",
-                        "enabled": false
-                      }
-                    ]
+                    "id": "addToOOB",
+                    "type": "text",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.formProfile ? 'Yes' : 'No' : '' %>",
+                    "enabled": false
                   }
                 }
               ]
             },
             {
-              "type": "richText",
+              "type": "text",
               "label": "Alternative arrangements for Dependent Children ",
               "id": "AlternativeRTxt",
               "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].alternateArrangementForChildren) %>",
