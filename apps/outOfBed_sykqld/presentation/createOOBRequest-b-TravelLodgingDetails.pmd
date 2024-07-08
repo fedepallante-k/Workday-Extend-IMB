@@ -173,7 +173,7 @@
   "script": "<%
     var getTravelDetails = function (travelWidget){
       var travelPayload = {:};
-      console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
+      //console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
       !empty(travelWidget.accompanyingTravellerId) ?  travelPayload.add('id',  accompanyingTravellerId.value ?: '') : null ;
       travelPayload.add('panelId',  travelWidget.indexId.value ?: '');
       //travelPayload.add('id',  travelWidget.travellerId.value ?: '');
@@ -199,58 +199,43 @@
       return travelPayload;
     }
 
-    var panelInfo = function(){
-      console.info('Enter Panel function');
-      console.info('travelPanel = ' + json:asJSON(travelPanel));
-      console.info('travelPanel.getPanels() = ' + json:asJSON(travelPanel.getPanels()));
-      console.info('Number of Panels = ' + travelPanel.getPanels().size());
-
+    var panelInfoOld = function(){
       var travelPayload = {:};
       var travelList = [];
       var counter = 0;
       for(var TravelLodging : travelPanel.getPanels()){
-        console.info('Travel and Loding = ' + json:asJSON(TravelLodging));
-        console.info('children = ' + json:asJSON(TravelLodging.getChildren()));
-        console.info('childrenMap = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap));
-        console.info('childrenMap.stsValue = ' + json:asJSON(TravelLodging.getChildren()[0].childrenMap.stsValue));
-      console.info('Counter = ' + counter);
       counter +=1;
-
         for (var TravelDetails : TravelLodging.getChildren()) {
           var payload = getTravelDetails(TravelDetails);
               travelList.add(payload);
-
         }
-        console.info('travelList = ' + json:asJSON(travelList));
         travelPayload.add('data',travelList);
-            console.info('travelPayload = ' + json:asJSON(travelPayload));
-        //return travelPayload;
-        return travelList;
+        console.info('travelPayload = ' + json:asJSON(travelPayload));
+        return travelPayload;
       }
     }
 
-        var panelInfo2 = function(){
-      console.info('Enter Panel function');
-          console.info('travelPanel = ' + json:asJSON(travelPanel));
-      console.info('travelPanel.getPanels() = ' + json:asJSON(travelPanel.getPanels()));
-      console.info('Number of Panels = ' + travelPanel.getPanels().size());
+     var panelInfo = function(){
+       console.info('Enter Panel function');
+       var travelPayload = {:};
+       var travelList = [];
+       var counter = 0;
 
-      var travelPayload = {:};
-      var travelList = [];
-      var counter = 0;
-      for(var TravelLodging : travelPanel.getPanels()){
-      console.info('Travel and Loding = ' + json:asJSON(TravelLodging));
-          console.info('Counter = ' + counter);
-          counter +=1;
+       for(var x : travelPanel.getPanels()){
+         console.info('x[counter] = ' + json:asJSON(x));
+         console.info('x[counter].getChildren[0] = ' + json:asJSON(x.getChildren()[0]));
+         for (var TravelDetails : x.getChildren()) {
+           var payload = getTravelDetails(TravelDetails);
+           travelList.add(payload);
+         }
+         counter +=1;
+       }
 
-
-      console.info('travelList = ' + json:asJSON(travelList));
       travelPayload.add('data',travelList);
       console.info('travelPayload = ' + json:asJSON(travelPayload));
-      //return travelPayload;
-      return travelList;
+      return travelPayload;
   }
-  }
+
 
 
   var togglewidgets = function(enableWidgets, disableWidgets){
@@ -428,9 +413,7 @@
                               "value" : "<% objectToLoopOn.sts %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
                               "onChange": "<%
-                                           panelInfo2();
-                                           //panelInfo();
-
+                                           panelInfo();
                                            %>"
                             },
 
