@@ -68,6 +68,20 @@
     "outboundEndPoints": [
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "deleteAccompanyTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "DELETE",
+        "exclude": "<% empty(flowVariables.accompanyingTravellers) %>",
+        "onSend":"<%
+          self.data = {'data': flowVariables.accompanyingTravellers};
+          console.info('Delete Accompany Travellers self.data = ' + json:asJSON(self.data));
+          self.data;
+        %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createDestinations",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "sso",
@@ -82,8 +96,7 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}],
-        "exclude": true
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
@@ -91,14 +104,12 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}],
-        "onSend": "<%
-                   var travellerPayload = panelInfo();
+        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data))
+        var travellerPayload = panelInfo();
 
         console.info('Panel paylod info' + travellerPayload);
-
-        %>"
+                    %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
@@ -138,14 +149,20 @@
         //TODO add flowVariables.oobRequest
           console.info('createDestinations' + json:asJSON(createDestinations)) ;
           self.data = {'data':[]};
+          var lodgingList = [];
+/*
           var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
           for(var x : listOfDestinations){
               self.data.data.add({'id' : flowVariables.oobRequest, 'lodging' : {'id' : x.id}});
           }
+        */
+           var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
+           for(var x : listOfDestinations){
+                   lodgingList.add({'id' : x.id});
+           }
+          self.data.data.add({'id' : flowVariables.oobRequest, 'lodging' : lodgingList});
           console.info('Obb update destination self.data = ' + json:asJSON(self.data));
           self.data;
-
-
         %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
@@ -175,7 +192,7 @@
       var travelPayload = {:};
       //console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
       !empty(travelWidget.accompanyingTravellerId) ?  travelPayload.add('id',  accompanyingTravellerId.value ?: '') : null ;
-      travelPayload.add('panelId',  travelWidget.indexId.value ?: '');
+      travelPayload.add('isExisting',  travelWidget.isExistingTravller.value);
       //travelPayload.add('id',  travelWidget.travellerId.value ?: '');
       travelPayload.add('descriptor',  travelWidget.travellerName.value ?: '');
       travelPayload.add('sts',  travelWidget.stsValue.value ?: '');
@@ -276,7 +293,7 @@
 */
   %>",
   "onLoad": "<%
-   pageVariables.accompanyingTravellers1 = [
+   pageVariables.accompanyingTravellers2 = [
     {'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}, 'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
     {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
@@ -301,7 +318,7 @@
           "id": "testTxt",
           "required": false,
           "enabled": false,
-          "value": "<% !empty(getAccompanyTravllers.data) ? json:asJSON(getAccompanyTravllers.data) : 'empty' %>"
+          "value": "<% !empty(getAccompanyTravllers.data) ? json:asJSON(getAccompanyTravllers) : 'empty' %>"
         },
         {
           "type": "section",
@@ -323,6 +340,11 @@
                       "id": "travelFieldSet",
                       "children":[
                         {
+                          "type": "hidden",
+                          "id": "loopTxt",
+                          "value": "<% objectToLoopOn.id %>"
+                        },
+                        {
                           "type": "panelList",
                           "label": "Travel Events",
                           "id": "travelPanel",
@@ -333,7 +355,7 @@
                           "onPanelAdd": "<%
                             var travelPanels = self.getPanels();
                             var newPanel = travelPanels[travelPanels.size() - 1];
-                            newPanel.getChildren()[0].accompanyingTravellerId.setValue('ANdy');
+                            newPanel.getChildren()[0].accompanyingTravellerId.setValue(loopTxt.value);
                           %>",
                           "children": [
                             {
@@ -343,30 +365,16 @@
                               "children": [
                             {
                               "type": "text",
-                              "id": "indexId",
-                              "label": "Accompany Traveller ID",
+                              "id": "isExistingTravller",
+                              "label": "is Existing Accompanying Traveller",
                               "enabled": false,
-                              "value": "<% !empty(objectToLoopOn.id) ? objectToLoopOn.id : '' %>"
-                            },
-                            {
-                              "type": "text",
-                              "id": "indexId",
-                              "label": "Traveller Panel ID",
-                              "enabled": false,
-                              "value": "<% travelPanelIndex %>"
+                              "value": "<% !empty(objectToLoopOn.id) ? true : false %>"
                             },
                             {
                               "type": "text",
                               "id": "travellerName",
                               "enabled": false,
                               "value": "<% (objectToLoopOn.firstName ?? '') + ' ' + (objectToLoopOn.lastName ?? '') %>"
-                            },
-                            {
-                              "type": "text",
-                              "id": "indexloopIDTxT",
-                              "label": "loopIndex",
-                              "enabled": false,
-                              "value": "<% !empty(loopIndex) ? loopIndex : 'no Id' %>"
                             },
                             {
                               "type": "checkBox",
@@ -404,7 +412,7 @@
                               "id": "accompanyingTravellerId",
                               "enabled": false,
                               "value": "<%  !empty(objectToLoopOn.id) ? objectToLoopOn.id : '' %>",
-                              "_valueOutBinding": "updateAccompanyingTravellers.data[].id"
+                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].id' : ''%>"
                             },
                             {
                               "type" : "text",
@@ -412,6 +420,7 @@
                               "label": "<% 'Segment Specific STS' %>",
                               "value" : "<% objectToLoopOn.sts %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
+                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].sts' : 'createAccompanyingTravellers.data[].sts'%>",
                               "onChange": "<%
                                            panelInfo();
                                            %>"
@@ -425,6 +434,7 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].departureDate",
+                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].departureDate' : 'createAccompanyingTravellers.data[].departureDate'%>",
                               "onChange": "<%%>"
                             },
                             {
@@ -443,6 +453,7 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalDate",
+                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].arrivalDate' : 'createAccompanyingTravellers.data[].arrivalDate'%>",
                               "onChange": "<%  %>"
                             },
                             {
@@ -504,7 +515,8 @@
                               "type":"hidden",
                               "id": "modeOfTransportName",
                               "value":"",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport"
+                              "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport",
+                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].modeOfTransport' : 'createAccompanyingTravellers.data[].modeOfTransport'%>"
                             },
                             {
                               "type": "text",
@@ -535,7 +547,8 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
+                              "valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].departurePoint' : 'createAccompanyingTravellers.data[].departurePoint'%>",
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint"
                             },
                             {
                               "type": "text",
@@ -545,7 +558,8 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
+                              "valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].arrivalPoint' : 'createAccompanyingTravellers.data[].arrivalPoint'%>",
+                              "_valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint"
                             },
                             {
                               "type": "radioGroup",

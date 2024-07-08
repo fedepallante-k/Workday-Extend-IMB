@@ -329,7 +329,7 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "exclude": false,
+        "exclude": "<% empty(saveForLaterBtn.value) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -344,7 +344,7 @@
           for(var x : listOfAccompanyTravellers){
               self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : createOOBRequest.id}});
           }
-          console.info('self.data = ' + json:asJSON(self.data));
+          console.info('Update accompany travllers Fired self.data = ' + json:asJSON(self.data));
         self.data;
         %>"
       },
@@ -387,8 +387,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "exclude": "<% createAccompanyingTravellers.data %>",
-            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}})
+            "value": "<% ! empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : [];
             /*
               var travellers = []
               if(!empty(fieldMemeberGrid.getSelectedRows())){
