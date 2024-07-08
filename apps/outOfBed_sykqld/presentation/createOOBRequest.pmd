@@ -80,6 +80,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
+        "exclude": "<% !empty(nextBtn.value) %>",
         "onSend": "<%
         self.data = {'data':[]};
         var addAccompanyingTraveller= [];
@@ -213,6 +214,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
+            "exclude": "<% !empty(nextBtn.value) %>",
             "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
@@ -329,7 +331,7 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "exclude": "<% empty(saveForLaterBtn.value) %>",
+        "exclude": "<% !empty(nextBtn.value) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -384,6 +386,10 @@
           {
             "outboundPath": "otherSTS",
             "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellerNames",
+            "value": "<% getAllAccompanyingTravellers().data.map(x=> {{'name' : (x.firstName + ' ' + x.lastName)}}) %>"
           },
           {
             "outboundPath": "accompanyingTravellers",
@@ -480,10 +486,12 @@
       }
     }
 
+    if(!empty(getMobileNumbers.data)){
     var phoneNumbersPV = getMobileNumbers.data;
     for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
       phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
-    };
+    }
+             };
 
 
     for (var item : getWorkerDetails.data){
@@ -499,6 +507,8 @@
         i=0;
       }
     };
+    
+
 
 
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
@@ -532,6 +542,28 @@
 
                      }
                  }
+             }
+             
+             var getAllAccompanyingTravellers = function(){
+                 var addAccompanyingTraveller = [];
+
+                 for (var otherMembers : OtherMemberGrid.getRows()) {
+                         addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOB': !empty(otherMembers.childrenMap.addToOOBCol.value) ? true : false });
+                 }
+
+                 if(!empty(staffMemeberGrid.getSelectedRows())){
+                     for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+                         addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '), 'addToOOB': false});
+                     }
+                 }
+                 if(!empty(fieldMemeberGrid.getSelectedRows())){
+                     for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                         addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '), 'addToOOB': false});
+                     }
+                 }
+                 
+                 var TravellerArray = {'data' : addAccompanyingTraveller}
+                 return TravellerArray;
              }
              %>",
   "presentation": {
