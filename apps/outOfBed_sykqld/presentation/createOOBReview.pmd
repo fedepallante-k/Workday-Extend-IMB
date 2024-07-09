@@ -4,32 +4,53 @@
     {
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getOOBRequest1",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, lodging, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getPersonalTimeOff1",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+ '661f38b047989007b2e4215fea450000' +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+  flowVariables.oobRequest  +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<% empty(flowVariables.oobRequest) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate FROM outOfBed_sykqld_destinations WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getOOBRequest",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"47b41da260ab9009b4a1a86eb07d0000\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getPersonalTimeOff",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate FROM outOfBed_sykqld_destinations WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
   ],
@@ -50,7 +71,7 @@
           "id": "testOobrequestIdTxt",
           "required": false,
           "enabled": false,
-          "value": "<% !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : ''%>"
+          "value": "<% !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>"
         },
         {
           "type": "fieldSet",
@@ -136,7 +157,7 @@
                     "type": "text",
                     "visible": true,
                     "render": true,
-                    "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName + ' ' + fieldMemeberData.lastName) : '' %>",
+                    "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName ?: '' + ' ' + fieldMemeberData.lastName ?: '') : '' %>",
                     "enabled": false
                   }
                 },
@@ -215,6 +236,7 @@
         {
           "type":"fieldSet",
           "title": "Personal Time",
+          "render": "<% !empty(getPersonalTimeOff.data) %>",
           "collapsible": true,
           "children":[
             {
@@ -285,7 +307,7 @@
             },
             {
               "type": "textArea",
-              "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
+              "label": "Comments can be entered here for this OOB. NOTE that these are not private comments and are visible to others who have access to view this OOB.",
               "id": "addCommentsOnBehalfOfTxtA",
               "_render": "<% !pageVariables.isField %>",
               "render": "<% true %>",
@@ -296,14 +318,151 @@
         {
           "type": "loop",
           "label": "Loop",
-          "on": "<% getAccompanyTravllers.data %>",
+          "render": "<% !empty(getAccompanyTravllers.data) %>",
+          "on": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
           "as": "objectToLoopOn",
           "index": "loopIndex",
           "children": [
             {
               "type": "fieldSet",
-              "title": "<% 'Travel Details' + objectToLoopOn.firstName%>",
+              "title": "<% 'Travel Details - ' + (objectToLoopOn.firstName ?: '') + ' ' + (objectToLoopOn.lastName ?: '') %>",
               "children": [
+                {
+                  "type" : "text",
+                  "id": "stsValue",
+                  "label": "<% 'Segment Specific STS' %>",
+                  "value" : "<% !empty(objectToLoopOn.sts) ? objectToLoopOn.sts : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Depature Date",
+                  "id": "departureDateDt",
+                  "value" : "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Departure Time",
+                  "id": "departureTimeTxt",
+                  "value" : "<% !empty(objectToLoopOn.departureTime) ? objectToLoopOn.departureTime : '' %>"
+                },
+                {
+                  "type": "date",
+                  "label": "Arrival Date",
+                  "id": "arrivalDateDt",
+                  "value" : "<% !empty(objectToLoopOn.arrivalDate) ? objectToLoopOn.arrivalDate : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Arrival Time",
+                  "id": "arrivalTimeTxt",
+                  "value" : "<% !empty(objectToLoopOn.arrivalTime) ? objectToLoopOn.arrivalTime : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Mode Of Transport",
+                  "id": "modeOfTransportTxt",
+                  "value" : "<% !empty(objectToLoopOn.modeOfTransport) ? objectToLoopOn.modeOfTransport : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Departure Location",
+                  "id": "departureDestinationTxt",
+                  "value" : "<% !empty(objectToLoopOn.departurePoint) ? objectToLoopOn.departurePoint : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Arrival Location",
+                  "id": "arrivalDestinationTxt",
+                  "value" : "<% !empty(objectToLoopOn.arrivalPoint) ? objectToLoopOn.arrivalPoint : '' %>"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "loop",
+          "label": "Loop",
+          "_render": "<% !empty(getOOBRequest.data[0].lodging) %>",
+          "on": "<% !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging})[0] : [] %>",
+          "as": "lodgingLoopObject",
+          "index": "loopIndex",
+          "children": [
+            {
+              "type": "fieldSet",
+              "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName : '') %>",
+              "children": [
+                {
+                  "type": "date",
+                  "label": "Start Date",
+                  "id": "lodgingStartDateDt",
+                  "value" : "<% !empty(lodgingLoopObject.startDate) ? lodgingLoopObject.startDate : '' %>"
+                },
+                {
+                  "type": "date",
+                  "label": "End Date",
+                  "id": "lodgingEndDateDt",
+                  "value" : "<% !empty(lodgingLoopObject.endDate) ? lodgingLoopObject.endDate : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Lodging Name",
+                  "id": "lodgingNameTxt",
+                  "value" : "<% !empty(lodgingLoopObject.name) ? lodgingLoopObject.name : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Country",
+                  "id": "countryTxt",
+                  "value" : "<% !empty(lodgingLoopObject.countryCode) ? lodgingLoopObject.countryCode : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 1",
+                  "id": "addressLine1Txt",
+                  "value" : "<% !empty(lodgingLoopObject.addressLine1) ? lodgingLoopObject.addressLine1 : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 2",
+                  "id": "addressLine2Txt",
+                  "value" : "<% !empty(lodgingLoopObject.addressLine2) ? lodgingLoopObject.addressLine2 : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 3",
+                  "id": "addressLine3Txt",
+                  "value" : "<% !empty(lodgingLoopObject.addressLine3) ? lodgingLoopObject.addressLine3 : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "City",
+                  "id": "cityTxt",
+                  "value" : "<% !empty(lodgingLoopObject.city) ? lodgingLoopObject.city : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "State",
+                  "id": "stateTxt",
+                  "value" : "<% !empty(lodgingLoopObject.state) ? lodgingLoopObject.state : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Postal Code",
+                  "id": "postalCodeTxt",
+                  "value" : "<% !empty(lodgingLoopObject.postalCode) ? lodgingLoopObject.postalCode : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Contact Number",
+                  "id": "contactNumberTxt",
+                  "value" : "<% !empty(lodgingLoopObject.contactNumber) ? lodgingLoopObject.contactNumber : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Add this location to my frequent destination list",
+                  "id": "addToFrequentDestinationTxt",
+                  "value" : "<% !empty(lodgingLoopObject.postalCode) ? lodgingLoopObject.postalCode : '' %>"
+                }
               ]
             }
           ]

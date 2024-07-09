@@ -385,7 +385,6 @@
                                            panelInfo();
                                            %>"
                             },
-
                             {
                               "type": "date",
                               "label": "Depature Date",
@@ -590,6 +589,11 @@
                       "title": "<% 'Lodging Details - ' + (objectToLoopOn.name ?? '')%>",
                       "children": [
                         {
+                          "type": "hidden",
+                          "id": "travellerNameTxt",
+                          "value": "<% !empty(objectToLoopOn.name) ? objectToLoopOn.name : '' %>"
+                        },
+                        {
                           "type": "panelList",
                           "label": "Lodging Events",
                           "id": "LodgingPanel",
@@ -604,6 +608,13 @@
                               "title": "<% 'Lodging Details'%>",
                               "collapsible": true,
                               "children": [
+                                {
+                                  "type": "text",
+                                  "label": "lodgingTravellerName",
+                                  "id": "lodgingTravellerNameTxt",
+                                  "value": "<% travellerNameTxt.value %>",
+                                  "valueOutBinding": "createDestinations.data[].travellerName"
+                                },
                                 {
                                   "type": "section",
                                   "columnWidthRatios": [0.5,0.5],
