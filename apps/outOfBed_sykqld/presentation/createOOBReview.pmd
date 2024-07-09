@@ -24,6 +24,13 @@
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (\"'+  flowVariables.oobRequest  +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
     }
   ],
   "presentation": {
@@ -283,6 +290,21 @@
               "_render": "<% !pageVariables.isField %>",
               "render": "<% true %>",
               "value": "<% !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
+            }
+          ]
+        },
+        {
+          "type": "loop",
+          "label": "Loop",
+          "on": "<% getAccompanyTravllers.data %>",
+          "as": "objectToLoopOn",
+          "index": "loopIndex",
+          "children": [
+            {
+              "type": "fieldSet",
+              "title": "<% 'Travel Details' + objectToLoopOn.firstName%>",
+              "children": [
+              ]
             }
           ]
         }

@@ -68,36 +68,6 @@
     "outboundEndPoints": [
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "updateAccompanyingTravellersRemoveOOBRequest",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
-        "httpMethod": "PATCH",
-        "exclude": "<% true %>",
-        "onSend": "<%
-        self.data = {'data': []};
-        var listToUpdate = [];
-                   for(var x : flowVariables.accompanyingTravllers){
-                       listToUpdate.add({'id': x.id, 'oobRequest': {} } );
-                   }
-                   console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
-      },
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "deleteAccompanyTravellers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "wcpisu",
-        "httpMethod": "DELETE",
-        "exclude": "<% true %>",
-        "onSend":"<%
-          self.data = {'data': flowVariables.accompanyingTravellers};
-          console.info('Delete Accompany Travellers self.data = ' + json:asJSON(self.data));
-          self.data;
-        %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
-      },
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createDestinations",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "sso",
@@ -125,58 +95,15 @@
       },
       {
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "mapAccompanyingTravellers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
-        "exclude": true,
-        "httpMethod": "PATCH",
-        "failOnStatusCodes": [{"code":400},{"code":403}],
-        "_onSend": "<%
-          var updateList = [];
-          var updateMap = {:};
-          var destinationList = createDestinations.data.map(x=> {{'id' : x.body.id}});
-          var accTravellerList = updateAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
-
-          console.info('createDestinations.data' + json:asJSON(createDestinations.data));
-          console.info('updateAccompanyingTravellers.data' + json:asJSON(updateAccompanyingTravellers.data));
-          console.info('destinationList = ' + destinationList);
-          console.info('accTravellerList = ' + accTravellerList);
-
-          var counter = 0;
-        for(var x : accTravellerList){
-          updateList.add({'id' : x.id, 'lodging':destinationList[counter]});
-            counter += 1;
-        }
-          updateMap.add('data', updateList);
-        console.info('map = ' + json:asJSON(updateMap));
-                   %>"
-      },
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
         "authType": "sso",
         "httpMethod": "PATCH",
         "onSend": "<%
         //TODO add flowVariables.oobRequest
-          console.info('createDestinations' + json:asJSON(createDestinations)) ;
-        /*
-          self.data = {'data':[]};
-          var lodgingList = [];
-        */
-/*
-          var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
-          for(var x : listOfDestinations){
-              self.data.data.add({'id' : flowVariables.oobRequest, 'lodging' : {'id' : x.id}});
-          }ere
-        */
-            /*
-           var listOfDestinations = createDestinations.data.map(x=> {{'id' : x.body.id}});
-           for(var x : listOfDestinations){
-                   lodgingList.add({'id' : x.id});
-           }
-          self.data.data.add({'id' : flowVariables.oobRequest, 'lodging' : lodgingList});
-          */
+          console.info('createAccompanyingTravellers' + json:asJSON(createAccompanyingTravellers)) ;
+          console.info('createDestinations' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}}))) ;
+          console.info('createAccompanyingTravellers.data.map' + json:asJSON(createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}))) ;
 
           console.info('Obb update destination self.data = ' + json:asJSON(self.data));
           self.data;
@@ -383,7 +310,7 @@
                           "type": "panelList",
                           "label": "Travel Events",
                           "id": "travelPanel",
-                          "panels": "<% [1] %>",
+                          "panels": "<% [] %>",
                           "isArrayOutBinding": true,
                           "panelName": "travelDeatilsPanels",
                           "indexVariableName": "travelPanelIndex",
@@ -454,7 +381,6 @@
                               "label": "<% 'Segment Specific STS' %>",
                               "value" : "<% !empty(flowVariables.sts) ? flowVariables.sts : '' %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].sts",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].sts' : 'createAccompanyingTravellers.data[].sts'%>",
                               "onChange": "<%
                                            panelInfo();
                                            %>"
@@ -468,7 +394,6 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].departureDate",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].departureDate' : 'createAccompanyingTravellers.data[].departureDate'%>",
                               "onChange": "<%%>"
                             },
                             {
@@ -487,7 +412,6 @@
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].arrivalDate",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].arrivalDate' : 'createAccompanyingTravellers.data[].arrivalDate'%>",
                               "onChange": "<%  %>"
                             },
                             {
@@ -549,8 +473,7 @@
                               "type":"hidden",
                               "id": "modeOfTransportName",
                               "value":"",
-                              "valueOutBinding": "createAccompanyingTravellers.data[].modeOfTransport",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].modeOfTransport' : 'createAccompanyingTravellers.data[].modeOfTransport'%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].modeOfTransport"
                             },
                             {
                               "type": "text",
@@ -581,7 +504,6 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].departurePoint' : 'createAccompanyingTravellers.data[].departurePoint'%>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].departurePoint"
                             },
                             {
@@ -592,7 +514,6 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "_valueOutBinding": "<% isExistingTravller.value == 'false' ? 'updateAccompanyingTravellers.data[].arrivalPoint' : 'createAccompanyingTravellers.data[].arrivalPoint'%>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].arrivalPoint"
                             },
                             {
@@ -672,7 +593,7 @@
                           "type": "panelList",
                           "label": "Lodging Events",
                           "id": "LodgingPanel",
-                          "panels": "<% [1] %>",
+                          "panels": "<% [] %>",
                           "panelName": "lodgingDetailsPanels",
                           "indexVariableName": "travelPanelIndex",
                           "isArrayOutBinding": true,
