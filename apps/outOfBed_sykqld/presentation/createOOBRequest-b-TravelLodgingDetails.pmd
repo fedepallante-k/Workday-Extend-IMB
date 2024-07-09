@@ -90,7 +90,9 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "_onSend": "<%console.info('create accompany Travellers' + json:asJSON(self.data)) %>",
+        "onSend": "<% console.info('create accompany Travellers' + json:asJSON(self.data))
+                   return self.data;
+                   %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -297,20 +299,18 @@
                         {
                           "type": "hidden",
                           "id": "travellerFirstNameTxt",
-                          "value": "<% objectToLoopOn.name ? objectToLoopOn.name.substringBefore(' ') : '' %>",
-                          "valueOutBinding": "createAccompanyingTravellers.data[].firstName"
+                          "value": "<% objectToLoopOn.name ? objectToLoopOn.name.substringBefore(' ') : '' %>"
                         },
                         {
                           "type": "hidden",
                           "id": "travellerLastNameTxt",
-                          "value": "<% objectToLoopOn.name ? objectToLoopOn.name.substringAfter(' ') : '' %>",
-                          "valueOutBinding": "createAccompanyingTravellers.data[].lastName"
+                          "value": "<% objectToLoopOn.name ? objectToLoopOn.name.substringAfter(' ') : '' %>"
                         },
                         {
                           "type": "panelList",
                           "label": "Travel Events",
                           "id": "travelPanel",
-                          "panels": "<% [] %>",
+                          "panels": "<% [0] %>",
                           "isArrayOutBinding": true,
                           "panelName": "travelDeatilsPanels",
                           "indexVariableName": "travelPanelIndex",
@@ -593,7 +593,7 @@
                           "type": "panelList",
                           "label": "Lodging Events",
                           "id": "LodgingPanel",
-                          "panels": "<% [] %>",
+                          "panels": "<% [0] %>",
                           "panelName": "lodgingDetailsPanels",
                           "indexVariableName": "travelPanelIndex",
                           "isArrayOutBinding": true,
