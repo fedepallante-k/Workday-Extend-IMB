@@ -60,7 +60,7 @@
           "transitions": [
             {
               "order": "a",
-              "value": "createOOBPart3",
+              "value": "OOBReview",
               "condition": "<% flowVariables.proceed %>"
             },
             {
@@ -82,11 +82,11 @@
           "taskId": "createOOBRequest"
         },
         {
-          "id": "createOOBPart3",
+          "id": "OOBReview",
           "transitions": [
             {
               "order": "a",
-              "value": "createOOBReview",
+              "value": "OOBConfirm",
               "condition": "<% flowVariables.proceed %>"
             },
             {
@@ -96,19 +96,14 @@
             },
             {
               "order": "c",
-              "value": "createOOBBackToProfile",
+              "value": "createOOBBackToMain",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
           "taskId": "createOOBReview"
         },
         {
-          "id": "createOOBBackToProfile",
-          "endsFlow": true,
-          "taskId": "createOOBProfile"
-        },
-        {
-          "id": "createOOBReview",
+          "id": "OOBConfirm",
           "transitions": [
             {
               "order": "a",
@@ -116,7 +111,7 @@
               "condition": true
             }
           ],
-          "taskId": "createOOBReview"
+          "taskId": "createOOBRequest-d-Confirm"
         },
         {
           "id": "createOOBBackToMain",
@@ -188,6 +183,13 @@
       "routingPattern": "createOOBRequest-b-TravelLodgingDetails",
       "page": {
         "id": "createOOBRequest-b-TravelLodgingDetails"
+      }
+    },
+    {
+      "id": "createOOBRequest-d-Confirm",
+      "routingPattern": "createOOBRequest-d-Confirm",
+      "page": {
+        "id": "createOOBRequest-d-Confirm"
       }
     }
   ],

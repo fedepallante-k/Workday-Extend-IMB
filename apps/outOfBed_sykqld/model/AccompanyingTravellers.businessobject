@@ -139,6 +139,44 @@
       "isPurgeable": false,
       "enableIndex": false,
       "enableSearch": false
+    },
+    {
+      "id": 16,
+      "name": "transportNumber",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false,
+      "securityDomains": []
+    },
+    {
+      "id": 17,
+      "name": "carDetails",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false,
+      "securityDomains": []
+    },
+    {
+      "id": 18,
+      "name": "departureTime",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "SECOND"
+    },
+    {
+      "id": 19,
+      "name": "arrivalTime",
+      "type": "DATE",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "precision": "SECOND"
     }
   ]
 }

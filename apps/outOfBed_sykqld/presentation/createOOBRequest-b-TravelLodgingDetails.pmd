@@ -4,7 +4,7 @@
     {
       "name": "getLodging",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID as id, Destination, name AS descriptor FROM outOfBed_sykqld_destinations ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID as id, Destination, name AS descriptor FROM outOfBed_sykqld_destinations WHERE name is not null ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -35,7 +35,7 @@
       "name": "getStates",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + OOB.getStates() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getOOBRequest1",
@@ -270,14 +270,6 @@
       "horizontal": false,
       "children": [
         {
-          "type": "text",
-          "label": "test",
-          "id": "testTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(pageVariables.accompanyingTravellerNames) ? json:asJSON(pageVariables.accompanyingTravellerNames) : 'empty' %>"
-        },
-        {
           "type": "section",
           "children": [
             {
@@ -356,10 +348,8 @@
                               "onChange": "<%%>"
                             },
                             {
-                              "type": "text",
-                              "label": "id",
+                              "type": "hidden",
                               "id": "oobRequestID",
-                              "enabled": false,
                               "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].oobRequest.id"
                             },
@@ -401,7 +391,8 @@
                               "id": "departureTimeTxt",
                               "required": true,
                               "enabled": true,
-                              "value": ""
+                              "value": "",
+                              "valueOutBinding": "createAccompanyingTravellers.data[].departureTime"
                             },
                             {
                               "type": "date",
@@ -419,7 +410,8 @@
                               "id": "arrivalTimeTxt",
                               "required": true,
                               "enabled": true,
-                              "value": ""
+                              "value": "",
+                              "valueOutBinding": "createAccompanyingTravellers.data[].arrivalTime"
                             },
                             {
                               "type": "instanceList",
@@ -482,7 +474,7 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].transportNumber"
                             },
                             {
                               "type": "text",
@@ -492,7 +484,7 @@
                               "required": false,
                               "enabled": true,
                               "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].airline"
 
                             },
                             {
@@ -533,6 +525,12 @@
                                   "descriptor": "No"
                                 }
                               ],
+                              "valuesOut": [
+                              {
+                                "valueOutBinding": "createAccompanyingTravellers.data[].assignedVehicle",
+                                "value": "<% self.value[0] == 'yes' ? true : false %>"
+                              }
+                            ],
                               "onChange": "<%
                                 if(self.selectedEntries[0].id == 'yes'){
                                   giveCarDetailsTxt.setEnabled(true);
@@ -553,7 +551,7 @@
                               "visible": false,
                               "required": false,
                               "enabled": true,
-                              "_test": "<%/*TODO no object to save field*/%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].carDetails"
                             },
                             {
                               "type": "text",
@@ -563,7 +561,7 @@
                               "visible": false,
                               "enabled": true,
                               "value": "",
-                              "_test": "<%/*TODO no object to save field*/%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].otherTransport"
                             },
                             {
                               "type": "checkBox",
@@ -609,10 +607,15 @@
                               "collapsible": true,
                               "children": [
                                 {
-                                  "type": "text",
-                                  "label": "lodgingTravellerName",
+                                  "type": "hidden",
+                                  "id": "oobRequestID",
+                                  "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
+                                  "valueOutBinding": "createDestinations.data[].oobRequest.id"
+                                },
+                                {
+                                  "type": "hidden",
                                   "id": "lodgingTravellerNameTxt",
-                                  "value": "<% travellerNameTxt.value %>",
+                                  "value": "<% !empty(travellerNameTxt.value) ? travellerNameTxt.value : '' %>",
                                   "valueOutBinding": "createDestinations.data[].travellerName"
                                 },
                                 {
@@ -647,7 +650,7 @@
                                   "multiSelect": false,
                                   "required": true,
                                   "enabled": true,
-                                  "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [] %>",
+                                  "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}] %>",
                                   "onChange": "<%
                                     if(empty(self.selectedEntries[0])){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);

@@ -19,7 +19,7 @@
     {
       "name": "getMobileNumbers",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers ORDER BY createdMoment ASC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers WHERE name is not null AND number is not null ORDER BY createdMoment ASC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -37,7 +37,7 @@
     {
       "name": "getFrequentTravellersWQL",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<%'/data?query=' + ('SELECT workdayID AS id, name FROM outOfBed_sykqld_frequentTravellers').urlEncode() %>",
+      "url": "<%'/data?query=' + ('SELECT workdayID AS id, name FROM outOfBed_sykqld_frequentTravellers WHERE Name is not null').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -69,7 +69,7 @@
       "name": "getTimeOffTypes",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT timeOffType FROM timeOffTypes').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -136,6 +136,7 @@
           self.data = {'data':[]};
           for (var otherNumbers : allNumbers.getRows()) {
             if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value && otherNumbers.childrenMap.NameCol.childrenMap.numberId.value == 'other'){
+                console.info('phone number added ');
               self.data.data.add({
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
                 'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
@@ -299,7 +300,7 @@
       {
         "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateOOBProfile",
-        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + '5673ac5b801f9001a44bb09bcdc90000' %>",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
         "authType": "sso",
         "httpMethod": "PATCH",
         "exclude": false,
@@ -505,12 +506,10 @@
         i=0;
       }
     };
-    
-
-
 
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
-    pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
+    //pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
+    pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
   %>",
   "onSubmit": "<%
@@ -518,6 +517,16 @@
   %>",
   "securityDomains": [ ],
   "script": "<%
+
+  var getPhoneNumbers = function(){
+      var phoneNumbersPV = !empty(getMobileNumbers.data) ? getMobileNumbers.data : [] ;
+      if(!empty(getMobileNumbers.data)){
+              for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
+                  phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
+              }
+      }
+      return phoneNumbersPV;
+  }
 
              var childrenArrangments = function(){
                  var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
@@ -575,6 +584,14 @@
       "type": "section",
       "id": "bodySection",
       "children": [
+        {
+          "type": "text",
+          "label": "OOBPROFILE",
+          "id": "oobprofileTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getOOBProfile) ? getOOBProfile : 'empty'%>"
+        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -827,7 +844,7 @@
                         "id": "nameCell",
                         "displayKey": "name",
                         "required": true,
-                        "values": "<% pageVariables.phoneNumbers %>",
+                        "values": "<% pageVariables.phoneNumbers ?: [] %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
                               console.info('entered update phone');
@@ -937,7 +954,7 @@
         },
         {
           "type": "fieldSet",
-          "render": "<% !getWorkerDetails.data[0].workerIsContingentWorker %>",
+          "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
           "title": "Personal Time",
           "collapsible": true,
           "children": [
