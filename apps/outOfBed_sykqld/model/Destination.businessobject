@@ -134,7 +134,8 @@
       "useForDisplay": false,
       "isPurgeable": false,
       "enableIndex": false,
-      "enableSearch": false
+      "enableSearch": false,
+      "securityDomains": []
     }
   ]
 }

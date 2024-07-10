@@ -48,7 +48,6 @@
       "type": "SINGLE_INSTANCE",
       "useForDisplay": true,
       "isPurgeable": false,
-      "securityDomains": [],
       "target": "WORKER",
       "secureByTarget": true
     }
