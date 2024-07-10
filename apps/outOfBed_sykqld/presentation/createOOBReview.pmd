@@ -5,7 +5,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -58,38 +58,6 @@
       "type": "section",
       "horizontal": false,
       "children": [
-        {
-          "type": "text",
-          "label": "flowVariables.oobRequest",
-          "id": "testTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>"
-        },
-        {
-          "type": "text",
-          "label": "getOOBRequest",
-          "id": "testTxt1",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getOOBRequest) ? getOOBRequest : '' %>"
-        },
-        {
-          "type": "text",
-          "label": "getPersonalTimeOff",
-          "id": "testTxt2",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getPersonalTimeOff) ? getPersonalTimeOff : '' %>"
-        },
-        {
-          "type": "text",
-          "label": "getAccompanyTravllers",
-          "id": "testTxt3",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getAccompanyTravllers) ? getAccompanyTravllers : '' %>"
-        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -362,13 +330,6 @@
               "children": [
                 {
                   "type" : "text",
-                  "id": "test",
-                  "label": "<% 'test' %>",
-                  "enabled": false,
-                  "value" : "<% !empty(objectToLoopOn) ? objectToLoopOn : '' %>"
-                },
-                {
-                  "type" : "text",
                   "id": "stsValue",
                   "enabled": false,
                   "label": "<% 'Segment Specific STS' %>",
@@ -473,13 +434,6 @@
               "type": "fieldSet",
               "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName : '') %>",
               "children": [
-                {
-                  "type" : "text",
-                  "id": "test2",
-                  "label": "<% 'test2' %>",
-                  "enabled": false,
-                  "value" : "<% !empty(lodgingLoopObject) ? lodgingLoopObject : '' %>"
-                },
                 {
                   "type": "date",
                   "label": "Start Date",

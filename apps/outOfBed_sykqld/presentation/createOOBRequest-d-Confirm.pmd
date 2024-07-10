@@ -13,7 +13,7 @@
     "micro": true,
     "title": {
       "type": "title",
-      "label": "Workday Extend",
+      "label": "OOB Submission",
       "enabled": false
     },
     "body": {

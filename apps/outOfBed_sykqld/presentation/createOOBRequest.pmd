@@ -53,6 +53,19 @@
       "authType": "wcpisu"
     },
     {
+      "name": "getWorkerFromSameUnit",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getWorkerFromSameUnit1",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": true,
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE worker in (' + getCurrentWorker.id + ')').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
       "name": "getWorkerAndDependents",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT worker, cf_CFLRVUnitIDTextWorker as UnitID, fullName, phone_PrimaryHome, phone_PrimaryWork, phoneNumbers, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependents FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
@@ -118,7 +131,7 @@
 
           for (var otherMembers : OtherMemberGrid.getRows()) {
             if(otherMembers.childrenMap.addToOOBCol.value){
-            self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+            self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value, 'oobProfile': {'id' : getOOBProfile.data[0].id}});
             }
           }
 
@@ -141,7 +154,8 @@
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
                 'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
                 'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : '',
-                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : ''
+                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : '',
+                'oobProfile': !empty(getOOBProfile.data[0].id) ? {'id' : getOOBProfile.data[0].id} : ''
               });
             }
           }
@@ -584,14 +598,6 @@
       "type": "section",
       "id": "bodySection",
       "children": [
-        {
-          "type": "text",
-          "label": "OOBPROFILE",
-          "id": "oobprofileTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getOOBProfile) ? getOOBProfile : 'empty'%>"
-        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
