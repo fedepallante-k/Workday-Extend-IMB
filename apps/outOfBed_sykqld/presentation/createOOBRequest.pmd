@@ -185,6 +185,10 @@
         ],
         "values": [
           {
+            "outboundPath": "initiator.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
             "outboundPath": "name",
             "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
           },
@@ -252,13 +256,7 @@
           },
           {
             "outboundPath": "traveller.id",
-            "_exclude": true,
             "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
-          },
-          {
-            "outboundPath": "lodging.id",
-            "exclude": true,
-            "value": "<% '' %>"
           },
           {
             "outboundPath": "cancelConfirmation",

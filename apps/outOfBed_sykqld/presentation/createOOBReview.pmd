@@ -19,38 +19,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getDestinations",
-      "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate FROM outOfBed_sykqld_destinations WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getOOBRequest",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"47b41da260ab9009b4a1a86eb07d0000\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getPersonalTimeOff",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getAccompanyTravllers",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getDestinations",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate FROM outOfBed_sykqld_destinations WHERE oobRequest in (47b41da260ab9009b4a1a86eb07d0000) ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
   ],
