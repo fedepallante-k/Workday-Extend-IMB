@@ -8,7 +8,7 @@
   "tasks": [
     {
       "id": "createOOBProfile",
-      "routingPattern": "/",
+      "routingPattern": "/createOOBProfile",
       "page": {
         "id": "createOOBProfile"
       }
@@ -57,10 +57,48 @@
     },
     {
       "id": "myDashboard",
-      "routingPattern": "myDashboard",
+      "routingPattern": "/",
       "page": {
         "id": "myDashboard"
       }
+    },
+    {
+      "id": "profileUpdateCongratulations",
+      "routingPattern": "profileUpdateCongratulations",
+      "page": {
+        "id": "profileUpdateCongratulations"
+      }
+    },
+    {
+      "id": "managementDashboard",
+      "routingPattern": "managementDashboard",
+      "page": {
+        "id": "managementDashboard"
+      }
+    }
+  ],
+  "flowDefinitions": [
+    {
+      "id": "updateProfile",
+      "flowSteps": [
+        {
+          "id": "updateProfileSubmission",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "viewOOBProfile",
+              "condition": "true"
+            }
+          ],
+          "startsFlow": true,
+          "taskId": "createOOBProfile"
+        },
+        {
+          "id": "viewOOBProfile",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
     }
   ],
   "applicationId": "outOfBed_sykqld",
