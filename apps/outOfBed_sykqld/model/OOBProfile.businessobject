@@ -41,6 +41,15 @@
       "type": "MULTI_INSTANCE",
       "isPurgeable": false,
       "target": "Destination"
+    },
+    {
+      "id": 5,
+      "name": "worker",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": true,
+      "isPurgeable": false,
+      "target": "WORKER",
+      "secureByTarget": true
     }
   ]
 }

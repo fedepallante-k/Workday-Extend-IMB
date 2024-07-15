@@ -3,7 +3,7 @@
   "name": "Destination",
   "label": "Destination",
   "defaultSecurityDomains": [
-    "CreateOOBRequests"
+    "RelatedData"
   ],
   "defaultCollection": {
     "name": "destinations",
@@ -125,6 +125,36 @@
       "isPurgeable": false,
       "enableIndex": false,
       "precision": "DAY"
+    },
+    {
+      "id": 13,
+      "name": "travellerName",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false,
+      "securityDomains": []
+    },
+    {
+      "id": 14,
+      "name": "oobRequest",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "OOBRequest",
+      "secureByTarget": false,
+      "securityDomains": []
+    },
+    {
+      "id": 15,
+      "name": "oobProfile",
+      "type": "SINGLE_INSTANCE",
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "target": "OOBProfile",
+      "secureByTarget": false
     }
   ]
 }
