@@ -297,15 +297,15 @@
          self.data = {'data':[]};
 
          for (var personalTimeOff : personalTimeGrid.getRows()) {
-             if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
-                 self.data.data.add({
-                     'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
-                     'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
-                     'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
-                     'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
-                     'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
-                 });
-             }
+           if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
+             self.data.data.add({
+               'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
+               'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
+               'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
+               'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
+               'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
+             });  
+           }
          }
           console.info('create Personal time self.data' + json:asJSON(self.data));
          self.data;
@@ -406,17 +406,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "value": "<% ! empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : [];
-            /*
-              var travellers = []
-              if(!empty(fieldMemeberGrid.getSelectedRows())){
-                for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                  travellers.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value});
-                }
-              }
-              return travellers;
-            */
-            %>"
+            "value": "<% ! empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : [];    %>"
           },
           {
             "outboundPath": "alternateArrangementForChildren",
@@ -498,15 +488,7 @@
         i=0;
       }
     }
-
-    if(!empty(getMobileNumbers.data)){
-    var phoneNumbersPV = getMobileNumbers.data;
-    for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
-      phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
-    }
-             };
-
-
+    
     for (var item : getWorkerDetails.data){
         personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
@@ -522,7 +504,6 @@
     };
 
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
-    //pageVariables.phoneNumbers = phoneNumbersPV.add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
   %>",
@@ -535,57 +516,50 @@
   var getPhoneNumbers = function(){
       var phoneNumbersPV = !empty(getMobileNumbers.data) ? getMobileNumbers.data : [] ;
       if(!empty(getMobileNumbers.data)){
-              for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
-                  phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
-              }
+        for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
+          phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
+        }
       }
       return phoneNumbersPV;
   }
 
-             var childrenArrangments = function(){
-                 var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+   var childrenArrangments = function(){
+     var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
 
-                 for(var children : counter){
-                     console.info('childern = ' + json:asJSON(children));
-                     if(!children.isSelected()){
-                         alternativeTxtA.setVisible(true);
-                         alternativeTxtA.setRequired(true);
-                         AlternativeRTxt.setVisible(true);
-                     }else{
-                         alternativeTxtA.setVisible(false);
-                         alternativeTxtA.setRequired(false);
-                         AlternativeRTxt.setVisible(false);
-                     }
-                 }
-
-                 if(!empty(fieldMemeberGrid.getSelectedRows())){
-                     for ( var selectedMembers : fieldMemeberGrid.getSelectedRows()) {
-
-                     }
-                 }
-             }
+     for(var children : counter){
+       console.info('childern = ' + json:asJSON(children));
+       if(!children.isSelected()){
+         alternativeTxtA.setVisible(true);
+         alternativeTxtA.setRequired(true);
+         AlternativeRTxt.setVisible(true);
+       }else{
+         alternativeTxtA.setVisible(false);
+         alternativeTxtA.setRequired(false);
+         AlternativeRTxt.setVisible(false);
+       }
+     }
+   }
              
-             var getAllAccompanyingTravellers = function(){
-                 var addAccompanyingTraveller = [];
-
-                 for (var otherMembers : OtherMemberGrid.getRows()) {
-                         addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOB': !empty(otherMembers.childrenMap.addToOOBCol.value) ? true : false });
-                 }
-
-                 if(!empty(staffMemeberGrid.getSelectedRows())){
-                     for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
-                         addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '), 'addToOOB': false});
-                     }
-                 }
-                 if(!empty(fieldMemeberGrid.getSelectedRows())){
-                     for ( var i : fieldMemeberGrid.getSelectedRows()) {
-                         addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '), 'addToOOB': false});
-                     }
-                 }
-                 
-                 var TravellerArray = {'data' : addAccompanyingTraveller}
-                 return TravellerArray;
-             }
+  var getAllAccompanyingTravellers = function(){
+  var addAccompanyingTraveller = [];
+  
+  for (var otherMembers : OtherMemberGrid.getRows()) {
+    addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOB': !empty(otherMembers.childrenMap.addToOOBCol.value) ? true : false });
+  }
+  if(!empty(staffMemeberGrid.getSelectedRows())){
+    for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+      addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '), 'addToOOB': false});
+    }
+  }
+  if(!empty(fieldMemeberGrid.getSelectedRows())){
+    for ( var i : fieldMemeberGrid.getSelectedRows()) {
+      addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '), 'addToOOB': false});
+    }
+  }
+  
+  var TravellerArray = {'data' : addAccompanyingTraveller}
+  return TravellerArray;
+  }
              %>",
   "presentation": {
     "pageType": "edit",
