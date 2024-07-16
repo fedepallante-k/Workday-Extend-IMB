@@ -407,7 +407,7 @@
                   "label": "Assigned Vehicle",
                   "id": "assignedVehicleTxt",
                   "enabled": false,
-                  "visible": "<% !empty(objectToLoopOn.assignedVehicle) %>",
+                  "visible": "<% objectToLoopOn.assignedVehicle %>",
                   "value" : "<% !empty(objectToLoopOn.assignedVehicle) ? objectToLoopOn.assignedVehicle ? 'Yes' : 'No' : '' %>"
                 },
                 {

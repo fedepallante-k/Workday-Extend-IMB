@@ -2,7 +2,19 @@
   "id": "createOOBRequest-b-TravelLodgingDetails",
   "endPoints": [
     {
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
       "name": "getLodging",
+      "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT favouriteDestinations{workdayID as id, name as descriptor, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
+      "authType": "wcpisu",
+      "httpMethod": "GET"
+    },
+    {
+      "name": "getLodgingOld",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID as id, Destination, name AS descriptor FROM outOfBed_sykqld_destinations WHERE name is not null ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
@@ -24,43 +36,16 @@
       "deferred": true
     },
     {
-      "name": "getCountriesSearch",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT country FROM countries WHERE countryName contains \\''+ instanceListQuery +'\\'').urlEncode() %>",
-      "authType": "wcpisu",
-      "deferred": true,
-      "exclude": "<% empty instanceListQuery %>"
-    },
-    {
       "name": "getStates",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + OOB.getStates() %>",
       "authType": "wcpisu"
     },
     {
-      "name": "getOOBRequest1",
-      "baseUrlType": "WORKDAY-WQL",
-      "exclude": true,
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getAccompanyTravllersOLD",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in (661f38b0479890082bd6b26d6d380000) ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getAccompanyTravllers2",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id FROM outOfBed_sykqld_accompanyingTravellers ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
   ],
@@ -70,7 +55,7 @@
         "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createDestinations",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "POST",
         "_onSend":"<% console.info('Destinations Create self.data' + json:asJSON(self.data))%>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -81,7 +66,8 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "_onSend": "<%console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
+        "_onSend": "<% //todo can be removed
+                    console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -256,7 +242,8 @@
    pageVariables.accompanyingTravellers1 = [{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}];
    pageVariables.accompanyingTravellerNames = flowVariables.accompanyingTravellerNames;
    pageVariables.accompanyingTravellers = !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : pageVariables.accompanyingTravellers1;
-   pageVariables.sts = 'This is the STS';
+   pageVariables.favouriteDestinations = [];
+
    %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -269,6 +256,14 @@
       "type": "section",
       "horizontal": false,
       "children": [
+        {
+          "type": "text",
+          "label": "test",
+          "id": "testTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getLodging) ? getLodging : 'empty' %>"
+        },
         {
           "type": "section",
           "children": [
@@ -650,14 +645,19 @@
                                   "multiSelect": false,
                                   "required": true,
                                   "enabled": true,
-                                  "values": "<% !empty(getLodging.data[0])? getLodging.data.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}] %>",
+                                  "values": "<% !empty(getLodging.data[0])? getLodging.data[0].favouriteDestinations.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}] %>",
                                   "onChange": "<%
                                     if(empty(self.selectedEntries[0])){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
+                                      freqDestChbx.setVisible(false);
                                     }else if(self.selectedEntries[0].id == 'other'){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
+                                      freqDestChbx.setVisible(true);
                                     }else{
                                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
+                                      freqDestChbx.setVisible(false);
+                                      var valueToFindAgain = self.selectedEntries[0].id;
+                                      countryText.setValue(getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain}).addressLine1 ?: 'Blank');
                                     }
                                   %>"
                                 },
@@ -792,10 +792,22 @@
                                   "label": "Add this location to my frequent destination list",
                                   "id": "freqDestChbx",
                                   "required": false,
+                                  "visible": false,
                                   "enabled": true,
                                   "trueLabel": "True Label",
                                   "falseLabel": "False Label",
-                                  "value": ""
+                                  "value": "",
+                                  "onChange": "<%
+                                    if(self.value){
+
+                                    }
+                                  %>",
+                                  "_valuesOut": [
+                                    {
+                                      "value": "<% self.value %>",
+                                      "valueOutBinding": "createDestinations.addToProfile"
+                                    }
+                                  ]
                                 }
                               ]
                             }
