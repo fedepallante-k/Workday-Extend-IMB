@@ -8,6 +8,12 @@
       "authType": "sso"
     },
     {
+      "name": "getOOBProfile",
+      "baseUrlType": "APP-V1",
+      "url": "/oobProfiles",
+      "authType": "sso"
+    },
+    {
       "name": "getLodging",
       "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT favouriteDestinations{workdayID as id, name as descriptor, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
       "authType": "wcpisu",
@@ -57,7 +63,9 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
-        "_onSend":"<% console.info('Destinations Create self.data' + json:asJSON(self.data))%>",
+        "onSend":"<% console.info('Destinations Create self.data' + json:asJSON(self.data))
+                  return self.data;
+                  %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -107,6 +115,41 @@
             "value": "<% !empty(createDestinations.data) ? createDestinations.data.map(x=> {{'id' : x.body.id}}) : '' %>"
           }
           ]
+      },
+      {
+        "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateOOBProfile",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": false,
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "favouriteDestinations",
+            "value": "<%
+              var destinations = [];
+              console.info('createDEstinationsData = ' + json:asJSON(createDestinations.data));
+              for(var x : createDestinations.data){
+                  console.info('x = ' + json:asJSON(x));
+                if(x.body.addToProfile){
+                    console.info('x.body = ' + json:asJSON(x.body));
+                    destinations.add({'id' : x.body.id});
+                }
+              }
+              console.info('createDEstinations MAP = ' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}})));
+              console.info('destinations list = ' + json:asJSON(destinations));
+              return destinations;
+              %>"
+          }
+        ]
       },
       {
         "name": "transitionOutboundVars",
@@ -603,7 +646,7 @@
                               "children": [
                                 {
                                   "type": "hidden",
-                                  "id": "oobRequestID",
+                                  "id": "oobRequestIDDestintation",
                                   "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
                                   "valueOutBinding": "createDestinations.data[].oobRequest.id"
                                 },
@@ -657,7 +700,15 @@
                                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
                                       freqDestChbx.setVisible(false);
                                       var valueToFindAgain = self.selectedEntries[0].id;
-                                      countryText.setValue(getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain}).addressLine1 ?: 'Blank');
+                                      var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
+                                      countryText.setValue(destinationData.addressLine1 ?: 'Blank');
+                                      countryIl.setValue([destinationData.countryCode] ?: 'Blank');
+                                      addressLine1Txt.setValue(destinationData.addressLine1 ?: 'Blank');
+                                      addressLine2Txt.setValue(destinationData.addressLine2 ?: 'Blank');
+                                      addressLine3Txt.setValue(destinationData.addressLine3 ?: 'Blank');
+                                      postalCodeTxt.setValue(destinationData.postalCode ?: 'Blank');
+                                      contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: 'Blank');
+
                                     }
                                   %>"
                                 },
@@ -802,10 +853,10 @@
 
                                     }
                                   %>",
-                                  "_valuesOut": [
+                                  "valuesOut": [
                                     {
                                       "value": "<% self.value %>",
-                                      "valueOutBinding": "createDestinations.addToProfile"
+                                      "valueOutBinding": "createDestinations.data[].addToProfile"
                                     }
                                   ]
                                 }
