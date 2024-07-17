@@ -528,7 +528,7 @@
   var addAccompanyingTraveller = [];
   
   for (var otherMembers : OtherMemberGrid.getRows()) {
-    addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOB': !empty(otherMembers.childrenMap.addToOOBCol.value) ? true : false });
+    addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOB': otherMembers.childrenMap.addToOOBCol.value });
   }
   if(!empty(staffMemeberGrid.getSelectedRows())){
     for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
@@ -556,18 +556,6 @@
       "type": "section",
       "id": "bodySection",
       "children": [
-        {
-          "type": "text",
-          "label": "getOOBProfileWQL.data",
-          "value": "<% !empty(getOOBProfileWQL.data) ? getOOBProfileWQL.data : '' %>",
-          "enabled": false
-        },
-        {
-          "type": "text",
-          "label": "getOOBProfile.data",
-          "value": "<% !empty(getOOBProfile.data[0]) ? getOOBProfile.data[0] : '' %>",
-          "enabled": false
-        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -634,7 +622,14 @@
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
               "searchEndPoint": "<% %>",
               "searchResultValues": "<% [] %>",
-              "onChange": "<% self.selectedEntries[0].id == 'other' ? otherStsTxt.setVisible(true) : otherStsTxt.setVisible(false) %>"
+              "onChange": "<%
+                if(self.selectedEntries[0].id == 'other'){
+                  otherStsTxt.setVisible(true);
+                }else{
+                  otherStsTxt.setVisible(false);
+                  otherStsTxt.setValue('');
+                }
+             %>"
             },
             {
               "type": "text",
@@ -827,11 +822,14 @@
                             var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
                             numberId.value = selectedNumberData.id;
                             numberName.value = selectedNumberData.name;
-                            phoneNameCell.value = selectedNumberData.name;      
-                                //TODO
-                                phoneCodeList.setValue([selectedNumberData.countryCode ?: '']);
-
-                                //phoneCodeList.setValues([{'id': '1'/*selectedNumberData.countryCode.toString()*/, 'descriptor': 'test' /*selectedNumberData.countryCode.toString()*/}]);
+                            phoneNameCell.value = selectedNumberData.name;
+                            if(!empty(selectedNumberData) && !empty(selectedNumberData.countryCode) && selectedNumberData.id !='other'){
+                              phoneCodeList.setValues([{'id' : selectedNumberData.id, 'phoneCode' : selectedNumberData.countryCode }] ?: []);
+                              phoneCodeList.setValue([selectedNumberData.countryCode] ?: []);
+                            }else{
+                              phoneCodeList.setValues([]);
+                              phoneCodeList.setValue([]);
+                            }
                             phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
                             notesCol.value = selectedNumberData.notes;
                             phoneNameCell.enabled=false;

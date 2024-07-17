@@ -301,14 +301,6 @@
       "horizontal": false,
       "children": [
         {
-          "type": "text",
-          "label": "test",
-          "id": "testTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getLodging) ? getLodging : 'empty' %>"
-        },
-        {
           "type": "section",
           "children": [
             {
@@ -351,9 +343,12 @@
                           "panelName": "travelDeatilsPanels",
                           "indexVariableName": "travelPanelIndex",
                           "onPanelAdd": "<%
-                            //var travelPanels = self.getPanels();
-                            //var newPanel = travelPanels[travelPanels.size() - 1];
+                            var travelPanels = self.getPanels();
+                            var newPanel = travelPanels[travelPanels.size() - 1];
                             //newPanel.getChildren()[0].accompanyingTravellerId.setValue(loopTxt.value);
+                            newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
+                            newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
+                            newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
                           %>",
                           "children": [
                             {
@@ -419,7 +414,7 @@
                               "type" : "text",
                               "id": "stsValue",
                               "label": "<% 'Segment Specific STS' %>",
-                              "value" : "<% !empty(flowVariables.sts) ? flowVariables.sts : '' %>",
+                              "value" : "<% !empty(flowVariables.sts) ? !empty(flowVariables.otherSTS) ? flowVariables.otherSTS : flowVariables.sts : '' %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].sts",
                               "onChange": "<%
                                            panelInfo();
@@ -705,9 +700,27 @@
                                     if(empty(self.selectedEntries[0])){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
                                       freqDestChbx.setVisible(false);
+                                      countryIl.setValues([]);
+                                      countryIl.setValue([]);
+                                      addressLine1Txt.setValue('');
+                                      addressLine2Txt.setValue('');
+                                      addressLine3Txt.setValue('');
+                                      postalCodeTxt.setValue('');
+                                      contactNumberOfDestinationTxt.setValue('');
+                                      cityText.setValue('');
+                                      countryCodeText.setValue('');
                                     }else if(self.selectedEntries[0].id == 'other'){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
                                       freqDestChbx.setVisible(true);
+                                      countryIl.setValues([]);
+                                      countryIl.setValue([]);
+                                      addressLine1Txt.setValue('');
+                                      addressLine2Txt.setValue('');
+                                      addressLine3Txt.setValue('');
+                                      postalCodeTxt.setValue('');
+                                      contactNumberOfDestinationTxt.setValue('');
+                                      cityText.setValue('');
+                                      countryCodeText.setValue('');
                                     }else{
                                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
                                       freqDestChbx.setVisible(false);
@@ -715,11 +728,13 @@
                                       var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
                                       countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
                                       countryIl.setValue([destinationData.countryCode] ?: []);
-                                      addressLine1Txt.setValue(destinationData.addressLine1 ?: 'Blank');
-                                      addressLine2Txt.setValue(destinationData.addressLine2 ?: 'Blank');
-                                      addressLine3Txt.setValue(destinationData.addressLine3 ?: 'Blank');
-                                      postalCodeTxt.setValue(destinationData.postalCode ?: 'Blank');
-                                      contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: 'Blank');
+                                      addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
+                                      addressLine2Txt.setValue(destinationData.addressLine2 ?: '');
+                                      addressLine3Txt.setValue(destinationData.addressLine3 ?: '');
+                                      postalCodeTxt.setValue(destinationData.postalCode ?: '');
+                                      contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: '');
+                                      cityText.setValue(destinationData.city ?: '');
+                                      countryCodeText.setValue(destinationData.countryCode ?: '');
                                     }
                                   %>"
                                 },
@@ -795,6 +810,7 @@
                                 },
                                 {
                                   "type": "instanceList",
+                                  "render": false,
                                   "label": "City",
                                   "id": "cityIl",
                                   "required": true,
@@ -809,14 +825,18 @@
                                   "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
                                 },
                                 {
-                                  "type":"hidden",
+                                  "type":"text",
+                                  "label": "City",
                                   "id": "cityText",
+                                  "enabled": true,
+                                  "required": true,
                                   "value": "",
                                   "valueOutBinding": "createDestinations.data[].city"
                                 },
                                 {
                                   "type": "instanceList",
                                   "label": "State/Province/County",
+                                  "render": false,
                                   "id": "stateIl",
                                   "required": "<% false %>",
                                   "enabled": true,
@@ -827,8 +847,9 @@
                                 {
                                   "type":"text",
                                   "id": "stateText",
+                                  "label": "State/Province/County",
                                   "value": "",
-                                  "enabled": false,
+                                  "enabled": true,
                                   "valueOutBinding": "createDestinations.data[].state"
                                 },
                                 {

@@ -313,8 +313,7 @@
               "label": "Comments can be entered here for this OOB. NOTE that these are not private comments and are visible to others who have access to view this OOB.",
               "id": "addCommentsOnBehalfOfTxtA",
               "enabled": false,
-              "_render": "<% !pageVariables.isField %>",
-              "render": "<% true %>",
+              "render": "<% !empty(getOOBRequest.data[0].initiatorComments) %>",
               "value": "<% !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
             }
           ]
