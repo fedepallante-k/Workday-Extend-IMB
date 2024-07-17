@@ -713,7 +713,8 @@
                                       freqDestChbx.setVisible(false);
                                       var valueToFindAgain = self.selectedEntries[0].id;
                                       var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
-                                      countryIl.setValue([destinationData.countryCode] ?: 'Blank');
+                                      countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
+                                      countryIl.setValue([destinationData.countryCode] ?: []);
                                       addressLine1Txt.setValue(destinationData.addressLine1 ?: 'Blank');
                                       addressLine2Txt.setValue(destinationData.addressLine2 ?: 'Blank');
                                       addressLine3Txt.setValue(destinationData.addressLine3 ?: 'Blank');
