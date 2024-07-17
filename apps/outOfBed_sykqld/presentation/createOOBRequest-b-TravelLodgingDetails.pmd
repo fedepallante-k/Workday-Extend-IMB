@@ -146,6 +146,7 @@
               }
               console.info('createDEstinations MAP = ' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}})));
               console.info('destinations list = ' + json:asJSON(destinations));
+              destinations.addAll(getOOBProfile.data[0].favouriteDestinations);
               return destinations;
               %>"
           }
@@ -701,14 +702,12 @@
                                       freqDestChbx.setVisible(false);
                                       var valueToFindAgain = self.selectedEntries[0].id;
                                       var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
-                                      countryText.setValue(destinationData.addressLine1 ?: 'Blank');
                                       countryIl.setValue([destinationData.countryCode] ?: 'Blank');
                                       addressLine1Txt.setValue(destinationData.addressLine1 ?: 'Blank');
                                       addressLine2Txt.setValue(destinationData.addressLine2 ?: 'Blank');
                                       addressLine3Txt.setValue(destinationData.addressLine3 ?: 'Blank');
                                       postalCodeTxt.setValue(destinationData.postalCode ?: 'Blank');
                                       contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: 'Blank');
-
                                     }
                                   %>"
                                 },

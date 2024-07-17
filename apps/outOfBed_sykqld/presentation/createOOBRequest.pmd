@@ -138,7 +138,7 @@
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
-          self.data.data.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'name' : x.name}}));
+          //self.data.data.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'name' : x.name}}));
           console.info('Frequent Travellers = ' + json:asJSON(self.data));
           self.data;
           %>",
@@ -316,13 +316,12 @@
         ],
         "values": [
           {
-            "outboundPath": "sts",
-            "exclude": true,
-            "value": "<% !empty(sts.value) ? sts.value : '' %>"
-          },
-          {
             "outboundPath": "frequentTravellers",
-            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
+            "value": "<%
+            var frequentTravellers = !empty(getOOBProfileWQL.data[0]) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID}}) : [];
+            frequentTravellers.addAll(createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}));
+            return frequentTravellers;
+            %>"
           }
         ]
       },
@@ -565,6 +564,12 @@
           "type": "text",
           "label": "getOOBProfileWQL.data",
           "value": "<% !empty(getOOBProfileWQL.data) ? getOOBProfileWQL.data : '' %>",
+          "enabled": false
+        },
+        {
+          "type": "text",
+          "label": "getOOBProfile.data",
+          "value": "<% !empty(getOOBProfile.data[0]) ? getOOBProfile.data[0] : '' %>",
           "enabled": false
         },
         {
