@@ -389,7 +389,7 @@
           },
           {
             "outboundPath": "accompanyingTravellerNames",
-            "value": "<% getAllAccompanyingTravellers().data.map(x=> {{'name' : (x.firstName + ' ' + x.lastName)}}) %>"
+            "value": "<% getAllAccompanyingTravellers().data.map(x=> {{'name' : (x.firstName + ' ' + x.lastName), 'addToOOB' : x.addToOOB}}) %>"
           },
           {
             "outboundPath": "accompanyingTravellers",
@@ -461,32 +461,27 @@
   "onLoad": "<%
     var familyAndFrequent =[];
     var personalTimeOffMembers =[];
-    var counter = 0;
+    var hasChildrenValue = 0;
     for (var item : getWorkerFromSameUnit.data){
       familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
-        var i = 0;
         for( var child : item.dependent){
-            if(child.isSpouse != true){
-          familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+          if(child.isSpouse != true){
+            familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+            child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
           }
-          i = i+1;
         }
-        i=0;
       }
     }
     
     for (var item : getWorkerDetails.data){
-        personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
+      personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
-        var q = 0;
-          for( var child : item){
-            if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
-             personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
-              q = q+1;
-            }
+        for( var child : item){
+          if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
+            personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+          }
         }
-        i=0;
       }
     };
 
@@ -494,6 +489,7 @@
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
+    pageVariables.hasChildren = hasChildrenValue > 0;
   %>",
   "onSubmit": "<%
 
@@ -756,16 +752,16 @@
               "label": "Alternative arrangements for Dependent Children ",
               "id": "AlternativeRTxt",
               "required": false,
-              "visible": "<% pageVariables.isField %>",
+              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
               "enabled": false
             },
             {
               "type": "textArea",
               "id": "alternativeTxtA",
               "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
-              "required": "<% pageVariables.isField %>",
+              "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
               "enabled": true,
-              "visible": "<% pageVariables.isField %>",
+              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
               "value": ""
             },
             {

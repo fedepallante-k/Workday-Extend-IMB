@@ -338,6 +338,11 @@
                           "value": "<% objectToLoopOn.name ? objectToLoopOn.name.substringAfter(' ') : '' %>"
                         },
                         {
+                          "type": "hidden",
+                          "id": "travellerAddToOOBTxt",
+                          "value": "<% objectToLoopOn.addToOOB %>"
+                        },
+                        {
                           "type": "panelList",
                           "label": "Travel Events",
                           "id": "travelPanel",
@@ -403,6 +408,12 @@
                               "id": "lastNameTxt",
                               "value": "<% travellerLastNameTxt.value %>",
                               "valueOutBinding": "createAccompanyingTravellers.data[].lastName"
+                            },
+                            {
+                              "type": "hidden",
+                              "id": "addToOOBTxt",
+                              "value": "<% travellerAddToOOBTxt.value %>",
+                              "valueOutBinding": "createAccompanyingTravellers.data[].fromProfile"
                             },
                             {
                               "type" : "text",

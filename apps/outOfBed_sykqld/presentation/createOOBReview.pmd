@@ -133,7 +133,10 @@
               "type": "grid",
               "id": "fieldMemeberGrid",
               "doNotAdd": true,
-              "rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0] : [] %>",
+              "doNotRemove": true,
+              "doNotRemoveRow": true,
+              "selectionEnabled": false,
+              "rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
               "_visible": "<% !empty(pageVariables.isField) ? pageVariables.isField : false %>",
               "visible": true,
               "enabled": false,
@@ -160,7 +163,7 @@
                   "cellTemplate": {
                     "id": "addToOOB",
                     "type": "text",
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.formProfile ? 'Yes' : 'No' : '' %>",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.fromProfile ? 'Yes' : '' : '' %>",
                     "enabled": false
                   }
                 }
