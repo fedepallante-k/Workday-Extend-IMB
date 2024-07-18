@@ -5,7 +5,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -137,7 +137,6 @@
               "doNotRemoveRow": true,
               "selectionEnabled": false,
               "rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
-              "_visible": "<% !empty(pageVariables.isField) ? pageVariables.isField : false %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -179,6 +178,7 @@
             },
             {
               "type": "grid",
+              "visible": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) %>",
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
               "enabled": false,
@@ -380,6 +380,14 @@
                 },
                 {
                   "type": "text",
+                  "label": "Airline",
+                  "id": "airlineTxt",
+                  "enabled": false,
+                  "visible": "<% !empty(objectToLoopOn.airline) %>",
+                  "value" : "<% !empty(objectToLoopOn.airline) ? objectToLoopOn.airline : '' %>"
+                },
+                {
+                  "type": "text",
                   "label": "Bus | Train | Boat Details",
                   "id": "transportNumberTxt",
                   "enabled": false,
@@ -524,7 +532,8 @@
                   "label": "Add this location to my frequent destination list",
                   "id": "addToFrequentDestinationTxt",
                   "enabled": false,
-                  "value" : "<% !empty(lodgingLoopObject.postalCode) ? lodgingLoopObject.postalCode : '' %>"
+                  "visible": "<% !empty(lodgingLoopObject.addToProfile) && lodgingLoopObject.addToProfile %>",
+                  "value" : "<% lodgingLoopObject.addToProfile ? 'Yes' : 'No' %>"
                 }
               ]
             }

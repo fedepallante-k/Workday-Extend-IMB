@@ -17,26 +17,8 @@
     {
       "name": "getOOBProfileWQL",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{name} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
-    },
-    {
-      "name": "getMobileNumbers",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers WHERE oobProfile in (\"' + !empty(getOOBProfile.data[0].id) && !empty(getOOBProfile.data) ? getOOBProfile.data[0].id : '' +  '\") ORDER BY createdMoment ASC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
-      "name": "getFrequentTravellers",
-      "baseUrlType": "APP-V1",
-      "url": "/frequentTravellers",
-      "authType": "sso"
-    },
-    {
-      "name": "getFrequentTravellersWQL",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<%'/data?query=' + ('SELECT workdayID AS id, name FROM outOfBed_sykqld_frequentTravellers WHERE Name is not null').urlEncode() %>",
-      "authType": "wcpisu"
     },
     {
       "name": "getWorkerDetails",
@@ -48,26 +30,6 @@
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
-      "authType": "wcpisu"
-    },
-    {
-      "name": "getWorkerFromSameUnitold",
-      "baseUrlType": "WORKDAY-WQL",
-      "exclude": true,
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
-      "authType": "wcpisu"
-    },
-    {
-      "name": "getWorkerFromSameUnit1",
-      "baseUrlType": "WORKDAY-WQL",
-      "exclude": true,
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE worker in (' + getCurrentWorker.id + ')').urlEncode() %>",
-      "authType": "wcpisu"
-    },
-    {
-      "name": "getWorkerAndDependents",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, cf_CFLRVUnitIDTextWorker as UnitID, fullName, phone_PrimaryHome, phone_PrimaryWork, phoneNumbers, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship} as dependents FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + 12345 + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -93,7 +55,6 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
@@ -126,7 +87,6 @@
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createFrequentTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "wcpisu",
@@ -154,7 +114,7 @@
         "onSend": "<%
           self.data = {'data':[]};
           for (var otherNumbers : allNumbers.getRows()) {
-            if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value && otherNumbers.childrenMap.NameCol.childrenMap.numberId.value == 'other'){
+            if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value){
                 console.info('phone number added ');
               self.data.data.add({
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
@@ -170,7 +130,6 @@
         %>"
       },
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
         "name": "createOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
         "authType": "sso",
@@ -232,19 +191,7 @@
           {
             "outboundPath": "phoneNumbers",
             "exclude":"<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
-            "value": "<%
-            var mobileList = !empty(createMobileNumbers.data) ? createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) : [];
-
-            if (!empty(allNumbers.getRows())){
-              for (var allOtherMembers : allNumbers.getRows()) {
-                if(allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value && allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value != 'other'){
-                  mobileList.add({'id' : allOtherMembers.childrenMap.NameCol.childrenMap.numberId.value});
-                }
-              }
-            }
-
-            return mobileList;
-            %>"
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}})%>"
           },
           {
             "outboundPath": "elevatedRisk",
@@ -301,7 +248,6 @@
          %>"
       },
       {
-        "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateOOBProfile",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
         "authType": "sso",
@@ -327,7 +273,6 @@
         ]
       },
       {
-        "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateAccompanyTravellers",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
         "authType": "sso",
@@ -448,10 +393,7 @@
       }
     ],
     "responseErrorDetail": {
-      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
-      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
       "errorSummary": "<% error %>",
-      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
       "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
     }
   },
@@ -476,21 +418,8 @@
       }
     }
   }
-    
-    for (var item : getWorkerDetails.data){
-      personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
-      if(!empty(item)){
-        for( var child : item){
-          if(!empty(child.dependent.relationship) && child.dependent.isSpouse == true ){
-            personalTimeOffMembers.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
-          }
-        }
-      }
-    };
 
-    //pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
-    //pageVariables.frequentTravellers = familyAndFrequent;
     pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
@@ -503,7 +432,8 @@
   "script": "<%
 
   var getPhoneNumbers = function(){
-      var phoneNumbersPV = !empty(getMobileNumbers.data) ? getMobileNumbers.data : [] ;
+      var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
+      console.info('Mobile Numbers = ' + phoneNumbersPV);
       if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
         for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
           phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
@@ -714,7 +644,6 @@
                     {
                       "type": "grid",
                       "id": "staffMemeberGrid",
-                      "_rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
                       "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) : [] %>",
                       "rowVariableName": "staffMemeberData",
                       "render": "<% !pageVariables.isField %>",
@@ -824,36 +753,25 @@
                         "values": "<% pageVariables.phoneNumbers ?: [] %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
-                              console.info('entered update phone');
-                            var selectedNumberData= getMobileNumbers.data.find( x=> {x.id == self.selectedEntries[0].id});
-                            numberId.value = selectedNumberData.id;
-                            numberName.value = selectedNumberData.name;
-                            phoneNameCell.value = selectedNumberData.name;
-                            if(!empty(selectedNumberData) && !empty(selectedNumberData.countryCode) && selectedNumberData.id !='other'){
-                              phoneCodeList.setValues([{'id' : selectedNumberData.id, 'phoneCode' : selectedNumberData.countryCode }] ?: []);
-                              phoneCodeList.setValue([selectedNumberData.countryCode] ?: []);
-                            }else{
-                              phoneCodeList.setValues([]);
-                              phoneCodeList.setValue([]);
-                            }
-                            phoneNumberCol.value = regex:replace(selectedNumberData.number, '[^0-9.]', '');
-                            notesCol.value = selectedNumberData.notes;
+                            numberName.value = self.selectedEntries[0].descriptor;
+                            numberId.value = self.selectedEntries[0].id;
+                            numberName.value = self.selectedEntries[0].descriptor;
+                            phoneNameCell.value = self.selectedEntries[0].descriptor;
+                            phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
                             phoneNameCell.enabled=false;
-                          }
-                          else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
-                              console.info('entered other');
+                          }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                          console.info('entered other');
                             numberId.value = 'other';
                             phoneNameCell.value = '';
                             phoneCodeList.setValue([]);
                             phoneNumberCol.value = '';
                             phoneNameCell.enabled=true;
                             notesCol.value = '';
-                          }    
+                          }
                           else{
-                              console.info('entered else phone');
+                          console.info('entered else phone');
                             numberId.value = '';
                             numberName.value = '';
-                                //TODO
                             phoneCodeList.setValue([]);
                             phoneNumberCol.value = '';
                             notesCol.value = '';
@@ -861,7 +779,7 @@
                             phoneNameCell.enabled=false;
                           }
                         %>"
-                  },
+                      },
                       {
                         "type": "hidden",
                         "id": "numberName",

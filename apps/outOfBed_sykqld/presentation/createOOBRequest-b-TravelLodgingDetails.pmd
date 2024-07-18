@@ -20,39 +20,12 @@
       "httpMethod": "GET"
     },
     {
-      "name": "getLodgingOld",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID as id, Destination, name AS descriptor FROM outOfBed_sykqld_destinations WHERE name is not null ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
-    },
-    {
       "name": "getCountrySearch",
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries WHERE countryName CONTAINS \"' + instanceListQuery.replace('+',' ') + '\"').urlEncode() %>",
       "authType": "wcpisu",
       "exclude": "<% empty instanceListQuery %>",
       "deferred": true
-    },
-    {
-      "name": "getCitiesSearch",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID, travelCity, travelCityName as descriptor, inactive FROM travelCities WHERE inactive = false AND travelCityName CONTAINS \"' + instanceListQuery.replace('+',' ') + '\" ORDER BY travelCityName ASC, country ASC').urlEncode() %>",
-      "authType": "wcpisu",
-      "exclude": "<% empty instanceListQuery %>",
-      "deferred": true
-    },
-    {
-      "name": "getStates",
-      "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getStates() %>",
-      "authType": "wcpisu"
-    },
-    {
-      "name": "getAccompanyTravllers",
-      "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<% empty(flowVariables.oobRequest) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts,firstName, lastName, fromProfile, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ flowVariables.oobRequest +') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
     }
   ],
   "outboundData": {
@@ -96,7 +69,6 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "onSend": "<%
-        //TODO add flowVariables.oobRequest
           console.info('createAccompanyingTravellers' + json:asJSON(createAccompanyingTravellers)) ;
           console.info('createDestinations' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}}))) ;
           console.info('createAccompanyingTravellers.data.map' + json:asJSON(createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}))) ;
@@ -261,12 +233,6 @@
 
   }
 
-       var setDoNotAddPanelList = function() {
-  console.info('travelPanel' + json:asJSON(travelPanel));
-             travelPanel.setDoNotAdd(travelPanel.getPanels().size() <= 1);
-
-       }
-
 /*
      TODO - Logic for page
      section to wrap everything so i can iterate on the children to save data
@@ -279,15 +245,7 @@
 */
   %>",
   "onLoad": "<%
-   pageVariables.accompanyingTravellers2 = [
-    {'body':{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'}, 'status':201},
-    {'body':{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'},'status':201},
-    {'body':{'id':'2a8b5c2fcf739006419c297190a00001','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Pat'},'status':201}];
-   pageVariables.accompanyingTravellers1 = [{'id':'2a8b5c2fcf739006419c28d803490000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Logan'},{'id':'2a8b5c2fcf739006419c297190a00000','descriptor':'Accompanying Travellers','lastName':'McNeil','fromProfile':false,'firstName':'Megan'}];
-   pageVariables.accompanyingTravellerNames = flowVariables.accompanyingTravellerNames;
-   pageVariables.accompanyingTravellers = !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : pageVariables.accompanyingTravellers1;
-   pageVariables.favouriteDestinations = [];
-
+    pageVariables.lodgingList = !empty(getLodging.data[0]) && !empty(getLodging.data[0].favouriteDestinations) ? getLodging.data[0].favouriteDestinations.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}]
    %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -306,7 +264,7 @@
             {
               "type" : "loop",
               "label": "Loop",
-              "on" : "<% pageVariables.accompanyingTravellerNames %>",
+              "on" : "<%!empty(flowVariables.accompanyingTravellerNames) ? flowVariables.accompanyingTravellerNames : [] %>",
               "as" : "objectToLoopOn",
               "index": "loopIndex",
               "children" : [
@@ -345,7 +303,6 @@
                           "onPanelAdd": "<%
                             var travelPanels = self.getPanels();
                             var newPanel = travelPanels[travelPanels.size() - 1];
-                            //newPanel.getChildren()[0].accompanyingTravellerId.setValue(loopTxt.value);
                             newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
                             newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
                             newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
@@ -415,10 +372,7 @@
                               "id": "stsValue",
                               "label": "<% 'Segment Specific STS' %>",
                               "value" : "<% !empty(flowVariables.sts) ? !empty(flowVariables.otherSTS) ? flowVariables.otherSTS : flowVariables.sts : '' %>",
-                              "valueOutBinding": "createAccompanyingTravellers.data[].sts",
-                              "onChange": "<%
-                                           panelInfo();
-                                           %>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].sts"
                             },
                             {
                               "type": "date",
@@ -427,8 +381,7 @@
                               "required": true,
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
-                              "valueOutBinding": "createAccompanyingTravellers.data[].departureDate",
-                              "onChange": "<%%>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].departureDate"
                             },
                             {
                               "type": "text",
@@ -446,8 +399,7 @@
                               "required": true,
                               "enabled": true,
                               "value": "<% Dates.getDateTimeNowFormatted() %>",
-                              "valueOutBinding": "createAccompanyingTravellers.data[].arrivalDate",
-                              "onChange": "<%  %>"
+                              "valueOutBinding": "createAccompanyingTravellers.data[].arrivalDate"
                             },
                             {
                               "type": "text",
@@ -644,6 +596,11 @@
                           "panelName": "lodgingDetailsPanels",
                           "indexVariableName": "travelPanelIndex",
                           "isArrayOutBinding": true,
+                          "onPanelAdd": "<%
+                             var lodgingPanels = self.getPanels();
+                             var newPanel = lodgingPanels[lodgingPanels.size() - 1];
+                             newPanel.getChildren()[0].lodgingTravellerNameTxt.setValue(travellerNameTxt.value);
+                           %>",
                           "children" : [
                             {
                               "type":"fieldSet",
@@ -695,11 +652,12 @@
                                   "multiSelect": false,
                                   "required": true,
                                   "enabled": true,
-                                  "values": "<% !empty(getLodging.data[0])? getLodging.data[0].favouriteDestinations.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}] %>",
+                                  "values": "<% pageVariables.lodgingList %>",
                                   "onChange": "<%
                                     if(empty(self.selectedEntries[0])){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
                                       freqDestChbx.setVisible(false);
+                                      freqDestChbx.setValue(false);
                                       countryIl.setValues([]);
                                       countryIl.setValue([]);
                                       addressLine1Txt.setValue('');
@@ -723,6 +681,7 @@
                                       cityText.setValue('');
                                       countryCodeText.setValue('');
                                       stateText.setValue('');
+                                      freqDestChbx.setValue(false);
                                     }else{
                                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
                                       freqDestChbx.setVisible(false);
@@ -738,6 +697,7 @@
                                       cityText.setValue(destinationData.city ?: '');
                                       countryCodeText.setValue(destinationData.countryCode ?: '');
                                       stateText.setValue(destinationData.state ?: '');
+                                      freqDestChbx.setValue(false);
                                     }
                                   %>"
                                 },
@@ -812,22 +772,6 @@
                                   "valueOutBinding": "createDestinations.data[].addressLine3"
                                 },
                                 {
-                                  "type": "instanceList",
-                                  "render": false,
-                                  "label": "City",
-                                  "id": "cityIl",
-                                  "required": true,
-                                  "enabled": true,
-                                  "visible": true,
-                                  "idKey": "workdayID",
-                                  "displayKey": "descriptor",
-                                  "searchEndPoint": "<% endpoints.getCitiesSearch %>",
-                                  "searchResultValues": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
-                                  "values": "<% !empty(getCitiesSearch.data) ? getCitiesSearch.data : [] %>",
-                                  "selectedValuesAndDescriptors":"<% [] %>",
-                                  "onChange": "<% empty(self.selectedEntries[0]) ? cityText.value = '' : cityText.value = self.selectedEntries[0].descriptor %>"
-                                },
-                                {
                                   "type":"text",
                                   "label": "City",
                                   "id": "cityText",
@@ -835,17 +779,6 @@
                                   "required": true,
                                   "value": "",
                                   "valueOutBinding": "createDestinations.data[].city"
-                                },
-                                {
-                                  "type": "instanceList",
-                                  "label": "State/Province/County",
-                                  "render": false,
-                                  "id": "stateIl",
-                                  "required": "<% false %>",
-                                  "enabled": true,
-                                  "values": "<% !empty(getStates.data) ? getStates.data : []  %>",
-                                  "visible": "<% true %>",
-                                  "onChange": "<% empty(self.selectedEntries[0]) ? stateText.value = '' : stateText.value = self.selectedEntries[0].descriptor %>"
                                 },
                                 {
                                   "type":"text",
@@ -883,11 +816,6 @@
                                   "trueLabel": "True Label",
                                   "falseLabel": "False Label",
                                   "value": "",
-                                  "onChange": "<%
-                                    if(self.value){
-
-                                    }
-                                  %>",
                                   "valuesOut": [
                                     {
                                       "value": "<% self.value %>",
