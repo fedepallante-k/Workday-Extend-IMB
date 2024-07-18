@@ -36,9 +36,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
-        "onSend":"<% console.info('Destinations Create self.data' + json:asJSON(self.data))
-                  return self.data;
-                  %>",
+        "onSend":"<% return self.data %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -47,8 +45,6 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "_onSend": "<% //todo can be removed
-                    console.info('update accompany Travellers' + json:asJSON(self.data)) %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -57,9 +53,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "onSend": "<% console.info('create accompany Travellers' + json:asJSON(self.data))
-                   return self.data;
-                   %>",
+        "onSend": "<% return self.data %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -68,14 +62,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "onSend": "<%
-          console.info('createAccompanyingTravellers' + json:asJSON(createAccompanyingTravellers)) ;
-          console.info('createDestinations' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}}))) ;
-          console.info('createAccompanyingTravellers.data.map' + json:asJSON(createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}))) ;
-
-          console.info('Obb update destination self.data = ' + json:asJSON(self.data));
-          self.data;
-        %>",
+        "onSend": "<% self.data %>",
         "failOnStatusCodes": [{"code":400},{"code":403}],
         "values": [
           {
@@ -108,16 +95,11 @@
             "outboundPath": "favouriteDestinations",
             "value": "<%
               var destinations = [];
-              console.info('createDEstinationsData = ' + json:asJSON(createDestinations.data));
               for(var x : createDestinations.data){
-                  console.info('x = ' + json:asJSON(x));
                 if(x.body.addToProfile){
-                    console.info('x.body = ' + json:asJSON(x.body));
                     destinations.add({'id' : x.body.id});
                 }
               }
-              console.info('createDEstinations MAP = ' + json:asJSON(createDestinations.data.map(x=> {{'id' : x.body.id}})));
-              console.info('destinations list = ' + json:asJSON(destinations));
               destinations.addAll(getOOBProfile.data[0].favouriteDestinations);
               return destinations;
               %>"
@@ -146,9 +128,9 @@
     "Dates.script"
   ],
   "script": "<%
+  //Todo May be useful for copy details functionality
     var getTravelDetails = function (travelWidget){
       var travelPayload = {:};
-      //console.info('in if statement, travelWidget = ' + json:asJSON(travelWidget));
       !empty(travelWidget.accompanyingTravellerId) ?  travelPayload.add('id',  accompanyingTravellerId.value ?: '') : null ;
       //travelPayload.add('isExisting',  travelWidget.isExistingTravller.value);
       //travelPayload.add('id',  travelWidget.travellerId.value ?: '');
@@ -185,20 +167,16 @@
               travelList.add(payload);
         }
         travelPayload.add('data',travelList);
-        console.info('travelPayload = ' + json:asJSON(travelPayload));
         return travelPayload;
       }
     }
 
      var panelInfo = function(){
-       console.info('Enter Panel function');
        var travelPayload = {:};
        var travelList = [];
        var counter = 0;
 
        for(var x : travelPanel.getPanels()){
-         console.info('x[counter] = ' + json:asJSON(x));
-         console.info('x[counter].getChildren[0] = ' + json:asJSON(x.getChildren()[0]));
          for (var TravelDetails : x.getChildren()) {
            var payload = getTravelDetails(TravelDetails);
            travelList.add(payload);
@@ -207,7 +185,6 @@
        }
 
       travelPayload.add('data',travelList);
-      console.info('travelPayload = ' + json:asJSON(travelPayload));
       return travelPayload;
   }
 
@@ -230,7 +207,6 @@
         empty(x.value) ? '' : x.setValue('');
       }
      }
-
   }
 
 /*
