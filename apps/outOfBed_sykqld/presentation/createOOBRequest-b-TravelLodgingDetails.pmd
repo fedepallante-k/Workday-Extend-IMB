@@ -709,6 +709,7 @@
                                       contactNumberOfDestinationTxt.setValue('');
                                       cityText.setValue('');
                                       countryCodeText.setValue('');
+                                      stateText.setValue('');
                                     }else if(self.selectedEntries[0].id == 'other'){
                                       lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
                                       freqDestChbx.setVisible(true);
@@ -721,6 +722,7 @@
                                       contactNumberOfDestinationTxt.setValue('');
                                       cityText.setValue('');
                                       countryCodeText.setValue('');
+                                      stateText.setValue('');
                                     }else{
                                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
                                       freqDestChbx.setVisible(false);
@@ -735,6 +737,7 @@
                                       contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: '');
                                       cityText.setValue(destinationData.city ?: '');
                                       countryCodeText.setValue(destinationData.countryCode ?: '');
+                                      stateText.setValue(destinationData.state ?: '');
                                     }
                                   %>"
                                 },

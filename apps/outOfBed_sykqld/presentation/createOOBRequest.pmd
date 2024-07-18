@@ -23,7 +23,7 @@
     {
       "name": "getMobileNumbers",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers WHERE oobProfile in (\"' + getOOBProfile.data[0].id +  '\") ORDER BY createdMoment ASC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name, number, countryCode, notes FROM outOfBed_sykqld_mobileNumbers WHERE oobProfile in (\"' + !empty(getOOBProfile.data[0].id) && !empty(getOOBProfile.data) ? getOOBProfile.data[0].id : '' +  '\") ORDER BY createdMoment ASC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -47,12 +47,13 @@
     {
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
-      "name": "getWorkerFromSameUnit",
+      "name": "getWorkerFromSameUnitold",
       "baseUrlType": "WORKDAY-WQL",
+      "exclude": true,
       "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + getWorkerDetails.data[0].unitId + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
@@ -462,6 +463,7 @@
     var familyAndFrequent =[];
     var personalTimeOffMembers =[];
     var hasChildrenValue = 0;
+    if(!empty(getWorkerFromSameUnit.data)){
     for (var item : getWorkerFromSameUnit.data){
       familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
       if(!empty(item)){
@@ -473,6 +475,7 @@
         }
       }
     }
+  }
     
     for (var item : getWorkerDetails.data){
       personalTimeOffMembers.add({'id': item.worker.id, 'name': item.worker.descriptor});
@@ -487,6 +490,7 @@
 
     //pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+    //pageVariables.frequentTravellers = familyAndFrequent;
     pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
@@ -711,7 +715,7 @@
                       "type": "grid",
                       "id": "staffMemeberGrid",
                       "_rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
-                      "rows": "<% pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) %>",
+                      "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) : [] %>",
                       "rowVariableName": "staffMemeberData",
                       "render": "<% !pageVariables.isField %>",
                       "selectionEnabled": true,
