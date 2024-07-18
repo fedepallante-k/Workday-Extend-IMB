@@ -36,15 +36,6 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
-        "onSend":"<% return self.data %>",
-        "failOnStatusCodes": [{"code":400},{"code":403}]
-      },
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "updateAccompanyingTravellers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
-        "httpMethod": "PATCH",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
@@ -53,7 +44,6 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "onSend": "<% return self.data %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
       {
