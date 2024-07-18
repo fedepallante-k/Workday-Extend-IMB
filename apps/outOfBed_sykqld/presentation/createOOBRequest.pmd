@@ -487,6 +487,7 @@
 
     //pageVariables.frequentTravellers = familyAndFrequent.addAll(getFrequentTravellersWQL.data);
     pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+    pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
     pageVariables.hasChildren = hasChildrenValue > 0;
@@ -709,7 +710,8 @@
                     {
                       "type": "grid",
                       "id": "staffMemeberGrid",
-                      "rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
+                      "_rows": "<% getFrequentTravellers.data.add({'id': getCurrentWorker.id,'name': getCurrentWorker.descriptor}) %>",
+                      "rows": "<% pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) %>",
                       "rowVariableName": "staffMemeberData",
                       "render": "<% !pageVariables.isField %>",
                       "selectionEnabled": true,
