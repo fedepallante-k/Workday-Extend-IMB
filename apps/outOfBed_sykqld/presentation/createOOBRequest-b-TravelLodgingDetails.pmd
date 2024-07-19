@@ -103,11 +103,11 @@
         "values": [
           {
             "outboundPath": "saveForLater",
-            "value": "<% !empty(saveForLaterBtn.value) %>"
+            "value": "<% !empty(saveForLaterBtn.value) && saveForLaterBtn.value ==true %>"
           },
           {
             "outboundPath": "proceed",
-            "value": "<% !empty(nextBtn.value) %>"
+            "value": "<% !empty(nextBtn.value) && nextBtn.value == true %>"
           }
         ]
       }

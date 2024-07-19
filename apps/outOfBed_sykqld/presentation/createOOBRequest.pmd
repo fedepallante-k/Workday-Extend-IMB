@@ -66,30 +66,6 @@
                    self.data.data.addAll(getAllAccompanyingTravellers().data);
                    console.info('self.data' + json:asJSON(self.data))
                    return self.data;
-        /*
-        self.data = {'data':[]};
-        var addAccompanyingTraveller= [];
-
-        for (var otherMembers : OtherMemberGrid.getRows()) {
-          if(otherMembers.childrenMap.addToOOBCol.value){
-            addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' ')});
-          }
-        }
-
-        if(!empty(staffMemeberGrid.getSelectedRows())){
-            for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
-                addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' ')});
-            }
-        }
-        if(!empty(fieldMemeberGrid.getSelectedRows())){
-          for ( var i : fieldMemeberGrid.getSelectedRows()) {
-            addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' ')});
-          }
-        }
-
-        self.data.data.add(addAccompanyingTraveller);
-        self.data;
-        */
         %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
       },
@@ -309,11 +285,11 @@
         "values": [
           {
             "outboundPath": "saveForLater",
-            "value": "<% !empty(saveForLaterBtn.value) %>"
+            "value": "<% !empty(saveForLaterBtn.value) && saveForLaterBtn.value ==true %>"
           },
           {
             "outboundPath": "proceed",
-            "value": "<% !empty(nextBtn.value) %>"
+            "value": "<% !empty(nextBtn.value) && nextBtn.value == true %>"
           },
           {
             "outboundPath": "name",
