@@ -62,9 +62,7 @@
         "exclude": "<% empty(saveForLaterBtn.value) %>",
         "onSend": "<%
                    self.data = {'data' : []};
-                   console.info('Return getAllAccompanyingTravellers  = ' + getAllAccompanyingTravellers());
                    self.data.data.addAll(getAllAccompanyingTravellers().data);
-                   console.info('self.data' + json:asJSON(self.data))
                    return self.data;
         %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -76,14 +74,11 @@
         "httpMethod": "POST",
         "onSend": "<%
           self.data = {'data':[]};
-
           for (var otherMembers : OtherMemberGrid.getRows()) {
             if(otherMembers.childrenMap.addToOOBCol.value){
             self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
             }
           }
-          //self.data.data.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'name' : x.name}}));
-          console.info('Frequent Travellers = ' + json:asJSON(self.data));
           self.data;
           %>",
         "failOnStatusCodes": [{"code":400},{"code":403}]
@@ -98,7 +93,6 @@
           self.data = {'data':[]};
           for (var otherNumbers : allNumbers.getRows()) {
             if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value){
-                console.info('phone number added ');
               self.data.data.add({
                 'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
                 'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
@@ -118,7 +112,6 @@
         "authType": "sso",
         "httpMethod": "POST",
         "onSend": "<%
-          console.debug('createOOBRequest self.data = ' + json:asJSON(self.data));
           return self.data;
         %>",
         "failOnStatusCodes": [
@@ -226,7 +219,6 @@
              });  
            }
          }
-          console.info('create Personal time self.data' + json:asJSON(self.data));
          self.data;
          %>"
       },
@@ -274,7 +266,6 @@
           for(var x : listOfAccompanyTravellers){
               self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : createOOBRequest.id}});
           }
-          console.info('Update accompany travllers Fired self.data = ' + json:asJSON(self.data));
         self.data;
         %>"
       },
@@ -415,7 +406,6 @@
 
   var getPhoneNumbers = function(){
       var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
-      console.info('Mobile Numbers = ' + phoneNumbersPV);
       if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
         for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
           phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
@@ -428,7 +418,7 @@
      var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
 
      for(var children : counter){
-       console.info('childern = ' + json:asJSON(children));
+
        if(!children.isSelected()){
          alternativeTxtA.setVisible(true);
          alternativeTxtA.setRequired(true);
@@ -742,7 +732,6 @@
                             phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
                             phoneNameCell.enabled=false;
                           }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
-                          console.info('entered other');
                             numberId.value = 'other';
                             phoneNameCell.value = '';
                             phoneCodeList.setValue([]);
@@ -751,7 +740,6 @@
                             notesCol.value = '';
                           }
                           else{
-                          console.info('entered else phone');
                             numberId.value = '';
                             numberName.value = '';
                             phoneCodeList.setValue([]);
