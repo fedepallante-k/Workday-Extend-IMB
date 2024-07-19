@@ -230,7 +230,7 @@
             {
               "type" : "loop",
               "label": "Loop",
-              "on" : "<%!empty(flowVariables.accompanyingTravellerNames) ? flowVariables.accompanyingTravellerNames : [] %>",
+              "on" : "<%!empty(flowVariables.accompanyingTravellerNames) ? flowVariables.accompanyingTravellerNames.data.map(x=> {{'name' : (x.firstName + ' ' + x.lastName), 'addToOOBProfile' : x.addToOOBProfile}}) : [] %>",
               "as" : "objectToLoopOn",
               "index": "loopIndex",
               "children" : [
@@ -256,7 +256,7 @@
                         {
                           "type": "hidden",
                           "id": "travellerAddToOOBTxt",
-                          "value": "<% objectToLoopOn.addToOOB %>"
+                          "value": "<% objectToLoopOn.addToOOBProfile %>"
                         },
                         {
                           "type": "panelList",
