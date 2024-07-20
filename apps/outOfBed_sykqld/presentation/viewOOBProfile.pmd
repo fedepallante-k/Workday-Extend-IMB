@@ -46,6 +46,18 @@
           }
         },
         {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Edit",
+          "taskReference": {
+            "taskId": "editOOBRequest-a-Create",
+            "parameterBindings": {
+              "oobRequest": "<% 'f75cdd7f87b68101e6f9a7baad040000' %>",
+              "isEdit": "<% true %>"
+            }
+          }
+        },
+        {
           "type": "text",
           "id": "sts",
           "label": "STS",

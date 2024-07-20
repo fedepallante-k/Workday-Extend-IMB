@@ -191,6 +191,13 @@
       "page": {
         "id": "createOOBRequest-d-Confirm"
       }
+    },
+    {
+      "id": "editOOBRequest-a-Create",
+      "routingPattern": "editOOBRequest-a-Create",
+      "page": {
+        "id": "editOOBRequest-a-Create"
+      }
     }
   ],
   "applicationId": "outOfBed_sykqld"
