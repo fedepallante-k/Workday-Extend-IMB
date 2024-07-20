@@ -84,10 +84,36 @@
         "onSend":"<%
                   console.info('delete Triggered = ');
           self.data ={'data': []};
-          console.info('Edit page delete endPoint = ' + self.data);
+          console.info('Edit page delete endPoint = ' + json:asJSON(self.data));
           return self.data;
           %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
+      },
+      {
+        "name": "createPersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+        self.data = {'data':[]};
+         self.data.data.addAll(getPTGridData(false));
+        console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
+        return self.data;
+        %>"
+      },
+      {
+        "name": "updatePersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          self.data = {'data':[]};
+          self.data.data.addAll(getPTGridData(true));
+          console.info('Update Personal Time Off data = ' + self.data);
+          return self.data;
+        %>"
       }
     ]
   },
@@ -166,7 +192,46 @@
       var TravellerArray = {'data' : addAccompanyingTraveller}
       return TravellerArray;
     }
-%>",
+
+    var getPTGridData = function(isEdit){
+      var updatePersonalTimeOff =[];
+      var createPersonalTimeOff = [];
+      var gridRowa = personalTimeGrid.getRows();
+
+      for (var personalTimeOff : personalTimeGrid.getRows()) {
+        var columnPath = personalTimeOff.childrenMap;
+        var idValue = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWID.value;
+        var workerWidget = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWorker;
+        var typeWidget =  columnPath.absenceTypeCol ;
+        var startDateWidget = columnPath.startDateCol;
+        var endDateWidget = columnPath.endDateCol;
+        var oobRequestID = queryParams.oobRequest;
+
+        if(!empty(idValue) && workerWidget.selectedEntries[0].id && (workerWidget.isUpdated() || typeWidget.isUpdated() || startDateWidget.isUpdated() || endDateWidget.isUpdated())){
+          updatePersonalTimeOff.add({
+            'id': !empty(idValue) ? idValue : '',
+            'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+            'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+            'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+            'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+            'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+          });
+        }else if(empty(idValue) &&workerWidget.selectedEntries[0].id){
+          createPersonalTimeOff.add({
+            'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+            'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+            'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+            'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+            'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+          });
+        }
+      }
+      console.info('updatePersonalTimeOff = ' + updatePersonalTimeOff);
+      console.info('createPersonalTimeOff = ' + createPersonalTimeOff);
+        return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
+    }
+
+  %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
     "pageType": "edit",
@@ -652,6 +717,7 @@
                     "children": [
                       {
                         "type": "instanceList",
+                        "id": "personalTimeOffWorker",
                         "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
                         "enabled": true,
                         "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
@@ -660,7 +726,7 @@
                         "type": "text",
                         "id": "personalTimeOffWID",
                         "enabled": false,
-                        "value": "<%!empty(timeOffData.id) ? timeOffData.id : 'empty'%>"
+                        "value": "<%!empty(timeOffData.id) ? timeOffData.id : ''%>"
                       }
                     ]
                   }
@@ -703,7 +769,7 @@
                   "label": "<% 'Timeoff ID' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "value": "<%!empty(pageVariables.TimeOffTypes) ? json:asJSON(pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id) : 'empty'%>",
+                    "value": "<% !empty(pageVariables.TimeOffTypes) && !empty(timeOffData.type) ? json:asJSON(pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id) : 'empty'%>",
                     "enabled": false
                   }
                 }
