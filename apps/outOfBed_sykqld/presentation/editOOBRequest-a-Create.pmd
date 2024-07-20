@@ -111,7 +111,33 @@
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(true));
-          console.info('Update Personal Time Off data = ' + self.data);
+          console.info('Update Personal Time Off data = ' + json:asJSON(self.data));
+          return self.data;
+        %>"
+      },
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          self.data = {'data':[]};
+          self.data.data.addAll(getPhoneData(false));
+          console.info('Create Phone Numbers = ' + json:asJSON(self.data));
+          return self.data;
+        %>"
+      },
+      {
+        "name": "updateMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          self.data = {'data':[]};
+          self.data.data.addAll(getPhoneData(true));
+          console.info('Update Phone Numbers = ' + json:asJSON(self.data));
           return self.data;
         %>"
       }
@@ -126,17 +152,17 @@
      var personalTimeOffMembers =[];
      var hasChildrenValue = 0;
      if(!empty(getWorkerFromSameUnit.data)){
-         for (var item : getWorkerFromSameUnit.data){
-             familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
-                 if(!empty(item)){
-                     for( var child : item.dependent){
-                         if(child.isSpouse != true){
-                             familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
-                                 child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
-                         }
-                     }
-                 }
+       for (var item : getWorkerFromSameUnit.data){
+         familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
+         if(!empty(item)){
+           for( var child : item.dependent){
+             if(child.isSpouse != true){
+                 familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+                     child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
+             }
+           }
          }
+       }
      }
 
      pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
@@ -146,6 +172,7 @@
      pageVariables.hasChildren = hasChildrenValue > 0;
      pageVariables.frequentTravellersWIDs = pageVariables.frequentTravellers.map(x => {{'id' : x.id}});
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
+     pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers;
      pageVariables.isEdit = queryParams.isEdit;
      %>",
   "script": "<%
@@ -196,7 +223,7 @@
     var getPTGridData = function(isEdit){
       var updatePersonalTimeOff =[];
       var createPersonalTimeOff = [];
-      var gridRowa = personalTimeGrid.getRows();
+      var gridRows = personalTimeGrid.getRows();
 
       for (var personalTimeOff : personalTimeGrid.getRows()) {
         var columnPath = personalTimeOff.childrenMap;
@@ -216,7 +243,7 @@
             'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
             'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
           });
-        }else if(empty(idValue) &&workerWidget.selectedEntries[0].id){
+        }else if(empty(idValue) && workerWidget.selectedEntries[0].id){
           createPersonalTimeOff.add({
             'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
             'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
@@ -228,7 +255,44 @@
       }
       console.info('updatePersonalTimeOff = ' + updatePersonalTimeOff);
       console.info('createPersonalTimeOff = ' + createPersonalTimeOff);
-        return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
+      return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
+    }
+
+    var getPhoneData = function (isEdit){
+      var updatePhoneNumbers =[];
+      var createPhoneNumbers = [];
+      var gridRows = allNumbers.getRows();
+
+      for (var otherNumbers : gridRows) {
+        var columnPath = otherNumbers.childrenMap;
+        var newRow = columnPath.NameCol.childrenMap.isNewNumber.value;
+        var idValue = !empty(columnPath.NameCol.childrenMap.numberId.value) ? columnPath.NameCol.childrenMap.numberId.value : '';
+        var nameWidget = columnPath.phoneNameCol;
+        var countryCodeWidget =  columnPath.countryCodeCol ;
+        var PhoneNumberWidget = columnPath.phoneNumberCol;
+        var NotesWidget = columnPath.notesCol;
+        var oobProfileID = !empty(getOOBProfileWQL.data[0].id) ? {'id' : getOOBProfileWQL.data[0].id} : '';
+
+        if( !newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
+            updatePhoneNumbers.add({
+            'id': idValue,
+            'name': !empty(nameWidget.value) ? nameWidget.value : '',
+            'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+            'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+            'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+            'oobProfile': oobProfileID
+          });
+        } else if( newRow && columnPath.NameCol.childrenMap.nameCell.selectedEntries[0]){
+          createPhoneNumbers.add({
+            'name': !empty(nameWidget.value) ? nameWidget.value : '',
+            'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+            'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+            'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+            'oobProfile': oobProfileID
+          });
+        }
+      }
+        return isEdit ? updatePhoneNumbers : createPhoneNumbers ;
     }
 
   %>",
@@ -544,6 +608,12 @@
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
               "rowVariableName": "contactDetailsData",
+              "onRowAdd": "<%
+                           var selfRows = self.getRows();
+                           var newRow = selfRows[0];
+                //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
+                newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
+              %>",
               "label": "<% 'Phone Numbers you are travelling with' %>",
               "columns": [
                 {
@@ -596,6 +666,11 @@
                         "type": "text",
                         "id": "numberId",
                         "value": "<%!empty(contactDetailsData.id) ? contactDetailsData.id : ''%>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "isNewNumber",
+                        "value": "<% false %>"
                       }
                     ]
                   }
