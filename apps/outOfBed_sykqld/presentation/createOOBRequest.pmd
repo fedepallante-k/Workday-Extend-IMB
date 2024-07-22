@@ -3,48 +3,455 @@
   "_generationNote": "This page creates a single instance of the OOBRequest object. You can use this page as a starting template for building an end-user page, or used as an administration page to create new instances.",
   "endPoints": [
     {
-      "name": "getAccompanyingTravellers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "Gets a collection of AccompanyingTravellers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/accompanyingTravellers` %>"
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
     },
     {
-      "name": "getMobileNumbers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "Gets a collection of MobileNumbers business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/mobileNumbers` %>"
+      "name": "getOOBProfile",
+      "baseUrlType": "APP-V1",
+      "url": "/oobProfiles",
+      "authType": "sso"
     },
     {
-      "name": "getWorkers",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "For data types with a large quantity of instances, it may be required to apply filtering.",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "https://api.workday.com/common/v1/workers"
+      "name": "getOOBProfileWQL",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
     },
     {
-      "name": "getDestinations",
+      "name": "getWorkerDetails",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getWorkerFromSameUnit",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getPhoneCodes",
       "httpMethod": "GET",
       "authType": "sso",
-      "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
-      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/destinations` %>"
+      "deferred": true,
+      "url": "<% 'https://api.workday.com/referenceData/country_phone_code/vers/latest/search?q=' + instanceListQuery %>"
+    },
+    {
+      "name": "getTimeOffTypes",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT timeOffType FROM timeOffTypes').urlEncode() %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getStatuses",
-      "httpMethod": "GET",
-      "authType": "sso",
-      "_generationNote": "The target Status is not included within the application source nor was a known Workday Delivered Target.",
-      "_generationNote2": "If this is due to the business object not being created yet, we recommend creating it and then running this create task again.",
-      "url": "Unable to be generated"
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status where statusID = \\'1\\'').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "exclude": "<% empty(saveForLaterBtn.value) %>",
+        "onSend": "<%
+                   self.data = {'data' : []};
+                   self.data.data.addAll(getAllAccompanyingTravellers().data);
+                   return self.data;
+        %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "createFrequentTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "onSend": "<%
+          self.data = {'data':[]};
+          for (var otherMembers : OtherMemberGrid.getRows()) {
+            if(otherMembers.childrenMap.addToOOBCol.value){
+            self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+            }
+          }
+          self.data;
+          %>",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
+      },
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+          self.data = {'data':[]};
+          for (var otherNumbers : allNumbers.getRows()) {
+            if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value){
+              self.data.data.add({
+                'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
+                'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
+                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : '',
+                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : '',
+                'oobProfile': !empty(getOOBProfile.data[0].id) ? {'id' : getOOBProfile.data[0].id} : ''
+              });
+            }
+          }
+
+        self.data;
+        %>"
+      },
+      {
+        "name": "createOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<%
+          return self.data;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "initiator.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "expectedEndDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "exclude": "<% empty(saveForLaterBtn.value) %>",
+            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "exclude":"<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}})%>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% elevatedRiskRG.value == ['yes'] ? true : false %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% 'true' %>"
+          },
+          {
+            "outboundPath": "status.id",
+            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
+      },
+      {
+        "name": "createPersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [{"code":400},{"code":403}],
+        "onSend": "<%
+         self.data = {'data':[]};
+
+         for (var personalTimeOff : personalTimeGrid.getRows()) {
+           if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
+             self.data.data.add({
+               'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
+               'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
+               'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
+               'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
+               'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
+             });  
+           }
+         }
+         self.data;
+         %>"
+      },
+      {
+        "name": "updateOOBProfile",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "frequentTravellers",
+            "value": "<%
+            var frequentTravellers = !empty(getOOBProfileWQL.data[0]) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID}}) : [];
+            frequentTravellers.addAll(createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}));
+            return frequentTravellers;
+            %>"
+          }
+        ]
+      },
+      {
+        "name": "updateAccompanyTravellers",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(saveForLaterBtn.value) %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "onSend":"<%
+          self.data = {'data':[]};
+          var listOfAccompanyTravellers = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
+          for(var x : listOfAccompanyTravellers){
+              self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : createOOBRequest.id}});
+          }
+        self.data;
+        %>"
+      },
+      {
+        "name": "transitionOutboundVars",
+        "type": "outboundVariable",
+        "variableScope": "flow",
+        "values": [
+          {
+            "outboundPath": "saveForLater",
+            "value": "<% !empty(saveForLaterBtn.value) && saveForLaterBtn.value ==true %>"
+          },
+          {
+            "outboundPath": "proceed",
+            "value": "<% !empty(nextBtn.value) && nextBtn.value == true %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? endDateDt.value : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellerNames",
+            "value": "<% getAllAccompanyingTravellers() %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "value": "<% ! empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : [];    %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% (elevatedRiskRG.value == ['yes'])%>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller",
+            "value": "<% 'singleInstance' %>"
+          },
+          {
+            "outboundPath": "lodging.id",
+            "value": "''"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "''"
+          },
+          {
+            "outboundPath": "status",
+            "value": "''"
+          },
+          {
+            "outboundPath": "initiator",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          },
+          {
+            "outboundPath": "oobRequest",
+            "value": "<% !empty(createOOBRequest.id) ?  createOOBRequest.id : '' %>"
+          }
+        ]
+      }
+    ],
+    "responseErrorDetail": {
+      "errorSummary": "<% error %>",
+      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
+    }
+  },
+  "include": [
+    "OOB.script",
+    "Dates.script"
+  ],
+  "onLoad": "<%
+    var familyAndFrequent =[];
+    var personalTimeOffMembers =[];
+    var hasChildrenValue = 0;
+    if(!empty(getWorkerFromSameUnit.data)){
+    for (var item : getWorkerFromSameUnit.data){
+      familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
+      if(!empty(item)){
+        for( var child : item.dependent){
+          if(child.isSpouse != true){
+            familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+            child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
+          }
+        }
+      }
+    }
+  }
+
+    pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+    pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
+    pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
+    pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
+    pageVariables.hasChildren = hasChildrenValue > 0;
+  %>",
+  "onSubmit": "<%
+
+  %>",
   "securityDomains": [ ],
-  "script": "",
+  "script": "<%
+
+  var getPhoneNumbers = function(){
+      var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
+      if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
+        for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
+          phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
+        }
+      }
+      return phoneNumbersPV;
+  }
+
+   var childrenArrangments = function(){
+     var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+
+     for(var children : counter){
+
+       if(!children.isSelected()){
+         alternativeTxtA.setVisible(true);
+         alternativeTxtA.setRequired(true);
+         AlternativeRTxt.setVisible(true);
+       }else{
+         alternativeTxtA.setVisible(false);
+         alternativeTxtA.setRequired(false);
+         AlternativeRTxt.setVisible(false);
+       }
+     }
+   }
+             
+  var getAllAccompanyingTravellers = function(){
+  var addAccompanyingTraveller = [];
+  
+  for (var otherMembers : OtherMemberGrid.getRows()) {
+    addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value });
+  }
+  if(!empty(staffMemeberGrid.getSelectedRows())){
+    for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+      addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '), 'addToOOBProfile': false});
+    }
+  }
+  if(!empty(fieldMemeberGrid.getSelectedRows())){
+    for ( var i : fieldMemeberGrid.getSelectedRows()) {
+      addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '), 'addToOOBProfile': false});
+    }
+  }
+  
+  var TravellerArray = {'data' : addAccompanyingTraveller}
+  return TravellerArray;
+  }
+             %>",
   "presentation": {
     "pageType": "edit",
     "title": {
@@ -57,293 +464,510 @@
       "id": "bodySection",
       "children": [
         {
-          "type": "text",
-          "id": "name",
-          "label": "Name",
-          "valuesOut": [
+          "type": "fieldSet",
+          "id": "tripDetailsFS",
+          "title": "Trip Details",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.name"
+              "type": "checkBox",
+              "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
+              "id": "vismoChbx",
+              "required": true,
+              "enabled": true,
+              "trueLabel": "True Label",
+              "falseLabel": "False Label"
+            },
+            {
+              "type": "text",
+              "label": "Trip Name",
+              "id": "tripNameTxt",
+              "required": true,
+              "enabled": true,
+              "value": ""
+            },
+            {
+              "type": "textArea",
+              "label": "Trip Purpose",
+              "id": "tripPurposeTxtA",
+              "required": true,
+              "enabled": true,
+              "value": ""
+            },
+            {
+              "type": "date",
+              "label": "Start Date",
+              "id": "startDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% OOB.getCurrentTime() %>"
+            },
+            {
+              "type": "date",
+              "label": "End Date (or Expected End Date)",
+              "id": "endDateDt",
+              "required": true,
+              "enabled": true,
+              "value": "<% OOB.getCurrentTime() %>"
+            },
+            {
+              "type": "checkBox",
+              "label": "End Date is an Expected End Date",
+              "id": "endDateChbx",
+              "required": true,
+              "enabled": true,
+              "trueLabel": "True Label",
+              "falseLabel": "False Label",
+              "value": true
+            },
+            {
+              "type": "instanceList",
+              "label": "STS",
+              "id": "stsIL",
+              "required": true,
+              "enabled": true,
+              "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
+              "searchEndPoint": "<% %>",
+              "searchResultValues": "<% [] %>",
+              "onChange": "<%
+                if(self.selectedEntries[0].id == 'other'){
+                  otherStsTxt.setVisible(true);
+                }else{
+                  otherStsTxt.setVisible(false);
+                  otherStsTxt.setValue('');
+                }
+             %>"
+            },
+            {
+              "type": "text",
+              "label": "Other - STS specific to this Trip",
+              "id": "otherStsTxt",
+              "required": false,
+              "enabled": true,
+              "visible":false,
+              "value": ""
             }
           ]
         },
         {
-          "type": "text",
-          "id": "purpose",
-          "label": "Purpose",
-          "valuesOut": [
+          "type": "fieldSet",
+          "title": "Travelers included in OOB",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.purpose"
+              "type": "fieldSet",
+              "horizontal": true,
+
+              "children": [
+                {
+                  "type": "fieldSet",
+                  "render": "<% pageVariables.isField %>",
+                  "children": [
+                    {
+                      "type": "grid",
+                      "id": "fieldMemeberGrid",
+                      "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
+                      "render": "<% pageVariables.isField %>",
+                      "selectionEnabled": true,
+                      "onRowSelect": "<% childrenArrangments() %>",
+                      "rowVariableName": "fieldMemeberData",
+                      "isArrayOutBinding": true,
+                      "label": "<% 'For Field Family Members' %>",
+                      "columns": [
+                        {
+                          "type": "column",
+                          "columnId": "familyMemberCol",
+                          "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
+                          "cellTemplate": {
+                            "type":"fieldSet",
+                            "children": [
+                              {
+                                "id": "worker",
+                                "type": "text",
+                                "value": "<% !empty(fieldMemeberData.name) ? fieldMemeberData.name : '' %>",
+                                "enabled": false,
+                                "valuesOut": [
+                                  {
+                                    "value": "<% (self.value ?: '')  %>"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "staffId",
+                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "relationship",
+                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.relationship : '' %>"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "fieldSet",
+                  "render": "<% !pageVariables.isField %>",
+                  "children":[
+                    {
+                      "type": "grid",
+                      "id": "staffMemeberGrid",
+                      "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) : [] %>",
+                      "rowVariableName": "staffMemeberData",
+                      "render": "<% !pageVariables.isField %>",
+                      "selectionEnabled": true,
+                      "label": "<% 'For Staff Members' %>",
+                      "columns": [
+                        {
+                          "type": "column",
+                          "columnId": "familyMemberCol",
+                          "label": "<% 'Travelers (yourself plus Frequent Travelers from OOB Profile)' %>",
+                          "cellTemplate": {
+                            "type": "fieldSet",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "staffMemberName",
+                                "value": "<% staffMemeberData.name %>",
+                                "enabled": false
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "StaffId",
+                                "value": "<% staffMemeberData.id %>"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "richText",
+              "label": "Alternative arrangements for Dependent Children ",
+              "id": "AlternativeRTxt",
+              "required": false,
+              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
+              "enabled": false
+            },
+            {
+              "type": "textArea",
+              "id": "alternativeTxtA",
+              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
+              "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
+              "enabled": true,
+              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
+              "value": ""
+            },
+            {
+              "type": "checkBox",
+              "label": "Other individuals (not list above) that will be traveling",
+              "id": "otherIndividualsChbx",
+              "required": false,
+              "enabled": true,
+              "onChange":"<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
+            },
+            {
+              "type": "grid",
+              "rows": "<% [] %>",
+              "id": "OtherMemberGrid",
+              "rowVariableName": "otherMemeberData",
+              "label": "<% 'For Other Members' %>",
+              "visible": false,
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "familyMemberCol",
+                  "label": "<% 'Other Individuals Traveling ' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "addToOOBCol",
+                  "label": "<% 'Add to OOB profile? ' %>",
+                  "cellTemplate": {
+                    "type": "checkBox",
+                    "value": "<% false %>",
+                    "enabled": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "rows": "<% [] %>",
+              "id": "allNumbers",
+              "rowVariableName": "contactDetailsData",
+              "label": "<% 'Phone Numbers you are travelling with' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "NameCol",
+                  "label": "<% 'Name' %>",
+                  "cellTemplate": {
+                    "type": "fieldSet",
+                    "children": [
+                      {
+                        "type": "instanceList",
+                        "id": "nameCell",
+                        "displayKey": "name",
+                        "required": true,
+                        "values": "<% pageVariables.phoneNumbers ?: [] %>",
+                        "onChange": "<%
+                          if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                            numberName.value = self.selectedEntries[0].descriptor;
+                            numberId.value = self.selectedEntries[0].id;
+                            numberName.value = self.selectedEntries[0].descriptor;
+                            phoneNameCell.value = self.selectedEntries[0].descriptor;
+                            phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
+                            phoneNameCell.enabled=false;
+                          }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                            numberId.value = 'other';
+                            phoneNameCell.value = '';
+                            phoneCodeList.setValue([]);
+                            phoneNumberCol.value = '';
+                            phoneNameCell.enabled=true;
+                            notesCol.value = '';
+                          }
+                          else{
+                            numberId.value = '';
+                            numberName.value = '';
+                            phoneCodeList.setValue([]);
+                            phoneNumberCol.value = '';
+                            notesCol.value = '';
+                            phoneNameCell.value = '';
+                            phoneNameCell.enabled=false;
+                          }
+                        %>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "numberName",
+                        "value": ""
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "numberId",
+                        "value": ""
+                      }
+                      ]
+                    }
+                },
+                {
+                  "type": "column",
+                  "columnId": "phoneNameCol",
+                  "label": "<% 'Name' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneNameCell",
+                    "enabled": false,
+                    "value": ""
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "countryCodeCol",
+                  "label": "<% 'Country Phone Code' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "id": "phoneCodeList",
+                    "values": "<% [] %>",
+                    "searchEndPoint": "<% endpoints.getPhoneCodes %>",
+                    "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
+                    "idKey": "phoneCode",
+                    "displayKey": "phoneCode",
+                    "multiSelect": false
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "phoneNumberCol",
+                  "label": "<% 'Phone Number' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "phoneNumberCol",
+                    "value": "",
+                    "required": true,
+                    "onChange": "<%
+                      self.clearError();
+                      if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
+                        self.setError('Only numbers allowed');
+                      }
+                    %>"
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "notesCol",
+                  "label": "<% 'Notes' %>",
+                  "cellTemplate": {
+                    "type": "text",
+                    "id": "notesCol",
+                    "value": ""
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "startDate",
-          "label": "Start Date",
-          "valuesOut": [
+          "type": "fieldSet",
+          "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
+          "title": "Personal Time",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.startDate"
+              "type": "richText",
+              "id": "personalTimeRTxt",
+              "required": false,
+              "enabled": false,
+              "value": "Please specify the date(s) and time off type for your personal time.  Upon submission of this OOB the time off requests will be created for you."
+            },
+            {
+              "type": "radioGroup",
+              "label": "Trip includes Vacation, Bereavement or Holiday days",
+              "id": "PersonalLeaveRG",
+              "required": true,
+              "instanceList": [
+                {
+                  "id": "yes",
+                  "descriptor": "Yes"
+                },
+                {
+                  "id": "no",
+                  "descriptor": "No"
+                }
+              ],
+              "selectedValues":"<% ['no'] %>",
+              "onChange": "<% self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false)%>"
+            },
+            {
+              "type": "grid",
+              "id": "personalTimeGrid",
+              "rows": "<% [] %>",
+              "visible": false,
+              "isArrayOutBinding": "true",
+              "rowVariableName": "timeOffData",
+              "label": "<% 'Personal Time Off Details' %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "workerTimeOffCol",
+                  "label": "<% 'Workers taking time off' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "absenceTypeCol",
+                  "label": "<% 'Absence Type' %>",
+                  "cellTemplate": {
+                    "type": "instanceList",
+                    "id": "absenceTypeIL",
+                    "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>"
+                   }
+                },
+                {
+                  "type": "column",
+                  "columnId": "startDateCol",
+                  "label": "<% 'Start Date' %>",
+                  "cellTemplate": {
+                    "type": "date",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "endDateCol",
+                  "label": "<% 'End Date' %>",
+                  "cellTemplate": {
+                    "type": "date",
+                    "value": "<% '' %>",
+                    "enabled": true
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "expectedEndDate",
-          "label": "Expected End Date",
-          "valuesOut": [
+          "type": "fieldSet",
+          "title": "Elevated Risk",
+          "collapsible": true,
+          "children": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.expectedEndDate"
+              "type": "radioGroup",
+              "label": "Is this an Elevated Risk Situation",
+              "id": "elevatedRiskRG",
+              "required": true,
+              "selectedValues": "<% ['no']  %>",
+              "instanceList": [
+                {
+                  "id": "yes",
+                  "descriptor": "Yes"
+                },
+                {
+                  "id": "no",
+                  "descriptor": "No"
+                }
+              ],
+              "onChange": "<% self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>"
+            },
+            {
+              "type": "textArea",
+              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+              "id": "elevatedRiskTxtA",
+              "required": false,
+              "enabled": true,
+              "value": "",
+              "visible": false
+            },
+            {
+              "type": "textArea",
+              "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
+              "id": "addCommentsOnBehalfOfTxtA",
+              "render": "<% !pageVariables.isField%>",
+              "required": false,
+              "enabled": true,
+              "visible": true,
+              "value": ""
             }
           ]
         },
         {
-          "type": "date",
-          "datePrecision": "DAY",
-          "dateFormat": "yyyy-MM-dd",
-          "id": "endDate",
-          "label": "End Date",
-          "valuesOut": [
+          "type": "editButtonBar",
+          "editButtons": [
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.endDate"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "sts",
-          "label": "STS",
-          "valuesOut": [
+              "type": "editButton",
+              "label": "<% 'Next' %>",
+              "buttonType": "PRIMARY",
+              "sortOrder": "a",
+              "id": "nextBtn"
+            },
             {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.sts"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "otherSTS",
-          "label": "Other STS",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.otherSTS"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "accompanyingTravellers",
-          "label": "Accompanying Travellers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getAccompanyingTravellers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBRequest.accompanyingTravellers"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "alternateArrangementForChildren",
-          "label": "Alternate Arrangement For Children",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.alternateArrangementForChildren"
-            }
-          ]
-        },
-        {
-          "type": "instanceList",
-          "id": "phoneNumbers",
-          "label": "Phone Numbers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getMobileNumbers.data %>",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "multiSelect": true,
-          "valuesOut": [
-            {
-              "value": "<% self.value?.map(selected => { return {'id': selected }}) ?? null %>",
-              "valueOutBinding": "createOOBRequest.phoneNumbers"
-            }
-          ]
-        },
-        {
-          "type": "checkBox",
-          "trueLabel": "yes",
-          "falseLabel": "no",
-          "id": "elevatedRisk",
-          "label": "Elevated Risk",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.elevatedRisk"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "elevatedRiskSituation",
-          "label": "Elevated Risk Situation",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.elevatedRiskSituation"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "initiatorComments",
-          "label": "Initiator Comments",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.initiatorComments"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "traveller",
-          "label": "Traveller",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getWorkers.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.traveller.id"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "lodging",
-          "label": "Lodging",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getDestinations.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.lodging.id"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "cancelConfirmation",
-          "label": "Cancel Confirmation",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.cancelConfirmation"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "status",
-          "label": "Status",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getStatuses.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.status.id"
-            }
-          ]
-        },
-        {
-          "type": "dropdown",
-          "id": "initiator",
-          "label": "Initiator",
-          "idKey": "id",
-          "displayKey": "descriptor",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getWorkers.data %>",
-          "valuesOut": [
-            {
-              "value": "<% self.value[0] ?? null %>",
-              "valueOutBinding": "createOOBRequest.initiator.id"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "affinity",
-          "label": "Affinity",
-          "valuesOut": [
-            {
-              "value": "<% self.value %>",
-              "valueOutBinding": "createOOBRequest.affinity"
+              "type": "editButton",
+              "label": "<% 'Save For Later' %>",
+              "id": "saveForLaterBtn",
+              "sortOrder": "b",
+              "buttonType": "AUXILIARY"
             }
           ]
         }
       ]
-    },
-    "footer": {
-      "type": "footer",
-      "id": "footer",
-      "children": [
-        {
-          "type": "richText",
-          "id": "footerText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
-        }
-      ]
-    }
-  },
-  "outboundData": {
-    "outboundEndPoints": [
-      {
-        "_generationNote": "Creates a single instance, as specified by of the OOBRequest business object resource.",
-        "name": "createOOBRequest",
-        "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobRequests` %>",
-        "authType": "sso",
-        "httpMethod": "POST",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      }
-    ],
-    "responseErrorDetail": {
-      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
-      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
-      "errorSummary": "<% error %>",
-      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
-      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
     }
   }
 }
