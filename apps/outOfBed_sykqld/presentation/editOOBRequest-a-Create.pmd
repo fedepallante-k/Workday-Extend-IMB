@@ -123,7 +123,7 @@
         "failOnStatusCodes": [{"code":400},{"code":403}],
         "onSend": "<%
           self.data = {'data':[]};
-          self.data.data.addAll(getPhoneData(false));
+          self.data.data.addAll(getPhoneData(false, false));
           console.info('Create Phone Numbers = ' + json:asJSON(self.data));
           return self.data;
         %>"
@@ -136,10 +136,125 @@
         "failOnStatusCodes": [{"code":400},{"code":403}],
         "onSend": "<%
           self.data = {'data':[]};
-          self.data.data.addAll(getPhoneData(true));
+          self.data.data.addAll(getPhoneData(true, false));
           console.info('Update Phone Numbers = ' + json:asJSON(self.data));
           return self.data;
         %>"
+      },
+      {
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + queryParams.oobRequest %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "onSend": "<%
+                   return self.data;
+                   %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "initiator.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "expectedEndDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "_exclude": "<% empty(saveForLaterBtn.value) && true %>",
+            "exclude": "<% true %>",
+            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "exclude":"<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "value": "<%
+              var allMobileNumbers =[];
+              console.info('allMobileNumbers 0 = ' + json:asJSON(allMobileNumbers));
+              allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
+              console.info('allMobileNumbers 1 = ' + json:asJSON(allMobileNumbers));
+              allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
+              console.info('allMobileNumbers 2 = ' + json:asJSON(allMobileNumbers));
+              return allMobileNumbers;
+            %>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% elevatedRiskRG.value == ['yes'] ? true : false %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% 'true' %>"
+          },
+          {
+            "outboundPath": "status.id",
+            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
+      },
+      {
+        "name": "deletePhoneNumber",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers/' + numberId.value %>",
+        "httpMethod": "DELETE",
+        "authType": "wcpisu",
+        "onSend":"<%
+                  console.info('delete Triggered = ');
+                  self.data ={'data': []};
+                  console.info('Edit page delete Phone Numbers = ' + json:asJSON(self.data));
+                  return self.data;
+                  %>",
+        "exclude": "<% empty(numberId.value) %>"
       }
     ]
   },
@@ -258,9 +373,10 @@
       return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
     }
 
-    var getPhoneData = function (isEdit){
+    var getPhoneData = function (isEdit, addToOOBRequest){
       var updatePhoneNumbers =[];
       var createPhoneNumbers = [];
+      var allGridNumbers = []
       var gridRows = allNumbers.getRows();
 
       for (var otherNumbers : gridRows) {
@@ -273,26 +389,32 @@
         var NotesWidget = columnPath.notesCol;
         var oobProfileID = !empty(getOOBProfileWQL.data[0].id) ? {'id' : getOOBProfileWQL.data[0].id} : '';
 
-        if( !newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
-            updatePhoneNumbers.add({
+        if(!newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
+          console.info('!newRow and updated = ' + idValue);
+          updatePhoneNumbers.add({
             'id': idValue,
             'name': !empty(nameWidget.value) ? nameWidget.value : '',
             'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
             'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
             'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
             'oobProfile': oobProfileID
-          });
+        });
+          allGridNumbers.add({'id': idValue});
         } else if( newRow && columnPath.NameCol.childrenMap.nameCell.selectedEntries[0]){
-          createPhoneNumbers.add({
-            'name': !empty(nameWidget.value) ? nameWidget.value : '',
-            'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
-            'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
-            'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
-            'oobProfile': oobProfileID
-          });
+            console.info('newRow and selectedEnbtries = TRUE');
+            createPhoneNumbers.add({
+              'name': !empty(nameWidget.value) ? nameWidget.value : '',
+              'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+              'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+              'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+              'oobProfile': oobProfileID
+            });
+        }else if ( !newRow && idValue !='other'){
+            console.info('id for all grid = ' + idValue);
+            allGridNumbers.add({'id': idValue});
         }
       }
-        return isEdit ? updatePhoneNumbers : createPhoneNumbers ;
+        return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
     }
 
   %>",
@@ -607,6 +729,7 @@
               "type": "grid",
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
+              "deleteEndPoint": "deletePhoneNumber",
               "rowVariableName": "contactDetailsData",
               "onRowAdd": "<%
                            var selfRows = self.getRows();
