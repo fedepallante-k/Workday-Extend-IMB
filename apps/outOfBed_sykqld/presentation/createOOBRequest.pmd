@@ -59,7 +59,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "exclude": "<% empty(saveForLaterBtn.value) %>",
+        "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
         "onSend": "<%
                    self.data = {'data' : []};
                    self.data.data.addAll(getAllAccompanyingTravellers().data);
@@ -157,7 +157,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "exclude": "<% empty(saveForLaterBtn.value) %>",
+            "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
             "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
@@ -251,7 +251,7 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
         "authType": "wcpisu",
         "httpMethod": "PATCH",
-        "exclude": "<% empty(saveForLaterBtn.value) %>",
+        "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
         "failOnStatusCodes": [
           {
             "code": 400
