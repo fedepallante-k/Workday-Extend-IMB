@@ -5,6 +5,122 @@
       "value": "outOfBed_sykqld"
     }
   ],
+  "dataProviders": [
+    {
+      "key": "WORKDAY-COMMON",
+      "value": "https://api.workday.com/common/v1"
+    },
+    {
+      "key": "WORKDAY-RAAS",
+      "value": "https://api.workday.com/raas"
+    },
+    {
+      "key": "WORKDAY-WQL",
+      "value": "https://api.workday.com/wql/v1"
+    },
+    {
+      "key": "APP-V1",
+      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
+    },
+    {
+      "key": "WORKDAY-BP",
+      "value": "https://api.workday.com/businessProcess/v1"
+    },
+    {
+      "key": "APP-ORCHESTRATE-V1",
+      "value": "https://api.workday.com/orchestrate/v1/apps/<% site.applicationId %>/orchestrations"
+    },
+    {
+      "key": "WORKDAY-CONNECT-V1",
+      "value": "https://api.workday.com/connect/v1"
+    }
+  ],
+  "flowDefinitions": [
+    {
+      "id": "createOOBFlow",
+      "flowSteps": [
+        {
+          "id": "createOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "oobRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "oobRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "OOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "createOOBBackToRequest",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "createOOBBackToRequest",
+          "endsFlow": true,
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "OOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "OOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "OOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBBackToMain",
+              "condition": true
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "createOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
+    }
+  ],
   "tasks": [
     {
       "id": "createOOBProfile",
@@ -54,33 +170,28 @@
       "page": {
         "id": "createAccompanyingTravellers"
       }
+    },
+    {
+      "id": "createOOBReview",
+      "routingPattern": "createOOBReview",
+      "page": {
+        "id": "createOOBReview"
+      }
+    },
+    {
+      "id": "createOOBRequest-b-TravelLodgingDetails",
+      "routingPattern": "createOOBRequest-b-TravelLodgingDetails",
+      "page": {
+        "id": "createOOBRequest-b-TravelLodgingDetails"
+      }
+    },
+    {
+      "id": "createOOBRequest-d-Confirm",
+      "routingPattern": "createOOBRequest-d-Confirm",
+      "page": {
+        "id": "createOOBRequest-d-Confirm"
+      }
     }
   ],
-  "applicationId": "outOfBed_sykqld",
-  "dataProviders": [
-    {
-      "key": "WORKDAY-APP",
-      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
-    },
-    {
-      "key": "WORKDAY-WQL",
-      "value": "https://api.workday.com/wql/v1"
-    },
-    {
-      "key": "WORKDAY-BP",
-      "value": "https://api.workday.com/businessProcess/v1"
-    },
-    {
-      "key": "WORKDAY-COMMON",
-      "value": "https://api.workday.com/common/v1"
-    },
-    {
-      "key": "WORKDAY-CUSTOM_OBJECT",
-      "value": "https://api.workday.com/customObject/v2/customObjects"
-    },
-    {
-      "key": "WORKDAY-CONNECT-V1",
-      "value": "https://api.workday.com/connect/v1"
-    }
-  ]
+  "applicationId": "outOfBed_sykqld"
 }
