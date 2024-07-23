@@ -3,7 +3,7 @@
   "name": "FrequentTravellers",
   "label": "Frequent Travellers",
   "defaultSecurityDomains": [
-    "CreateOOBRequests"
+    "RelatedData"
   ],
   "defaultCollection": {
     "name": "frequentTravellers",

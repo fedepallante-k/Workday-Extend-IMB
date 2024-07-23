@@ -3,6 +3,7 @@
   "name": "Status",
   "label": "Status",
   "defaultSecurityDomains": [
+    "CreateOOBRequests",
     "AdminOOBRequests"
   ],
   "defaultCollection": {

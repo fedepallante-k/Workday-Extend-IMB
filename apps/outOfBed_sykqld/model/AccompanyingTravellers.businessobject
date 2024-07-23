@@ -68,15 +68,6 @@
       "enableSearch": false
     },
     {
-      "id": 7,
-      "name": "lodging",
-      "type": "SINGLE_INSTANCE",
-      "useForDisplay": false,
-      "isPurgeable": false,
-      "target": "Destination",
-      "secureByTarget": false
-    },
-    {
       "id": 8,
       "name": "firstName",
       "type": "TEXT",
@@ -111,6 +102,85 @@
       "isPurgeable": false,
       "target": "OOBRequest",
       "secureByTarget": true
+    },
+    {
+      "id": 12,
+      "name": "airline",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 13,
+      "name": "assignedVehicle",
+      "type": "BOOLEAN",
+      "isPurgeable": false,
+      "enableIndex": false
+    },
+    {
+      "id": 14,
+      "name": "otherTransport",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 15,
+      "name": "addToOOBProfile",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 16,
+      "name": "transportNumber",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false,
+      "securityDomains": []
+    },
+    {
+      "id": 17,
+      "name": "carDetails",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false,
+      "securityDomains": []
+    },
+    {
+      "id": 18,
+      "name": "departureTime",
+      "type": "TEXT",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "enableSearch": false
+    },
+    {
+      "id": 19,
+      "name": "arrivalTime",
+      "type": "TEXT",
+      "isPurgeable": false,
+      "enableIndex": false,
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "enableSearch": false
     }
   ]
 }
