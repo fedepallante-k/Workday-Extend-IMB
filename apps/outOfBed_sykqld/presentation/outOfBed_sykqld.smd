@@ -11,6 +11,14 @@
       {
         "scheme": "SSO",
         "id": "sso"
+      },
+      {
+        "scheme": "WCPISU",
+        "id": "wcpisu",
+        "tokenEndpoint": "https://auth.api.workday.com/v1/token",
+        "appId": "outOfBed_sykqld",
+        "tokenHolder": "XTND_ISU_OOB",
+        "checkEnvironment": true
       }
     ]
   },
