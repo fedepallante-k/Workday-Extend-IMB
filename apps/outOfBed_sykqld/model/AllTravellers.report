@@ -50,12 +50,6 @@
       "field": "arrivalPoint"
     },
     {
-      "id": 8,
-      "name": "Lodging",
-      "order": "h",
-      "field": "lodging"
-    },
-    {
       "id": 9,
       "name": "First Name",
       "order": "i",

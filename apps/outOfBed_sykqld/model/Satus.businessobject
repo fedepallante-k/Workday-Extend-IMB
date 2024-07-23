@@ -4,7 +4,8 @@
   "label": "Status",
   "defaultSecurityDomains": [
     "CreateOOBRequests",
-    "AdminOOBRequests"
+    "AdminOOBRequests",
+    "RelatedData"
   ],
   "defaultCollection": {
     "name": "status",
