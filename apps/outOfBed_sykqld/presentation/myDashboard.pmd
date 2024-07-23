@@ -1,0 +1,221 @@
+{
+  "id": "myDashboard",
+  "endPoints": [
+    {
+      "name": "getOOBRequests_Old",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?limit={{pagingVariables.limit ?: 50}}&offset={{pagingVariables.offset ?: 0}}` %>",
+      "authType": "sso",
+      "exclude": true,
+      "httpMethod": "GET",
+      "failOnStatusCodes": [
+        {
+          "code": 400
+        },
+        {
+          "code": 403
+        }
+      ]
+    },
+    {
+      "name": "getOOBRequests",
+      "authType": "sso",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where status is not empty limit 100').pathEncode() %>",
+      "baseUrlType": "WORKDAY-WQL",
+      "httpMethod": "GET",
+      "failOnStatusCodes": [
+        {
+          "code": 400
+        },
+        {
+          "code": 403
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "pageType": "view",
+    "title": {
+      "type": "title",
+      "id": "title",
+      "label": "My OOB Dashboard"
+    },
+    "body": {
+      "type": "section",
+      "id": "bodySection",
+      "children": [
+        {
+          "type": "section",
+          "horizontal": true,
+          "children": [
+            {
+              "type": "section",
+              "children": [
+                {
+                  "type": "richText",
+                  "value": "<h2>When to submit an OOB (Field)</h2><br>Any time you are not going to be in your own residence overnight.<br>Any time your child/children are not going to be in your residence overnight (example: Youth Retreat).<br>When travelling with non-company members, please list them as part of your OOB.<br>When you initially leave the field for STAS or return from STAS (OOBs are not required while on STAS unless you will be travelling internationally)<br>Please submit the OOB at least 72 hours prior to your time of departure."
+                },
+                {
+                  "type": "section",
+                  "horizontal": true,
+                  "children": [
+                    {
+                      "type": "button",
+                      "id": "createRequest",
+                      "label": "Create New OOB",
+                      "action": "PRIMARY",
+                      "taskReference": {
+                        "taskId": "createOOBRequest"
+                      }
+                    },
+                    {
+                      "type": "button",
+                      "id": "myProfile",
+                      "label": "My OOB Profile",
+                      "action": "PRIMARY",
+                      "taskReference": {
+                        "taskId": "viewOOBProfile"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "children": [
+                {
+                  "type": "richText",
+                  "value": "<h2>When to submit an OOB (Staff)</h2><br>Any time you are traveling ouside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a seperate OOB notice. If your spouse is traveling please include them on your OOB."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "label": "View All",
+          "id": "viewAllGrid",
+          "rows": "<% getOOBRequests.data  %>",
+          "rowVariableName": "oOBRequest",
+          "pagingInfo": {
+            "endPoint": "<% endpoints.getOOBRequests %>",
+            "rowCount": "<% getOOBRequests.total %>",
+            "data": "<% getOOBRequests.data %>"
+          },
+          "columns": [
+            {
+              "type": "column",
+              "columnId": "nameColumn",
+              "label": "Name",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "name",
+                "value": "<% oOBRequest.name %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "numberOfTravellersColumn",
+              "label": "Number Of Travellers",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "numberOfTravellers",
+                "value": "<% oOBRequest.accompanyingTravellers.size() ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "startDateColumn",
+              "label": "Start Date",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "startDate",
+                "value": "<% oOBRequest.startDate ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "endDateColumn",
+              "label": "End Date",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "endDate",
+                "value": "<% oOBRequest.endDate ?: (oOBRequest.expectedEndDate ?: '') %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "statusColumn",
+              "label": "Status",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "status",
+                "value": "<% oOBRequest.status.description ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "submittedDateColumn",
+              "label": "Submitted On",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "submittedOn",
+                "value": "<% oOBRequest.createdMoment ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "label": "Actions",
+              "columnId": "editButtonColumn",
+              "cellTemplate": {
+                "type": "button",
+                "id": "editButton",
+                "label": "View/Edit",
+                "action": "SECONDARY",
+                "taskReference": {
+                  "taskId": "editOOBRequest",
+                  "parameters": "<% { 'instanceId': oOBRequest.id , 'mode': 'edit'} %>"
+                }
+              }
+            },
+            {
+              "type": "column",
+              "label": "Actions",
+              "columnId": "copyButtonColumn",
+              "cellTemplate": {
+                "type": "button",
+                "id": "copyButton",
+                "label": "Copy",
+                "action": "SECONDARY",
+                "taskReference": {
+                  "taskId": "editOOBRequest",
+                  "parameters": "<% { 'instanceId': oOBRequest.id, 'mode': 'copy'} %>"
+                }
+              }
+            },
+            {
+              "type": "column",
+              "label": "Actions",
+              "columnId": "cancelButtonColumn",
+              "cellTemplate": {
+                "type": "button",
+                "id": "cancelButton",
+                "label": "Cancel",
+                "action": "SECONDARY",
+                "taskReference": {
+                  "taskId": "cancelOOBRequest"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
