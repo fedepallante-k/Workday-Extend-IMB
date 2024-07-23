@@ -1,0 +1,55 @@
+{
+  "id": "createOOBRequest-d-Confirm",
+  "endPoints": [
+  ],
+  "outboundData": {
+    "outboundEndPoints": [
+    ]
+  },
+  "presentation": {
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
+    "standardEditButtonsHidden": true,
+    "micro": true,
+    "title": {
+      "type": "title",
+      "label": "OOB Submission",
+      "enabled": false
+    },
+    "body": {
+      "type": "section",
+      "horizontal": false,
+      "children": [
+        {
+          "type": "text",
+          "label": "OOB Completed",
+          "id": "oobCompletedTxt",
+          "visible": "<% !flowVariables.hasPersonalTimeOff %>",
+          "required": false,
+          "enabled": false,
+          "value": "Your OOB has now been completed."
+        },
+        {
+          "type": "text",
+          "label": "OOB Submitted",
+          "id": "oobSubmittedTxt",
+          "visible": "<% flowVariables.hasPersonalTimeOff %>",
+          "required": false,
+          "enabled": false,
+          "value": "Your OOB and Time Off Request have been submitted"
+        },
+        {
+          "type": "editButtonBar",
+          "editButtons": [
+            {
+              "type": "editButton",
+              "label": "Done",
+              "id": "doneButton",
+              "buttonType": "PRIMARY"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

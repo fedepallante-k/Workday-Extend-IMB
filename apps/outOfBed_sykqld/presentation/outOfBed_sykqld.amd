@@ -119,6 +119,90 @@
           "taskId": "viewOOBProfile"
         }
       ]
+    },
+    {
+      "id": "editOOBFlow",
+      "flowSteps": [
+        {
+          "id": "editOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "editOOBRequest-a-Create"
+        },
+        {
+          "id": "editOOBRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "editOOBBackToRequest",
+          "endsFlow": true,
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "editOOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "editOOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBBackToMain",
+              "condition": true
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "editOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
     }
   ],
   "tasks": [
