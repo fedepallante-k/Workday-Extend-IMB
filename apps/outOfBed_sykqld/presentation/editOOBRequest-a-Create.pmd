@@ -95,6 +95,7 @@
         "authType": "sso",
         "httpMethod": "POST",
         "failOnStatusCodes": [{"code":400},{"code":403}],
+        "exclude": "<% !empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
         self.data = {'data':[]};
          self.data.data.addAll(getPTGridData(false));
@@ -108,6 +109,7 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [{"code":400},{"code":403}],
+        "exclude": "<% !empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(true));
@@ -255,6 +257,13 @@
                   return self.data;
                   %>",
         "exclude": "<% empty(numberId.value) %>"
+      },
+      {
+        "name": "deleteAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyingMemberID.value %>",
+        "authType": "sso",
+        "httpMethod": "DELETE",
+        "failOnStatusCodes": [{"code":400},{"code":403}]
       }
     ]
   },
@@ -538,13 +547,55 @@
           "collapsible": true,
           "children": [
             {
+              "type": "grid",
+              "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
+              "id": "accompanyignTravellersGrid",
+              "doNotAdd": true,
+              "deleteEndPoint": "deleteAccompanyingTravellers",
+              "rowVariableName": "accompanyingMemeberData",
+              "label": "<% 'For Other Members' %>",
+              "visible": "<% !empty(getAccompanyTravllers.data) %>",
+              "columns": [
+                {
+                  "type": "column",
+                  "columnId": "accompanyingMemberCol",
+                  "label": "<% 'Accompanying Individuals Traveling ' %>",
+                  "cellTemplate": {
+                    "type": "fieldSet",
+                    "children": [
+                      {
+                        "type": "text",
+                        "enabled": true,
+                        "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') + ' (' +  (accompanyingMemeberData.departureDate ?: '') + ' to ' + (accompanyingMemeberData.arrivalDate ?: '') + ')' %>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "accompanyingMemberID",
+                        "value": "<% accompanyingMemeberData.id %>"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "column",
+                  "columnId": "addToOOBCol",
+                  "label": "<% 'Add to OOB profile? ' %>",
+                  "cellTemplate": {
+                    "type": "checkBox",
+                    "value": "<% accompanyingMemeberData.fromProfile %>",
+                    "enabled": true
+                  }
+                }
+              ]
+            },
+            {
               "type": "fieldSet",
               "horizontal": true,
               "id": "fieldMembersGridFS",
               "children": [
                 {
                   "type": "fieldSet",
-                  "render": "<% pageVariables.isField %>",
+                  "render": "<% false %>",
                   "children": [
                     {
                       "type": "grid",
@@ -607,7 +658,7 @@
                 },
                 {
                   "type": "fieldSet",
-                  "render": "<% !pageVariables.isField %>",
+                  "render": "<% false %>",
                   "children":[
                     {
                       "type": "grid",
@@ -651,7 +702,8 @@
               "id": "AlternativeRTxt",
               "required": false,
               "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-              "enabled": false
+              "enabled": false,
+              "render": false
             },
             {
               "type": "textArea",
@@ -660,6 +712,7 @@
               "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
               "enabled": true,
               "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
+              "render": false,
               "value": ""
             },
             {
@@ -673,6 +726,7 @@
             },
             {
               "type": "grid",
+              "render": false,
               "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
               "id": "OtherMemberGrid",
               "rowVariableName": "otherMemeberData",
