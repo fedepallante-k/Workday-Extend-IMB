@@ -289,14 +289,14 @@
        }
      }
 
-     pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
-     pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
+     pageVariables.frequentTravellers = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}})) : [];
+     pageVariables.frequentTravellersStaff = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}) : [];
      pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
      pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
      pageVariables.hasChildren = hasChildrenValue > 0;
      pageVariables.frequentTravellersWIDs = pageVariables.frequentTravellers.map(x => {{'id' : x.id}});
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
-     pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers;
+     pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers ?: [];
      pageVariables.isEdit = queryParams.isEdit;
      %>",
   "script": "<%
