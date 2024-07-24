@@ -124,7 +124,7 @@
   "tasks": [
     {
       "id": "createOOBProfile",
-      "routingPattern": "/",
+      "routingPattern": "/createOOBProfile",
       "page": {
         "id": "createOOBProfile"
       }
@@ -190,6 +190,20 @@
       "routingPattern": "createOOBRequest-d-Confirm",
       "page": {
         "id": "createOOBRequest-d-Confirm"
+      }
+    },
+    {
+      "id": "viewRequest",
+      "routingPattern": "viewRequest/{requestID}",
+      "page": {
+        "id": "viewRequest"
+      }
+    },
+    {
+      "id": "myDashboard",
+      "routingPattern": "/",
+      "page": {
+        "id": "myDashboard"
       }
     }
   ],
