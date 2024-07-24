@@ -2,10 +2,16 @@
   "id": "editOOBRequest-b-TravelLodgingDetails",
   "endPoints": [
     {
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{workdayID AS id, startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -21,6 +27,26 @@
       "exclude": "<%empty(flowVariables.oobRequest)%>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
+    },
+    {
+      "name": "getLodging",
+      "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT favouriteDestinations{workdayID as id, name as descriptor, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
+      "authType": "wcpisu",
+      "httpMethod": "GET"
+    },
+    {
+      "name": "getCountrySearch",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries WHERE countryName CONTAINS \"' + instanceListQuery.replace('+',' ') + '\"').urlEncode() %>",
+      "authType": "wcpisu",
+      "exclude": "<% empty instanceListQuery %>",
+      "deferred": true
+    },
+    {
+      "name": "getCountry",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -31,6 +57,31 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
+        "exclude": "<% !empty(destinationID.value) %>",
+        "onSend": "<%
+           console.info('create DESTINATIONS = ' + self.data);
+           return self.data;
+         %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(destinationID.value) %>",
+        "onSend": "<%
+           console.info('Update Destinations = ' + self.data);
+           return self.data;
+         %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -46,6 +97,11 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
+        "onSend": "<%
+          console.info('create accompany travellers = ' + self.data);
+          return self.data;
+        %>",
+        "exclude": "<% !empty(accompanyTravellerID.value) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -60,6 +116,11 @@
         "name": "updateAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
+        "exclude": "<% empty(accompanyTravellerID.value) %>",
+        "onSend": "<%
+          console.info('update accompany travellers = ' + self.data);
+          return self.data;
+        %>",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [
           {
@@ -77,24 +138,29 @@
     "Dates.script"
   ],
   "script": "<%
-    var togglewidgets = function(enableWidgets, disableWidgets){
+   var togglewidgets = function(enableWidgets, disableWidgets){
        if(!empty(enableWidgets)){
            for(var x : enableWidgets){
                x.setVisible(true);
                    x.setRequired(true);
                    x.setEnabled(true);
-                   empty(x.value) ? '' : x.setValue('');
+                  // empty(x.value) ? '' : x.setValue('');
+               empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
            }
        }
        if(!empty(disableWidgets)){
            for(var x : disableWidgets){
-               x.setVisible(false);
-                   x.setRequired(false);
-                   x.setEnabled(false);
-                   empty(x.value) ? '' : x.setValue('');
+           x.setVisible(false);
+           x.setRequired(false);
+           x.setEnabled(false);
+           //empty(x.value) ? '' : x.setValue('');
+           empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
            }
        }
-    }
+   }
+  %>",
+  "onLoad": "<%
+    pageVariables.lodgingList = !empty(getLodging.data[0]) && !empty(getLodging.data[0].favouriteDestinations) ? getLodging.data[0].favouriteDestinations.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}]
   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -120,15 +186,15 @@
           "label": "Travel Events",
           "id": "travelPanel",
           "panels": "<% getAccompanyTravllers.data %>",
-          "isArrayOutBinding": true,
+          "isArrayOutBinding": false,
           "panelName": "travelDeatilsPanels",
           "indexVariableName": "travelPanelIndex",
           "onPanelAdd": "<%
             var travelPanels = self.getPanels();
             var newPanel = travelPanels[travelPanels.size() - 1];
-            newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
-            newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
-            newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
+            //newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
+            //newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
+            //newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
           %>",
           "children": [
             {
@@ -137,8 +203,47 @@
               "title": "Travel Event Details",
               "children": [
                 {
-                  "type": "hidden",
+                  "type": "instanceList",
+                  "label": "Travellers",
+                  "id": "travellersIL",
+                  "multiSelect": false,
+                  "required": true,
+                  "enabled": true,
+                  "idKey": "fullName",
+                  "displayKey": "fullName",
+                  "values": "<% flowVariables.accompanyingTravellerNames.data %>",
+                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.firstName) && !empty(travelDeatilsPanels.lastName) ? [flowVariables.accompanyingTravellerNames.data.find(x => {x.firstName == travelDeatilsPanels.firstName && x.lastName == travelDeatilsPanels.lastName} )] : [] %>",
+                  "onChange": "<%
+                    if(empty(self.selectedEntries[0])){
+                      firstNameTxt.setValue('');
+                      lastNameTxt.setValue('');
+                      addToOOBTxt.setValue(false);
+                    }else if(!empty(self.selectedEntries[0]))
+                      firstNameTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).firstName);
+                      lastNameTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).lastName);
+                      addToOOBTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).addToOOBProfile);
+                  %>"
+                },
+                {
+                  "type": "text",
+                  "id": "accompanyTravellerID",
+                  "enabled": false,
+                  "value": "<%  !empty(travelDeatilsPanels.id) ? travelDeatilsPanels.id : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].id",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].id",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
                   "id": "oobRequestID",
+                  "enabled": false,
                   "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
                   "valuesOut": [
                     {
@@ -152,9 +257,10 @@
                   ]
                 },
                 {
-                  "type": "hidden",
+                  "type": "text",
                   "id": "firstNameTxt",
-                  "value": "<% travelDeatilsPanels.firstName %>",
+                  "enabled": false,
+                  "value": "<% !empty(travelDeatilsPanels.firstName) ? travelDeatilsPanels.firstName : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].firstName",
@@ -167,9 +273,10 @@
                   ]
                 },
                 {
-                  "type": "hidden",
+                  "type": "text",
                   "id": "lastNameTxt",
-                  "value": "<% travelDeatilsPanels.LastName %>",
+                  "enabled": false,
+                  "value": "<% !empty(travelDeatilsPanels.lastName) ? travelDeatilsPanels.lastName : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].lastName",
@@ -187,11 +294,11 @@
                   "value": "<% travelDeatilsPanels.addToOOBProfile %>",
                   "valuesOut": [
                     {
-                      "valueOutBinding": "createAccompanyingTravellers.data[].fromProfile",
+                      "valueOutBinding": "createAccompanyingTravellers.data[].addToOOBProfile",
                       "value": "<% self.value %>"
                     },
                     {
-                      "valueOutBinding": "updateAccompanyingTravellers.data[].fromProfile",
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].addToOOBProfile",
                       "value": "<% self.value %>"
                     }
                   ]
@@ -218,7 +325,7 @@
                   "id": "departureDateDt",
                   "required": true,
                   "enabled": true,
-                  "value": "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>",
+                  "value": "<% !empty(travelDeatilsPanels.departureDate) ? travelDeatilsPanels.departureDate : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].departureDate",
@@ -294,19 +401,20 @@
                   "values": "<% OOB.getModeOfTransport() %>",
                   "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.modeOfTransport) ? [OOB.getModeOfTransport().find(x => {x.descriptor == travelDeatilsPanels.modeOfTransport})] : [] %>",
                   "onChange": "<%
+                        console.info('yourVehicleRG = ' + json:asJSON(yourVehicleRG));
                     !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
                     if(!empty(self.selectedEntries[0])) {
                      if(self.selectedEntries[0].id == 'air'){
-                         var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
-                             var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
-                             togglewidgets(toggleOn,toggleOff);
+                       var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
+                       var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
+                       togglewidgets(toggleOn,toggleOff);
                      }else if (self.selectedEntries[0].id == 'car'){
                          var toggleOn = [yourVehicleRG];
                              var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
                              togglewidgets(toggleOn,toggleOff );
                      }else if (self.selectedEntries[0].id == 'bus'){
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
-                             var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt,yourVehicleRG];
+                             var toggleOff = [airlineTxt, yourVehicleRG, modeOfTransportOtherTxt, giveCarDetailsTxt];
                              togglewidgets(toggleOn,toggleOff );
                      }else if (self.selectedEntries[0].id == 'train'){
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
@@ -318,7 +426,7 @@
                              togglewidgets(toggleOn,toggleOff );
                      }else if (self.selectedEntries[0].id == 'other'){
                          var toggleOn = [modeOfTransportOtherTxt];
-                             var toggleOff = [airlineTxt, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                             var toggleOff = [airlineTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                              togglewidgets(toggleOn,toggleOff );
                      }else{
                          var toggleOn = [];
@@ -390,7 +498,7 @@
                   "label": "Departure location",
                   "id": "departureAirportTxt",
                   "required": false,
-                  "visible": "<% !empty(departureAirportTxt) %>",
+                  "visible": "<% !empty(departurePoint) %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.departurePoint) ? travelDeatilsPanels.departurePoint : '' %>",
                   "valuesOut": [
@@ -430,8 +538,8 @@
                   "required": false,
                   "hideDisplayOption": true,
                   "visible": "<% travelDeatilsPanels.assignedVehicle %>",
-                  "enabled": true,
                   "selectedValues": "<% !empty(travelDeatilsPanels.assignedVehicle) ? ['yes'] : ['no'] %>",
+                  "enabled": true,
                   "instanceList": [
                     {
                       "id": "yes",
@@ -491,8 +599,7 @@
                   "required": false,
                   "visible": "<% !empty(travelDeatilsPanels.otherTransport) %>",
                   "enabled": true,
-                  "value": "<% !empty(travelDeatilsPanels.otherTransport) ? otherTransport : '' %>",
-                  "valueOutBinding": "createAccompanyingTravellers.data[].otherTransport",
+                  "value": "<% !empty(travelDeatilsPanels.otherTransport) ? travelDeatilsPanels.otherTransport : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].otherTransport",
@@ -500,6 +607,421 @@
                     },
                     {
                       "valueOutBinding": "updateAccompanyingTravellers.data[].otherTransport",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "label": "test",
+          "id": "testTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getOOBRequest.data[0].lodging) ? json:asJSON(getOOBRequest.data[0].lodging) : 'empty' %>"
+        },
+        {
+          "type": "panelList",
+          "label": "Lodging Events",
+          "id": "LodgingPanel",
+          "_panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging}) : [] %>",
+          "panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data[0].lodging : [] %>",
+          "panelName": "lodgingDetailsPanels",
+          "indexVariableName": "travelPanelIndex",
+          "isArrayOutBinding": false,
+          "onPanelAdd": "<%
+           var lodgingPanels = self.getPanels();
+           var newPanel = lodgingPanels[lodgingPanels.size() - 1];
+           //newPanel.getChildren()[0].lodgingTravellerNameTxt.setValue(travellerNameTxt.value);
+           %>",
+          "children": [
+            {
+              "type": "fieldSet",
+              "id": "LodgingDetails",
+              "title": "<% 'Lodging Details'%>",
+              "collapsible": true,
+              "children": [
+                {
+                  "type": "instanceList",
+                  "label": "Traveller Destiantions ",
+                  "id": "travellerDestinationsIL",
+                  "multiSelect": false,
+                  "required": true,
+                  "enabled": true,
+                  "idKey": "id",
+                  "displayKey": "descriptor",
+                  "_values": "<% getOOBRequest.data[0].lodging.map(x => {{'id' : x.travellerName, 'descriptor' : x.travellerName}}) %>",
+                  "values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}) %>",
+                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
+                  "onChange": "<%
+                    if(empty(self.selectedEntries[0])){
+                      lodgingTravellerNameTxt.setValue('');
+                    }else if(!empty(self.selectedEntries[0]))
+                      lodgingTravellerNameTxt.setValue(self.selectedEntries[0].id);
+                  %>"
+                },
+                {
+                  "type": "text",
+                  "id": "oobRequestIDDestintation",
+                  "label": "oob request id",
+                  "enabled": false,
+                  "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].oobRequest.id",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].oobRequest.id",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "enabled": false,
+                  "id": "destinationID",
+                  "label": "destinationID",
+                  "value": "<%  !empty(lodgingDetailsPanels.id) ? lodgingDetailsPanels.id : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].id",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].id",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "lodgingTravellerNameTxt",
+                  "enabled": false,
+                  "value": "<% !empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].travellerName",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].travellerName",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "columnWidthRatios": [
+                      0.5,
+                      0.5
+                  ],
+                  "horizontal": true,
+                  "children": [
+                    {
+                      "type": "date",
+                      "label": "Start Date",
+                      "id": "lodgingStartDateDt",
+                      "required": true,
+                      "enabled": true,
+                      "_value": "<% date:now().format('yyyy-MM-dd') %>",
+                      "value": "<% !empty(lodgingDetailsPanels.startDate) ? lodgingDetailsPanels.startDate : '' %>",
+                      "valuesOut": [
+                        {
+                          "valueOutBinding": "createDestinations.data[].startDate",
+                          "value": "<% self.value %>"
+                        },
+                        {
+                          "valueOutBinding": "updateDestinations.data[].startDate",
+                          "value": "<% self.value %>"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "date",
+                      "label": "End Date",
+                      "id": "lodgingEndDateDt",
+                      "required": true,
+                      "enabled": true,
+                      "value": "<% !empty(lodgingDetailsPanels.endDate) ? lodgingDetailsPanels.endDate : '' %>",
+                      "valuesOut": [
+                        {
+                          "valueOutBinding": "createDestinations.data[].endDate",
+                          "value": "<% self.value %>"
+                        },
+                        {
+                          "valueOutBinding": "updateDestinations.data[].endDate",
+                          "value": "<% self.value %>"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "instanceList",
+                  "label": "Lodging/Destination Name",
+                  "id": "lodgingIL",
+                  "multiSelect": false,
+                  "required": true,
+                  "enabled": true,
+                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.name) ? !empty(pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})) ? [pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})] : [] : [] %>",
+                  "values": "<% pageVariables.lodgingList %>",
+                  "onChange": "<%
+                    if(empty(self.selectedEntries[0])){
+                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
+                      freqDestChbx.setVisible(false);
+                      freqDestChbx.setValue(false);
+                      countryIl.setValues([]);
+                      countryIl.setValue([]);
+                      addressLine1Txt.setValue('');
+                      addressLine2Txt.setValue('');
+                      addressLine3Txt.setValue('');
+                      postalCodeTxt.setValue('');
+                      contactNumberOfDestinationTxt.setValue('');
+                      cityText.setValue('');
+                      countryCodeText.setValue('');
+                      stateText.setValue('');
+                    }else if(self.selectedEntries[0].id == 'other'){
+                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
+                      freqDestChbx.setVisible(true);
+                      countryIl.setValues([]);
+                      countryIl.setValue([]);
+                      addressLine1Txt.setValue('');
+                      addressLine2Txt.setValue('');
+                      addressLine3Txt.setValue('');
+                      postalCodeTxt.setValue('');
+                      contactNumberOfDestinationTxt.setValue('');
+                      cityText.setValue('');
+                      countryCodeText.setValue('');
+                      stateText.setValue('');
+                      freqDestChbx.setValue(false);
+                    }else{
+                      lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
+                      freqDestChbx.setVisible(false);
+                      var valueToFindAgain = self.selectedEntries[0].id;
+                      var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
+                      countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
+                      countryIl.setValue([destinationData.countryCode] ?: []);
+                      addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
+                      addressLine2Txt.setValue(destinationData.addressLine2 ?: '');
+                      addressLine3Txt.setValue(destinationData.addressLine3 ?: '');
+                      postalCodeTxt.setValue(destinationData.postalCode ?: '');
+                      contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: '');
+                      cityText.setValue(destinationData.city ?: '');
+                      countryCodeText.setValue(destinationData.countryCode ?: '');
+                      stateText.setValue(destinationData.state ?: '');
+                      freqDestChbx.setValue(false);
+                    }
+                  %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Lodging Name",
+                  "id": "lodgingOtherTxt",
+                  "required": false,
+                  "enabled": false,
+                  "visible": true,
+                  "value": "<% !empty(lodgingDetailsPanels.name) ? lodgingDetailsPanels.name : ''  %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].name",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].name",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "instanceList",
+                  "label": "Country",
+                  "id": "countryIl",
+                  "multiSelect": false,
+                  "required": true,
+                  "enabled": true,
+                  "visible": true,
+                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.countryCode) ? [getCountry.data.find(x => {x.id == lodgingDetailsPanels.countryCode})] : [] %>",
+                  "searchEndPoint": "<% endpoints.getCountrySearch %>",
+                  "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
+                  "values": "<% !empty(getCountry.data) ? getCountry.data : [] %>",
+                  "onChange": "<%
+                    if(empty(self.selectedEntries[0])){
+                      countryText.value = '';
+                      countryCodeText.value = '';
+                    }else{
+                      countryText.value = self.selectedEntries[0].descriptor;
+                      countryCodeText.value = self.selectedEntries[0].id;
+                    }
+                  %>"
+                },
+                {
+                  "type": "hidden",
+                  "id": "countryText",
+                  "value": ""
+                },
+                {
+                  "type": "text",
+                  "id": "countryCodeText",
+                  "label": "Country Code",
+                  "enabled": false,
+                  "value": "<% !empty(lodgingDetailsPanels.countryCode) ? lodgingDetailsPanels.countryCode : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].countryCode",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].countryCode",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 1",
+                  "id": "addressLine1Txt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.addressLine1) ? lodgingDetailsPanels.addressLine1 : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].addressLine1",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].addressLine1",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 2",
+                  "id": "addressLine2Txt",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.addressLine2) ? lodgingDetailsPanels.addressLine2 : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].addressLine2",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].addressLine2",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Address Line 3",
+                  "id": "addressLine3Txt",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.addressLine3) ? lodgingDetailsPanels.addressLine3 : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].addressLine3",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].addressLine3",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "City",
+                  "id": "cityText",
+                  "enabled": true,
+                  "required": true,
+                  "value": "<% !empty(lodgingDetailsPanels.city) ? lodgingDetailsPanels.city : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].city",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].city",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "stateText",
+                  "label": "State/Province/County",
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.state) ? lodgingDetailsPanels.state : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].state",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].state",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Postal Code",
+                  "id": "postalCodeTxt",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.postalCode) ? lodgingDetailsPanels.postalCode : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].postalCode",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].postalCode",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Contact Number of Destination",
+                  "id": "contactNumberOfDestinationTxt",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(lodgingDetailsPanels.contactNumber) ? lodgingDetailsPanels.contactNumber : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].contactNumber",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].contactNumber",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "checkBox",
+                  "label": "Add this location to my frequent destination list",
+                  "id": "freqDestChbx",
+                  "required": false,
+                  "visible": false,
+                  "enabled": true,
+                  "trueLabel": "True Label",
+                  "falseLabel": "False Label",
+                  "value": "<% !empty(lodgingDetailsPanels.addToProfile) && lodgingDetailsPanels.addToProfile ? true : false %>",
+                  "valuesOut": [
+                    {
+                      "value": "<% self.value %>",
+                      "valueOutBinding": "createDestinations.data[].addToProfile"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].addToProfile",
                       "value": "<% self.value %>"
                     }
                   ]

@@ -451,7 +451,12 @@
     var getAllAccompanyingTravellers = function(){
       var addAccompanyingTraveller = [];
       for (var otherMembers : accompanyignTravellersGrid.getRows()) {
-        addAccompanyingTraveller.add({'firstName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringBefore(' '),'lastName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringAfter(' ').substringBefore(' ('), 'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value });
+        addAccompanyingTraveller.add(
+          {
+            'firstName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringBefore(' '),
+            'lastName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringAfter(' ').substringBefore(' ('),
+            'fullName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringBefore(' ') + ' ' + otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringAfter(' ').substringBefore(' ('),
+            'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value });
       }
       var TravellerArray = {'data' : addAccompanyingTraveller}
       return TravellerArray;
