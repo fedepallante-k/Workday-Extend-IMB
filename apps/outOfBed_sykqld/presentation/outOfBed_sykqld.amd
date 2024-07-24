@@ -227,6 +227,13 @@
       "page": {
         "id": "myDashboard"
       }
+    },
+    {
+      "id": "cancelOOBRequest",
+      "routingPattern": "cancelOOBRequest/{requestID}",
+      "page": {
+        "id": "cancelOOBRequest"
+      }
     }
   ],
   "applicationId": "outOfBed_sykqld"
