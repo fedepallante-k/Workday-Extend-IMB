@@ -43,11 +43,6 @@
       "children": [
         {
           "type": "text",
-          "value": "<% attrstore.cancelStatusID %>",
-          "enabled": false
-        },
-        {
-          "type": "text",
           "id": "cancel",
           "label": "Cancel OOB?",
           "value": "Please add a reason why you wish to cancel this OOB and Confirm to Cancel.",

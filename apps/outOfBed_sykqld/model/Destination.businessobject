@@ -155,6 +155,11 @@
       "isPurgeable": false,
       "target": "OOBProfile",
       "secureByTarget": false
+    },
+    {
+      "id": 16,
+      "name": "addToProfile",
+      "type": "BOOLEAN"
     }
   ]
 }
