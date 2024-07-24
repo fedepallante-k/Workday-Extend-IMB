@@ -13,7 +13,7 @@
         "values": [
           {
             "outboundPath": "status.id",
-            "value": "f75cdd7f87b68100af6ed40c00020000"
+            "value": "<% attrstore.cancelStatusID %>"
           }
         ],
         "failOnStatusCodes": [
