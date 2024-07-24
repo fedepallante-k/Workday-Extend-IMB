@@ -227,6 +227,13 @@
       "page": {
         "id": "myDashboard"
       }
+    },
+    {
+      "id": "myHistoricDashboard",
+      "routingPattern": "myHistoricDashboard",
+      "page": {
+        "id": "myHistoricDashboard"
+      }
     }
   ],
   "applicationId": "outOfBed_sykqld"
