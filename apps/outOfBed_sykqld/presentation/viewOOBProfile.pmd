@@ -1,69 +1,254 @@
 {
   "id": "viewOOBProfile",
-  "_generationNote": "This page displays a single instance of the OOBProfile business object. ",
   "endPoints": [
     {
-      "_generationNote": "Gets a single instance, as specified by 'queryParams.instanceId' of the OOBProfile business object resource.",
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
       "name": "getOOBProfile",
-      "url": "<% `https://api.workday.com/apps/{{site.applicationId}}/v1/oobProfiles/{{queryParams.instanceId}}` %>",
+      "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT worker, sts, mobileNumbers{name, countryCode, number, notes} as mobileNumbers, frequentTravellers{name} as frequentTravellers, favouriteDestinations{name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
       "authType": "sso",
       "httpMethod": "GET"
     }
   ],
-  "securityDomains": [ ],
   "script": "",
   "presentation": {
     "pageType": "view",
     "title": {
       "type": "title",
       "id": "title",
-      "label": "View Oob Profile"
+      "label": "View OOB Profile"
     },
     "body": {
       "type": "section",
       "id": "bodySection",
       "children": [
         {
+          "type": "congratulationsPopup",
+          "render": "<% flowVariables.submitted ?? false %>",
+          "textCongrats": "Updates Saved!"
+        },
+        {
+          "type": "congratulationsPopup",
+          "render": "<% flowVariables.created ?? false %>",
+          "textCongrats": "OOB Profile created!"
+        },
+        {
+          "type": "section",
+          "horizontal": true,
+          "columnWidthRatios": [
+            0.8,
+            0.2
+          ],
+          "children": [
+            {
+              "type": "section",
+              "children": [
+                {
+                  "type": "richText",
+                  "value": "The OOB Profile allows you to enter frequently used pieces of information such as STS, contact numbers, travel destinations and travelers outside of your family unit.  Any entries in this screen can be selected to be used when creating an OOB without having to re-enter on the OOB creation screen",
+                  "enabled": false
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "label": "QuickLinks",
+              "children": [
+                {
+                  "type": "button",
+                  "id": "oobDashboard",
+                  "label": "My OOB Dashboard",
+                  "action": "LINK",
+                  "taskReference": {
+                    "taskId": "myDashboard"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "text",
           "id": "sts",
           "label": "STS",
-          "value": "<% getOOBProfile.sts %>"
+          "value": "<% getOOBProfile.data[0].sts ?: '' %>"
         },
         {
-          "type": "instanceList",
-          "id": "mobileNumbers",
-          "label": "Mobile Numbers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getOOBProfile.mobileNumbers %>"
-        },
-        {
-          "type": "instanceList",
-          "id": "frequentTravellers",
+          "type": "grid",
           "label": "Frequent Travellers",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getOOBProfile.frequentTravellers %>"
+          "id": "allTravellers",
+          "isArrayOutBinding": true,
+          "rows": "<% getOOBProfile.data[0].frequentTravellers ?: [] %>",
+          "rowVariableName": "traveller",
+          "columns": [
+            {
+              "type": "column",
+              "columnId": "name",
+              "label": "Name",
+              "cellTemplate": {
+                "type": "text",
+                "id": "namecol",
+                "required": true,
+                "value": "<% traveller.name ?: '' %>"
+              }
+            }
+          ]
         },
         {
-          "type": "instanceList",
-          "id": "favouriteDestinations",
-          "label": "Favourite Destinations",
-          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
-          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
-          "values": "<% getOOBProfile.favouriteDestinations %>"
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "id": "footer",
-      "children": [
+          "type": "grid",
+          "label": "Mobile Numbers",
+          "id": "allMobileNumbers",
+          "isArrayOutBinding": true,
+          "rows": "<% getOOBProfile.data[0].mobileNumbers ?: [] %>",
+          "rowVariableName": "mobile",
+          "columns": [
+            {
+              "type": "column",
+              "columnId": "name",
+              "label": "Name",
+              "required": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "nameCol",
+                "value": "<% mobile.name ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "phoneCode",
+              "label": "Country Phone Code",
+              "cellTemplate": {
+                "type": "text",
+                "id": "phoneCodeCol",
+                "value": "<% mobile.countryCode ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "phoneNumber",
+              "label": "Phone Number",
+              "cellTemplate": {
+                "type": "text",
+                "id": "phoneNumberCol",
+                "value": "<% mobile.number ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "notes",
+              "label": "Notes",
+              "cellTemplate": {
+                "type": "text",
+                "id": "notesCol",
+                "value": "<% mobile.notes ?: '' %>"
+              }
+            }
+          ]
+        },
         {
-          "type": "richText",
-          "id": "footerText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
+          "type": "grid",
+          "label": "Favourite Travel Destinations",
+          "id": "allDestinations",
+          "isArrayOutBinding": true,
+          "rows": "<% getOOBProfile.data[0].favouriteDestinations ?: [] %>",
+          "rowVariableName": "destination",
+          "columns": [
+            {
+              "type": "column",
+              "columnId": "name",
+              "label": "Location Name",
+              "required": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "nameCol",
+                "value": "<% destination.name ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "countryCode",
+              "label": "Country",
+              "cellTemplate": {
+                "type": "text",
+                "id": "countryCode",
+                "value": "<% destination.countryCode ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "addressLine1",
+              "label": "Address Line 1",
+              "cellTemplate": {
+                "type": "text",
+                "id": "addressLine1Col",
+                "value": "<% destination.addressLine1 ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "addressLine2",
+              "label": "Address Line 2",
+              "cellTemplate": {
+                "type": "text",
+                "id": "addressLine2Col",
+                "value": "<% destination.addressLine2 ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "city",
+              "label": "City",
+              "cellTemplate": {
+                "type": "text",
+                "id": "cityCol",
+                "value": "<% destination.city ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "state",
+              "label": "State/Province/County",
+              "cellTemplate": {
+                "type": "text",
+                "id": "stateCol",
+                "value": "<% destination.state ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "postalCode",
+              "label": "PostalCode",
+              "cellTemplate": {
+                "type": "text",
+                "id": "postalCodeCol",
+                "value": "<% destination.postalCode ?: ''%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "contactNumber",
+              "label": "Contact Number of Destination",
+              "cellTemplate": {
+                "type": "text",
+                "id": "contactNumberCol",
+                "value": "<% destination.contactNumber ?: ''%>"
+              }
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "editProfile",
+          "label": "Update My Profile",
+          "action": "PRIMARY",
+          "render": "<% !empty(getOOBProfile.data) %>",
+          "taskReference": {
+            "taskId": "editOOBProfile"
+          }
         }
       ]
     }

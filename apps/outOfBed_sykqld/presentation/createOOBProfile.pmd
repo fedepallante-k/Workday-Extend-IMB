@@ -41,8 +41,8 @@
               "type": "section",
               "horizontal": true,
               "columnWidthRatios": [
-                0.8,
-                0.2
+                  0.8,
+                  0.2
               ],
               "children": [
                 {
@@ -150,9 +150,9 @@
                           }
                         ],
                         "onChange": "<%
-                                     self.clearError(); 
+                                     self.clearError();
                                      if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
-                                       self.setError('Only numbers allowed');  
+                                         self.setError('Only numbers allowed');
                                      }
                                      %>"
                       }
@@ -367,8 +367,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "onSend": "<% console.debug('Calling Frequent travelles POST with data: ' + json:asJSON(self.data));
-                      return self.data;
+        "onSend": "<% return self.data;
                    %>",
         "failOnStatusCodes": [
           {
@@ -383,8 +382,7 @@
         "name": "createMobileNumbers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
         "authType": "sso",
-        "onSend": "<% console.debug('Calling create Mobile Numbers POST with data: ' + json:asJSON(self.data));
-                      return self.data;
+        "onSend": "<% return self.data;
                    %>",
         "httpMethod": "POST",
         "failOnStatusCodes": [
@@ -401,8 +399,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "onSend": "<% console.debug('Calling create Destinations POST with data: ' + json:asJSON(self.data));
-        return self.data;
+        "onSend": "<% return self.data;
                    %>",
         "failOnStatusCodes": [
           {
@@ -419,7 +416,6 @@
         "authType": "sso",
         "httpMethod": "POST",
         "onSend": "<%
-                   console.debug('POST main profile with data: ' + json:asJSON(self.data));
                    return self.data;
                    %>",
         "values": [
@@ -459,10 +455,9 @@
         "httpMethod": "PATCH",
         "exclude": true,
         "onSend": "<%
-                      var data = createFrequentTravellers.data.map(x=> {{'id' : x.body.id, 'oobProfile': {'id': createOOBProfile.id }}});
-                      var request = json:create(json:attribute('data', data));
-                      console.debug('Data is :: ' + request + ' and ' + json:asJSON(request));
-                      return request;
+                   var data = createFrequentTravellers.data.map(x=> {{'id' : x.body.id, 'oobProfile': {'id': createOOBProfile.id }}});
+                   var request = json:create(json:attribute('data', data));
+                   return request;
                    %>",
         "failOnStatusCodes": [
           {

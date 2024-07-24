@@ -119,6 +119,28 @@
           "taskId": "viewOOBProfile"
         }
       ]
+    },
+    {
+      "id": "updateProfile",
+      "flowSteps": [
+        {
+          "id": "updateProfileSubmission",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "viewOOBProfile",
+              "condition": "true"
+            }
+          ],
+          "startsFlow": true,
+          "taskId": "createOOBProfile"
+        },
+        {
+          "id": "viewOOBProfile",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
     }
   ],
   "tasks": [
