@@ -1,12 +1,6 @@
 {
-  "id": "editOOBProfile",
+  "id": "createOOBProfile",
   "endPoints": [
-    {
-      "name": "getOOBProfile",
-      "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT workdayID, worker, sts, mobileNumbers{workdayID,name, countryCode, number, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{workdayID, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
-      "authType": "sso",
-      "httpMethod": "GET"
-    },
     {
       "name": "getCurrentWorker",
       "baseUrlType": "WORKDAY-COMMON",
@@ -34,7 +28,7 @@
     "title": {
       "type": "title",
       "id": "title",
-      "label": "Update/Create OOB Profile"
+      "label": "Create OOB Profile"
     },
     "body": {
       "type": "fieldSet",
@@ -47,8 +41,8 @@
               "type": "section",
               "horizontal": true,
               "columnWidthRatios": [
-                0.8,
-                0.2
+                  0.8,
+                  0.2
               ],
               "children": [
                 {
@@ -64,14 +58,10 @@
                       "id": "sts",
                       "label": "STS",
                       "required": true,
-                      "value": "<% getOOBProfile.data[0].sts ?: '' %>",
+                      "value": "<% '' %>",
                       "valuesOut": [
                         {
                           "valueOutBinding": "createOOBProfile.sts",
-                          "value": "<% self.value %>"
-                        },
-                        {
-                          "valueOutBinding": "patchOOBProfile.sts",
                           "value": "<% self.value %>"
                         }
                       ]
@@ -101,7 +91,7 @@
                   "type": "grid",
                   "label": "Mobile Phone Numbers used when travelling",
                   "id": "allNumbers",
-                  "rows": "<% getOOBProfile.data[0].mobileNumbers ?: [] %>",
+                  "rows": "<% [] %>",
                   "rowVariableName": "mobile",
                   "columns": [
                     {
@@ -113,23 +103,12 @@
                         "type": "section",
                         "children": [
                           {
-                            "type": "hidden",
-                            "id": "workdayID",
-                            "value": "<% mobile.workdayID ?: '' %>",
-                            "valueOutBinding": "updateMobileNumbers.data[].id"
-                          },
-                          {
                             "type": "text",
                             "id": "nameCol",
-                            "value": "<% mobile.name ?: '' %>",
                             "valuesOut": [
                               {
                                 "value": "<% self.value %>",
                                 "valueOutBinding": "createMobileNumbers.data[].name"
-                              },
-                              {
-                                "value": "<% self.value %>",
-                                "valueOutBinding": "updateMobileNumbers.data[].name"
                               }
                             ]
                           }
@@ -143,7 +122,6 @@
                       "cellTemplate": {
                         "type": "instanceList",
                         "id": "phoneCodeList",
-                        "selectedValuesAndDescriptors": "<% [{'id': mobile.countryCode, 'phoneCode': mobile.countryCode}] %>",
                         "searchEndPoint": "<% endpoints.getPhoneCodes %>",
                         "values": "<% [] %>",
                         "searchResultValues": "<% getPhoneCodes.items %>",
@@ -154,10 +132,6 @@
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createMobileNumbers.data[].countryCode"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateMobileNumbers.data[].countryCode"
                           }
                         ]
                       }
@@ -169,15 +143,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "phoneNumberCol",
-                        "value": "<% mobile.number ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createMobileNumbers.data[].number"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateMobileNumbers.data[].number"
                           }
                         ],
                         "onChange": "<%
@@ -195,15 +164,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "notesCol",
-                        "value": "<% mobile.notes ?: '' %>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createMobileNumbers.data[].notes"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateMobileNumbers.data[].notes"
                           }
                         ]
                       }
@@ -227,23 +191,12 @@
                         "type": "section",
                         "children": [
                           {
-                            "type": "hidden",
-                            "id": "destinationID",
-                            "value": "<% destination.workdayID ?: '' %>",
-                            "valueOutBinding": "updateDestinations.data[].id"
-                          },
-                          {
                             "type": "text",
                             "id": "nameCol",
-                            "value": "<% destination.name ?: '' %>",
                             "valuesOut": [
                               {
                                 "value": "<% self.value %>",
                                 "valueOutBinding": "createDestinations.data[].name"
-                              },
-                              {
-                                "value": "<% self.value %>",
-                                "valueOutBinding": "updateDestinations.data[].name"
                               }
                             ]
                           }
@@ -257,15 +210,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "addressLine1Col",
-                        "value": "<% destination.addressLine1 ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].addressLine1"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].addressLine1"
                           }
                         ]
                       }
@@ -277,15 +225,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "addressLine2Col",
-                        "value": "<% destination.addressLine2 ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].addressLine2"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].addressLine2"
                           }
                         ]
                       }
@@ -297,7 +240,6 @@
                       "cellTemplate": {
                         "type": "instanceList",
                         "id": "phoneCodeList",
-                        "selectedValuesAndDescriptors": "<% [{'id': destination.countryCode, 'name': destination.countryCode}] %>",
                         "searchEndPoint": "<% endpoints.getCountries %>",
                         "values": "<% [] %>",
                         "searchResultValues": "<% getCountries.items %>",
@@ -308,10 +250,6 @@
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].countryCode"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].countryCode"
                           }
                         ]
                       }
@@ -323,15 +261,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "cityCol",
-                        "value": "<% destination.city ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].city"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].city"
                           }
                         ]
                       }
@@ -343,15 +276,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "stateCol",
-                        "value": "<% destination.state ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].state"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].state"
                           }
                         ]
                       }
@@ -363,15 +291,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "postalCodeCol",
-                        "value": "<% destination.postalCode ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].postalCode"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].postalCode"
                           }
                         ]
                       }
@@ -383,15 +306,10 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "contactNumberCol",
-                        "value": "<% destination.contactNumber ?: ''%>",
                         "valuesOut": [
                           {
                             "value": "<% self.value %>",
                             "valueOutBinding": "createDestinations.data[].contactNumber"
-                          },
-                          {
-                            "value": "<% self.value %>",
-                            "valueOutBinding": "updateDestinations.data[].contactNumber"
                           }
                         ],
                         "onChange": "<%
@@ -420,12 +338,6 @@
                         "type": "section",
                         "children": [
                           {
-                            "type": "hidden",
-                            "id": "workdayID",
-                            "value": "<% traveller.workdayID ?: '' %>",
-                            "valueOutBinding": "updateFrequentTravellers.data[].id"
-                          },
-                          {
                             "type": "text",
                             "id": "nameCol",
                             "value": "<% traveller.name ?: '' %>",
@@ -433,10 +345,6 @@
                               {
                                 "value": "<% self.value %>",
                                 "valueOutBinding": "createFrequentTravellers.data[].name"
-                              },
-                              {
-                                "value": "<% self.value %>",
-                                "valueOutBinding": "updateFrequentTravellers.data[].name"
                               }
                             ]
                           }
@@ -455,21 +363,12 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "name": "createOOBProfile",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles` %>",
+        "name": "createFrequentTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "exclude": "<% !empty(getOOBProfile.data[0].workdayID) %>",
-        "onSend": "<%
-                   console.debug('POST main profile with data: ' + json:asJSON(self.data));
-                   return self.data;
+        "onSend": "<% return self.data;
                    %>",
-        "values": [
-          {
-            "outboundPath": "worker.id",
-            "value": "<% getCurrentWorker.id %>"
-          }
-        ],
         "failOnStatusCodes": [
           {
             "code": 400
@@ -480,14 +379,66 @@
         ]
       },
       {
-        "name": "createFrequentTravellers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
-        "authType": "wcpisu",
-        "httpMethod": "POST",
-        "exclude": "<% !empty(workdayID.value) %>",
-        "onSend": "<% console.debug('Calling Frequent travelles POST with data: ' + json:asJSON(self.data));
-                      return self.data;
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "sso",
+        "onSend": "<% return self.data;
                    %>",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "createDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<% return self.data;
+                   %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "createOOBProfile",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<%
+                   return self.data;
+                   %>",
+        "values": [
+          {
+            "outboundPath": "worker.id",
+            "value": "<% getCurrentWorker.id %>"
+          },
+          {
+            "outboundPath": "frequentTravellers",
+            "exclude": "<% empty(createFrequentTravellers.data)%>",
+            "value": "<% createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "favouriteDestinations",
+            "exclude": "<% empty(createDestinations.data) %>",
+            "value": "<% createDestinations.data.map(x=> {{'id' : x.body.id}}) %>"
+          },
+          {
+            "outboundPath": "mobileNumbers",
+            "exclude": "<% empty(createMobileNumbers.data) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}}) %>"
+          }
+        ],
         "failOnStatusCodes": [
           {
             "code": 400
@@ -502,128 +453,12 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "PATCH",
-        "exclude": "<% empty(workdayID.value) %>",
-        "onSend": "<% console.debug('Calling Frequent travelles PATCH with data: ' + json:asJSON(self.data));
-        return self.data;
-                   %>",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
-        "name": "createMobileNumbers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
-        "authType": "wcpisu",
-        "onSend": "<% console.debug('Calling create Mobile Numbers POST with data: ' + json:asJSON(self.data));
-        return self.data;
-                   %>",
-        "exclude": "<% !empty(workdayID.value) %>",
-        "httpMethod": "POST",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
-        "name": "updateMobileNumbers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
-        "authType": "wcpisu",
-        "exclude": "<% empty workdayID.value %>",
-        "httpMethod": "PATCH",
-        "onSend": "<% console.debug('Calling create Mobile Numbers PATCH with data: ' + json:asJSON(self.data));
-        return self.data;
-                   %>",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
-        "name": "createDestinations",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
-        "authType": "wcpisu",
-        "httpMethod": "POST",
-        "onSend": "<% console.debug('Calling create Destinations POST with data: ' + json:asJSON(self.data));
-        return self.data;
-                   %>",
-        "exclude": "<% !empty(destinationID.value) %>",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
-        "name": "updateDestinations",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
-        "authType": "wcpisu",
-        "onSend": "<% console.debug('Calling create destinations PATCH with data: ' + json:asJSON(self.data));
-        return self.data;
-                   %>",
-        "exclude": "<% empty(destinationID.value) %>",
-        "httpMethod": "PATCH",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
-        "name": "patchOOBProfile",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/` + (createOOBProfile.id ?: getOOBProfile.data[0].workdayID) %>",
-        "authType": "sso",
-        "httpMethod": "PATCH",
+        "exclude": true,
         "onSend": "<%
-                   console.debug('PATCH main profile with data: ' + json:asJSON(self.data));
-                   return self.data;
+                   var data = createFrequentTravellers.data.map(x=> {{'id' : x.body.id, 'oobProfile': {'id': createOOBProfile.id }}});
+                   var request = json:create(json:attribute('data', data));
+                   return request;
                    %>",
-        "values": [
-          {
-            "outboundPath": "frequentTravellers",
-            "exclude": "<% empty(createFrequentTravellers.data) && empty(getOOBProfile.data[0].frequentTravellers) %>",
-            "value": "<%
-                      var createdList = !empty(createFrequentTravellers) ? (list:toList(createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}))): [];
-                      var updatedList = !empty(updateFrequentTravellers) ? (list:toList(updateFrequentTravellers.data.map(x=> {{'id' : x.body.id}}))): [];
-                      return updatedList.addAll(createdList) %>"
-          },
-          {
-            "outboundPath": "favouriteDestinations",
-            "exclude": "<%  console.debug('inside conditions' + (createDestinations ?: (updateDestinations ?: 'sahil this is not running')));
-            return false;
-                        %>",
-            "value": "<%
-                      var createdList = !empty(createDestinations) ? (list:toList(createDestinations.data.map(x=> {{'id' : x.body.id}}))): [];
-                      var updatedList = !empty(updateDestinations) ? (list:toList(updateDestinations.data.map(x=> {{'id' : x.body.id}}))): [];
-                      return updatedList.addAll(createdList) %>"
-          },
-          {
-            "outboundPath": "mobileNumbers",
-            "exclude": "<% empty(createMobileNumbers.data) && empty(getOOBProfile.data[0].mobileNumbers) %>",
-            "value": "<%
-                      var createdList = !empty(createMobileNumbers) ? (list:toList(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}))): [];
-                      var updatedList = !empty(updateMobileNumbers) ? (list:toList(updateMobileNumbers.data.map(x=> {{'id' : x.body.id}}))): [];
-                      return updatedList.addAll(createdList) %>"
-          }
-        ],
         "failOnStatusCodes": [
           {
             "code": 400
@@ -635,13 +470,9 @@
       },
       {
         "values": [
-          {
-            "outboundPath": "submitted",
-            "value": "<% (empty(getOOBProfile.data[0].workdayID) ? false : true) %>"
-          },
           {
             "outboundPath": "created",
-            "value": "<% (empty(getOOBProfile.data[0].workdayID) ? true : false) %>"
+            "value": true
           }
         ],
         "name": "transitionOutboundVars",

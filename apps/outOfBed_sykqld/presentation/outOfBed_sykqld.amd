@@ -119,12 +119,34 @@
           "taskId": "viewOOBProfile"
         }
       ]
+    },
+    {
+      "id": "updateProfile",
+      "flowSteps": [
+        {
+          "id": "updateProfileSubmission",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "viewOOBProfile",
+              "condition": "true"
+            }
+          ],
+          "startsFlow": true,
+          "taskId": "createOOBProfile"
+        },
+        {
+          "id": "viewOOBProfile",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
     }
   ],
   "tasks": [
     {
       "id": "createOOBProfile",
-      "routingPattern": "/",
+      "routingPattern": "/createOOBProfile",
       "page": {
         "id": "createOOBProfile"
       }
@@ -190,6 +212,20 @@
       "routingPattern": "createOOBRequest-d-Confirm",
       "page": {
         "id": "createOOBRequest-d-Confirm"
+      }
+    },
+    {
+      "id": "viewRequest",
+      "routingPattern": "viewRequest/{requestID}",
+      "page": {
+        "id": "viewRequest"
+      }
+    },
+    {
+      "id": "myDashboard",
+      "routingPattern": "/",
+      "page": {
+        "id": "myDashboard"
       }
     }
   ],

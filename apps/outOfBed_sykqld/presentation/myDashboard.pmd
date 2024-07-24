@@ -190,14 +190,33 @@
               "label": "Actions",
               "columnId": "editButtonColumn",
               "cellTemplate": {
-                "type": "button",
-                "id": "editButton",
-                "label": "View/Edit",
-                "action": "SECONDARY",
-                "taskReference": {
-                  "taskId": "editOOBRequest",
-                  "parameters": "<% { 'instanceId': oOBRequest.id , 'mode': 'edit'} %>"
-                }
+                "type": "section",
+                "children": [
+                  {
+                    "type": "button",
+                    "id": "editButton",
+                    "label": "Edit",
+                    "action": "SECONDARY",
+                    "taskReference": {
+                      "taskId": "editRequest",
+                      "parameterBindings": {
+                        "requestID": "<% oOBRequest.workdayID ?: 'No workday Id found' %>"
+                      }
+                    }
+                  },
+                  {
+                    "type": "button",
+                    "id": "editButton",
+                    "label": "View",
+                    "action": "SECONDARY",
+                    "taskReference": {
+                      "taskId": "viewRequest",
+                      "parameterBindings": {
+                        "requestID": "<% oOBRequest.workdayID ?: 'No workday Id found' %>"
+                      }
+                    }
+                  }
+                ]
               }
             },
             {
