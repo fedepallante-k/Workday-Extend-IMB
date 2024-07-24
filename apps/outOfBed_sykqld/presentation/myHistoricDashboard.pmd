@@ -1,0 +1,169 @@
+{
+  "id": "myHistoricDashboard",
+  "endPoints": [
+    {
+      "name": "getOOBRequests_Old",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?limit={{pagingVariables.limit ?: 50}}&offset={{pagingVariables.offset ?: 0}}` %>",
+      "authType": "sso",
+      "exclude": true,
+      "httpMethod": "GET",
+      "failOnStatusCodes": [
+        {
+          "code": 400
+        },
+        {
+          "code": 403
+        }
+      ]
+    },
+    {
+      "name": "getOOBRequests",
+      "authType": "sso",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID not in (\"1\",\"4\") where status is not empty limit 100').pathEncode() %>",
+      "baseUrlType": "WORKDAY-WQL",
+      "httpMethod": "GET",
+      "failOnStatusCodes": [
+        {
+          "code": 400
+        },
+        {
+          "code": 403
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "pageType": "view",
+    "title": {
+      "type": "title",
+      "id": "title",
+      "label": "My Historic OOB Dashboard"
+    },
+    "body": {
+      "type": "section",
+      "id": "bodySection",
+      "children": [
+        {
+          "type": "button",
+          "id": "historicalDashboard",
+          "label": "Back to My OOB Dashboard",
+          "action": "LINK",
+          "taskReference": {
+            "taskId": "myDashboard"
+          }
+        },
+        {
+          "type": "grid",
+          "label": "My Historical OOBs",
+          "id": "viewAllGrid",
+          "rows": "<% getOOBRequests.data  %>",
+          "rowVariableName": "oOBRequest",
+          "pagingInfo": {
+            "endPoint": "<% endpoints.getOOBRequests %>",
+            "rowCount": "<% getOOBRequests.total %>",
+            "data": "<% getOOBRequests.data %>"
+          },
+          "columns": [
+            {
+              "type": "column",
+              "columnId": "nameColumn",
+              "label": "Name",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "name",
+                "value": "<% oOBRequest.name %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "numberOfTravellersColumn",
+              "label": "Number Of Travellers",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "numberOfTravellers",
+                "value": "<% oOBRequest.accompanyingTravellers.size() ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "startDateColumn",
+              "label": "Start Date",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "startDate",
+                "value": "<% oOBRequest.startDate ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "endDateColumn",
+              "label": "End Date",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "endDate",
+                "value": "<% oOBRequest.endDate ?: (oOBRequest.expectedEndDate ?: '') %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "statusColumn",
+              "label": "Status",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "status",
+                "value": "<%  empty(oOBRequest.endDate) ? (oOBRequest.status.description ?: '') : ((date:parse(oOBRequest.endDate).after(date:now())) ? 'Complete' : (oOBRequest.status.description ?: ''))%>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "submittedDateColumn",
+              "label": "Submitted On",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "submittedOn",
+                "value": "<% oOBRequest.createdMoment.substringBefore('T') ?: '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "label": "Actions",
+              "columnId": "copyButtonColumn",
+              "cellTemplate": {
+                "type": "button",
+                "id": "copyButton",
+                "label": "Copy",
+                "action": "SECONDARY",
+                "taskReference": {
+                  "taskId": "editOOBRequest",
+                  "parameterBindings": {
+                    "requestID": "<% oOBRequest.workdayID ?: 'No workday Id found' %>"
+                  }
+                }
+              }
+            },
+            {
+              "type": "column",
+              "label": "Actions",
+              "columnId": "viewButtonColumn",
+              "cellTemplate": {
+                "type": "button",
+                "id": "viewButton",
+                "label": "View",
+                "action": "SECONDARY",
+                "taskReference": {
+                  "taskId": "viewRequest"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
