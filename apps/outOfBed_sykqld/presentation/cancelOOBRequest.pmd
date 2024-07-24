@@ -1,6 +1,7 @@
 {
   "id": "cancelOOBRequest",
   "endPoints": [
+
   ],
   "outboundData": {
     "outboundEndPoints": [
@@ -40,6 +41,11 @@
       "type": "section",
       "horizontal": false,
       "children": [
+        {
+          "type": "text",
+          "value": "<% attrstore.cancelStatusID %>",
+          "enabled": false
+        },
         {
           "type": "text",
           "id": "cancel",
