@@ -229,6 +229,13 @@
       }
     },
     {
+      "id": "cancelOOBRequest",
+      "routingPattern": "cancelOOBRequest/{requestID}",
+      "page": {
+        "id": "cancelOOBRequest"
+      }
+    },
+    {
       "id": "myHistoricDashboard",
       "routingPattern": "myHistoricDashboard",
       "page": {

@@ -1,0 +1,66 @@
+{
+  "id": "cancelOOBRequest",
+  "endPoints": [
+
+  ],
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "name": "cancelRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + routeParams.requestID %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "values": [
+          {
+            "outboundPath": "status.id",
+            "value": "<% attrstore.cancelStatusID %>"
+          }
+        ],
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      }
+    ]
+  },
+  "presentation": {
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
+    "micro": true,
+    "microFirstPageOnly": true,
+    "title": {
+      "type": "title",
+      "label": "Cancel Confirmation",
+      "enabled": false
+    },
+    "body": {
+      "type": "section",
+      "horizontal": false,
+      "children": [
+        {
+          "type": "text",
+          "value": "<% attrstore.cancelStatusID %>",
+          "enabled": false
+        },
+        {
+          "type": "text",
+          "id": "cancel",
+          "label": "Cancel OOB?",
+          "value": "Please add a reason why you wish to cancel this OOB and Confirm to Cancel.",
+          "enabled": false
+        },
+        {
+          "type": "textArea",
+          "id": "cancelReason",
+          "required": true,
+          "value": "",
+          "valueOutBinding": "cancelRequest.cancelConfirmation"
+        }
+      ]
+    }
+  }
+}
