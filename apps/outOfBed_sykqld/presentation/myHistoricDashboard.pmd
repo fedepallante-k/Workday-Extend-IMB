@@ -2,21 +2,6 @@
   "id": "myHistoricDashboard",
   "endPoints": [
     {
-      "name": "getOOBRequests_Old",
-      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?limit={{pagingVariables.limit ?: 50}}&offset={{pagingVariables.offset ?: 0}}` %>",
-      "authType": "sso",
-      "exclude": true,
-      "httpMethod": "GET",
-      "failOnStatusCodes": [
-        {
-          "code": 400
-        },
-        {
-          "code": 403
-        }
-      ]
-    },
-    {
       "name": "getOOBRequests",
       "authType": "sso",
       "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID not in (\"1\",\"4\") where status is not empty limit 100').pathEncode() %>",
