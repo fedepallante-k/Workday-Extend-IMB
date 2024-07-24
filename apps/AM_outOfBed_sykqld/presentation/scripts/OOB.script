@@ -1,0 +1,37 @@
+var getCurrentTime = function() {
+    return date:getTodaysDate(date:getDateTimeZone('US/Pacific'));
+};
+
+var getWorkerDetails = function(additionalFields, additionalQuery) {
+    var query ='';
+    query = 'SELECT ' + (!empty(additionalFields) ? additionalFields + ', ' : '') + 'worker FROM workersForHCMReporting(dataSourceFilter=allActiveWorkers) ' + (!empty(additionalQuery) ? ' WHERE ' + additionalQuery : '');
+    console.debug("Query text = " + query);
+    return query.urlEncode();
+}
+var getSTS = function() {
+  return [
+    {'id': 'visitFamily', 'descriptor': ' I am traveling to visit family in the USA (STAS, Trips to USA)'},
+    {'id': 'vacation', 'descriptor': 'I am on vacation/sightseeing. (Visa runs, actual vacations)'},
+    {'id': 'visitFriends', 'descriptor': 'I am visiting friends'},
+    {'id': 'training', 'descriptor': 'I am attending a training/meeting'},
+    {'id': 'other', 'descriptor': 'Other (None of these apply)'}
+  ];
+}
+
+var getModeOfTransport = function() {
+  return [
+    {'id': 'air', 'descriptor': 'Air'},
+    {'id': 'car', 'descriptor': 'Car'},
+    {'id': 'bus', 'descriptor': 'Bus'},
+    {'id': 'train', 'descriptor': 'Train'},
+    {'id': 'boat', 'descriptor': 'Boat'},
+    {'id': 'other', 'descriptor': 'Other'}
+  ];
+}
+
+{
+    "getCurrentTime": getCurrentTime,
+    "getWorkerDetails": getWorkerDetails,
+    "getSTS": getSTS,
+    "getModeOfTransport": getModeOfTransport
+}

@@ -1,0 +1,533 @@
+{
+  "id": "editOOBRequest-b-TravelLodgingDetails",
+  "endPoints": [
+    {
+      "name": "getOOBRequest",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getPersonalTimeOff",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    }
+  ],
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      }
+    ]
+  },
+  "include": [
+    "OOB.script",
+    "Dates.script"
+  ],
+  "script": "<%
+    var togglewidgets = function(enableWidgets, disableWidgets){
+       if(!empty(enableWidgets)){
+           for(var x : enableWidgets){
+               x.setVisible(true);
+                   x.setRequired(true);
+                   x.setEnabled(true);
+                   empty(x.value) ? '' : x.setValue('');
+           }
+       }
+       if(!empty(disableWidgets)){
+           for(var x : disableWidgets){
+               x.setVisible(false);
+                   x.setRequired(false);
+                   x.setEnabled(false);
+                   empty(x.value) ? '' : x.setValue('');
+           }
+       }
+    }
+  %>",
+  "presentation": {
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
+    "title": {
+      "type": "title",
+      "label": "Workday Extend"
+    },
+    "body": {
+      "type": "section",
+      "horizontal": false,
+      "children": [
+        {
+          "type": "text",
+          "label": "getAccompanyTravllers.data",
+          "id": "getAccompanyTravllersDataTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getAccompanyTravllers.data) ? json:asJSON(getAccompanyTravllers.data) : '' %>"
+        },
+        {
+          "type": "panelList",
+          "label": "Travel Events",
+          "id": "travelPanel",
+          "panels": "<% getAccompanyTravllers.data %>",
+          "isArrayOutBinding": true,
+          "panelName": "travelDeatilsPanels",
+          "indexVariableName": "travelPanelIndex",
+          "onPanelAdd": "<%
+            var travelPanels = self.getPanels();
+            var newPanel = travelPanels[travelPanels.size() - 1];
+            newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
+            newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
+            newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
+          %>",
+          "children": [
+            {
+              "type": "fieldSet",
+              "collapsible": true,
+              "title": "Travel Event Details",
+              "children": [
+                {
+                  "type": "hidden",
+                  "id": "oobRequestID",
+                  "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].oobRequest.id",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].oobRequest.id",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "hidden",
+                  "id": "firstNameTxt",
+                  "value": "<% travelDeatilsPanels.firstName %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].firstName",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].firstName",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "hidden",
+                  "id": "lastNameTxt",
+                  "value": "<% travelDeatilsPanels.LastName %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].lastName",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].lastName",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "hidden",
+                  "id": "addToOOBTxt",
+                  "value": "<% travelDeatilsPanels.addToOOBProfile %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].fromProfile",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].fromProfile",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "stsValue",
+                  "label": "<% 'Segment Specific STS' %>",
+                  "value": "<% !empty(flowVariables.sts) ? !empty(flowVariables.otherSTS) ? flowVariables.otherSTS : flowVariables.sts : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].sts",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].sts",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "date",
+                  "label": "Depature Date",
+                  "id": "departureDateDt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].departureDate",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].departureDate",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Departure Time",
+                  "id": "departureTimeTxt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.departureTime) ? travelDeatilsPanels.departureTime : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].departureTime",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].departureTime",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "date",
+                  "label": "Arrival Date",
+                  "id": "arrivalDateDt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.arrivalDate) ? travelDeatilsPanels.arrivalDate : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].arrivalDate",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalDate",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Arrival Time",
+                  "id": "arrivalTimeTxt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.arrivalTime) ? travelDeatilsPanels.arrivalTime : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].arrivalTime",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalTime",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "instanceList",
+                  "label": "Mode of Transport",
+                  "id": "modeOfTransportIL",
+                  "multiSelect": false,
+                  "required": true,
+                  "enabled": true,
+                  "values": "<% OOB.getModeOfTransport() %>",
+                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.modeOfTransport) ? [OOB.getModeOfTransport().find(x => {x.descriptor == travelDeatilsPanels.modeOfTransport})] : [] %>",
+                  "onChange": "<%
+                    !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
+                    if(!empty(self.selectedEntries[0])) {
+                     if(self.selectedEntries[0].id == 'air'){
+                         var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
+                             var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
+                             togglewidgets(toggleOn,toggleOff);
+                     }else if (self.selectedEntries[0].id == 'car'){
+                         var toggleOn = [yourVehicleRG];
+                             var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
+                             togglewidgets(toggleOn,toggleOff );
+                     }else if (self.selectedEntries[0].id == 'bus'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                             var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt,yourVehicleRG];
+                             togglewidgets(toggleOn,toggleOff );
+                     }else if (self.selectedEntries[0].id == 'train'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                             var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                             togglewidgets(toggleOn,toggleOff );
+                     }else if (self.selectedEntries[0].id == 'boat'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                             var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                             togglewidgets(toggleOn,toggleOff );
+                     }else if (self.selectedEntries[0].id == 'other'){
+                         var toggleOn = [modeOfTransportOtherTxt];
+                             var toggleOff = [airlineTxt, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                             togglewidgets(toggleOn,toggleOff );
+                     }else{
+                         var toggleOn = [];
+                             var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                             togglewidgets(toggleOn,toggleOff );
+                     }
+                    }else{
+                     var toggleOn = [];
+                         var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                         togglewidgets(toggleOn,toggleOff );
+                    }
+                  %>"
+                },
+                {
+                  "type": "hidden",
+                  "id": "modeOfTransportName",
+                  "value": "",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].modeOfTransport",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].modeOfTransport",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Bus/Train/Boat Number",
+                  "id": "busNumberTxt",
+                  "required": false,
+                  "visible": "<% !empty(travelDeatilsPanels.transportNumber)%>",
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.transportNumber) ? travelDeatilsPanels.transportNumber : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].transportNumber",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].transportNumber",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Airline",
+                  "visible": "<% !empty(travelDeatilsPanels.airline) %>",
+                  "id": "airlineTxt",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.airline) ? travelDeatilsPanels.airline : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].airline",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].airline",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Departure location",
+                  "id": "departureAirportTxt",
+                  "required": false,
+                  "visible": "<% !empty(departureAirportTxt) %>",
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.departurePoint) ? travelDeatilsPanels.departurePoint : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].departurePoint",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].departurePoint",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Arrival location",
+                  "id": "arrivalAirportTxt",
+                  "required": false,
+                  "visible": "<% !empty(travelDeatilsPanels.arrivalPoint) %>",
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.arrivalPoint) ? travelDeatilsPanels.arrivalPoint : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].arrivalPoint",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalPoint",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "radioGroup",
+                  "label": "Is this your assigned vehicle?",
+                  "id": "yourVehicleRG",
+                  "required": false,
+                  "hideDisplayOption": true,
+                  "visible": "<% travelDeatilsPanels.assignedVehicle %>",
+                  "enabled": true,
+                  "selectedValues": "<% !empty(travelDeatilsPanels.assignedVehicle) ? ['yes'] : ['no'] %>",
+                  "instanceList": [
+                    {
+                      "id": "yes",
+                      "descriptor": "Yes"
+                    },
+                    {
+                      "id": "no",
+                      "descriptor": "No"
+                    }
+                  ],
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].assignedVehicle",
+                      "value": "<% self.value[0] == 'yes' ? true : false %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].assignedVehicle",
+                      "value": "<% self.value[0] == 'yes' ? true : false %>"
+                    }
+                  ],
+                  "onChange": "<%
+                    if(self.selectedEntries[0].id == 'yes'){
+                      giveCarDetailsTxt.setEnabled(true);
+                      giveCarDetailsTxt.setVisible(true);
+                      giveCarDetailsTxt.setRequired(true);
+                    }else{
+                      giveCarDetailsTxt.setEnabled(false);
+                      giveCarDetailsTxt.setVisible(false);
+                      giveCarDetailsTxt.setRequired(false);
+                      giveCarDetailsTxt.setValue('');
+                    }
+                  %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Give car details",
+                  "id": "giveCarDetailsTxt",
+                  "visible": "<% travelDeatilsPanels.assignedVehicle %>",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.carDetails) ? travelDeatilsPanels.carDetails : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].carDetails",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].carDetails",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "label": "Mode Of Transport Other",
+                  "id": "modeOfTransportOtherTxt",
+                  "required": false,
+                  "visible": "<% !empty(travelDeatilsPanels.otherTransport) %>",
+                  "enabled": true,
+                  "value": "<% !empty(travelDeatilsPanels.otherTransport) ? otherTransport : '' %>",
+                  "valueOutBinding": "createAccompanyingTravellers.data[].otherTransport",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createAccompanyingTravellers.data[].otherTransport",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateAccompanyingTravellers.data[].otherTransport",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "editButtonBar",
+          "editButtons": [
+            {
+              "type": "editButton",
+              "label": "<% 'Submit' %>",
+              "buttonType": "PRIMARY",
+              "sortOrder": "a",
+              "id": "nextBtn"
+            },
+            {
+              "type": "editButton",
+              "label": "<% 'Save For Later' %>",
+              "id": "saveForLaterBtn",
+              "sortOrder": "b",
+              "buttonType": "AUXILIARY"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

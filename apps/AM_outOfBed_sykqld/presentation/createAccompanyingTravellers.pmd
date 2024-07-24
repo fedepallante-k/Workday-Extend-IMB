@@ -1,0 +1,213 @@
+{
+  "id": "createAccompanyingTravellers",
+  "_generationNote": "This page creates a single instance of the AccompanyingTravellers object. You can use this page as a starting template for building an end-user page, or used as an administration page to create new instances.",
+  "endPoints": [
+    {
+      "name": "getDestinations",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "Gets a collection of Destination business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations` %>"
+    },
+    {
+      "name": "getOOBRequests",
+      "httpMethod": "GET",
+      "authType": "sso",
+      "_generationNote": "Gets a collection of OOBRequest business objects. By default, this endpoint returns 20 instances. To increase the page size, use the 'limit' query parameter (e.g. ?limit=100).",
+      "_generationNote2": "If there are more than 100 instances, consider using a search endpoint or another way for the user to filter the available selections.",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>"
+    }
+  ],
+  "_securityDomains": [ ],
+  "script": "",
+  "presentation": {
+    "pageType": "edit",
+    "title": {
+      "type": "title",
+      "id": "title",
+      "label": "Create Accompanying Travellers"
+    },
+    "body": {
+      "type": "section",
+      "id": "bodySection",
+      "children": [
+        {
+          "type": "text",
+          "id": "sts",
+          "label": "STS",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.sts"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "datePrecision": "DAY",
+          "dateFormat": "yyyy-MM-dd",
+          "id": "departureDate",
+          "label": "Departure Date",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.departureDate"
+            }
+          ]
+        },
+        {
+          "type": "date",
+          "datePrecision": "DAY",
+          "dateFormat": "yyyy-MM-dd",
+          "id": "arrivalDate",
+          "label": "Arrival Date",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.arrivalDate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "modeOfTransport",
+          "label": "Mode Of Transport",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.modeOfTransport"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "departurePoint",
+          "label": "Departure Point",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.departurePoint"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "arrivalPoint",
+          "label": "Arrival Point",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.arrivalPoint"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "lodging",
+          "label": "Lodging",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getDestinations.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createAccompanyingTravellers.lodging.id"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "firstName",
+          "label": "First Name",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.firstName"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "lastName",
+          "label": "Last Name",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.lastName"
+            }
+          ]
+        },
+        {
+          "type": "checkBox",
+          "trueLabel": "yes",
+          "falseLabel": "no",
+          "id": "fromProfile",
+          "label": "From Profile",
+          "valuesOut": [
+            {
+              "value": "<% self.value %>",
+              "valueOutBinding": "createAccompanyingTravellers.fromProfile"
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "id": "oobRequest",
+          "label": "Oob Request",
+          "idKey": "id",
+          "displayKey": "descriptor",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getOOBRequests.data %>",
+          "valuesOut": [
+            {
+              "value": "<% self.value[0] ?? null %>",
+              "valueOutBinding": "createAccompanyingTravellers.oobRequest.id"
+            }
+          ]
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "id": "footer",
+      "children": [
+        {
+          "type": "richText",
+          "id": "footerText",
+          "enabled": "false",
+          "value": "Powered By Workday Extend"
+        }
+      ]
+    }
+  },
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "_generationNote": "Creates a single instance, as specified by of the AccompanyingTravellers business object resource.",
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      }
+    ],
+    "responseErrorDetail": {
+      "_generationNote": "This responseErrorDetail works with the Workday API error structure.",
+      "_generationNote2": "If there is only a single error, the errorSummary will be shown.",
+      "errorSummary": "<% error %>",
+      "_generationNote3": "For multiple errors, append the top-level error to provide context.",
+      "errors": "<% empty errors ? [] : [error].join(errors.map(err => { err.error } )) %>"
+    }
+  }
+}
