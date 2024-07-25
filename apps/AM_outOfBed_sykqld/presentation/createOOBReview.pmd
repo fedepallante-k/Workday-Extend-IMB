@@ -311,7 +311,7 @@
               "label": "Is this an Elevated Risk Situation",
               "id": "elevatedRiskRG",
               "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0].elevatedRisk) ? getOOBRequest.data[0] ? 'Yes' : 'No' : '' %>"
+              "value": "<% !empty(getOOBRequest.data[0].elevatedRisk) ? getOOBRequest.data[0].elevatedRisk ? 'Yes' : 'No' : '' %>"
             },
             {
               "type": "textArea",

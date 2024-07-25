@@ -228,11 +228,12 @@
           },
           {
             "outboundPath": "phoneNumbers",
-            "exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "_exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
             "value": "<%
               var allMobileNumbers =[];
               allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
               allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
+              console.info('all numbers oob' + allMobileNumbers);
               return allMobileNumbers;
             %>"
           },
@@ -272,6 +273,7 @@
         "httpMethod": "DELETE",
         "authType": "wcpisu",
         "onSend": "<%
+                   console.info('numberId.value= ' + numberId.value);
                   console.info('delete Triggered = ');
                   self.data ={'data': []};
                   console.info('Edit page delete Phone Numbers = ' + json:asJSON(self.data));

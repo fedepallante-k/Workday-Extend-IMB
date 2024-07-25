@@ -190,14 +190,6 @@
       "horizontal": false,
       "children": [
         {
-          "type": "text",
-          "label": "getAccompanyTravllers.data",
-          "id": "getAccompanyTravllersDataTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getAccompanyTravllers.data) ? json:asJSON(getAccompanyTravllers.data) : '' %>"
-        },
-        {
           "type": "panelList",
           "label": "Travel Events",
           "id": "travelPanel",
@@ -258,9 +250,8 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "oobRequestID",
-                  "enabled": false,
                   "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
                   "valuesOut": [
                     {
@@ -274,9 +265,8 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "firstNameTxt",
-                  "enabled": false,
                   "value": "<% !empty(travelDeatilsPanels.firstName) ? travelDeatilsPanels.firstName : '' %>",
                   "valuesOut": [
                     {
@@ -290,9 +280,8 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "lastNameTxt",
-                  "enabled": false,
                   "value": "<% !empty(travelDeatilsPanels.lastName) ? travelDeatilsPanels.lastName : '' %>",
                   "valuesOut": [
                     {
@@ -673,10 +662,8 @@
                   %>"
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "oobRequestIDDestintation",
-                  "label": "oob request id",
-                  "enabled": false,
                   "value": "<%  !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>",
                   "valuesOut": [
                     {
@@ -690,10 +677,8 @@
                   ]
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "destinationID",
-                  "label": "destinationID",
                   "value": "<%  !empty(lodgingDetailsPanels.id) ? lodgingDetailsPanels.id : '' %>",
                   "valuesOut": [
                     {
@@ -707,9 +692,8 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "lodgingTravellerNameTxt",
-                  "enabled": false,
                   "value": "<% !empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '' %>",
                   "valuesOut": [
                     {
