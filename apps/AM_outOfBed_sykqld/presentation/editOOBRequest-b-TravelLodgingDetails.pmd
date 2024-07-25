@@ -130,6 +130,22 @@
             "code": 403
           }
         ]
+      },
+      {
+        "name": "deleteAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyTravellerID.value %>",
+        "authType": "sso",
+        "httpMethod": "DELETE",
+        "_exclude": "<% empty(accompanyTravellerID.value) %>",
+        "exclude": "<% true %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
       }
     ]
   },
@@ -187,6 +203,7 @@
           "id": "travelPanel",
           "panels": "<% getAccompanyTravllers.data %>",
           "isArrayOutBinding": false,
+          "deleteEndPoint": "deleteAccompanyingTravellers",
           "panelName": "travelDeatilsPanels",
           "indexVariableName": "travelPanelIndex",
           "onPanelAdd": "<%
@@ -211,7 +228,7 @@
                   "enabled": true,
                   "idKey": "fullName",
                   "displayKey": "fullName",
-                  "values": "<% flowVariables.accompanyingTravellerNames.data %>",
+                  "values": "<% flowVariables.accompanyingTravellerNames.data.distinct() %>",
                   "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.firstName) && !empty(travelDeatilsPanels.lastName) ? [flowVariables.accompanyingTravellerNames.data.find(x => {x.firstName == travelDeatilsPanels.firstName && x.lastName == travelDeatilsPanels.lastName} )] : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
@@ -498,7 +515,7 @@
                   "label": "Departure location",
                   "id": "departureAirportTxt",
                   "required": false,
-                  "visible": "<% !empty(departurePoint) %>",
+                  "visible": "<% !empty(travelDeatilsPanels.departurePoint) %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.departurePoint) ? travelDeatilsPanels.departurePoint : '' %>",
                   "valuesOut": [
@@ -537,7 +554,7 @@
                   "id": "yourVehicleRG",
                   "required": false,
                   "hideDisplayOption": true,
-                  "visible": "<% travelDeatilsPanels.assignedVehicle %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Car' %>",
                   "selectedValues": "<% !empty(travelDeatilsPanels.assignedVehicle) ? ['yes'] : ['no'] %>",
                   "enabled": true,
                   "instanceList": [
@@ -616,14 +633,6 @@
           ]
         },
         {
-          "type": "text",
-          "label": "test",
-          "id": "testTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getOOBRequest.data[0].lodging) ? json:asJSON(getOOBRequest.data[0].lodging) : 'empty' %>"
-        },
-        {
           "type": "panelList",
           "label": "Lodging Events",
           "id": "LodgingPanel",
@@ -654,7 +663,7 @@
                   "idKey": "id",
                   "displayKey": "descriptor",
                   "_values": "<% getOOBRequest.data[0].lodging.map(x => {{'id' : x.travellerName, 'descriptor' : x.travellerName}}) %>",
-                  "values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}) %>",
+                  "values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}).distinct() %>",
                   "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){

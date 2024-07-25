@@ -21,6 +21,13 @@
       "exclude": "<%empty(flowVariables.oobRequest)%>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -442,7 +449,8 @@
           "type": "loop",
           "label": "Loop",
           "_render": "<% !empty(getOOBRequest.data[0].lodging) %>",
-          "on": "<% !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging})[0] : [] %>",
+          "_on": "<% !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging})[0] : [] %>",
+          "on": "<% !empty(getDestinations.data) ? getDestinations.data : [] %>",
           "as": "lodgingLoopObject",
           "index": "loopIndex",
           "children": [

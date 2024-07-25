@@ -61,7 +61,7 @@
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(queryParams.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type AS leaveType, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -100,7 +100,7 @@
             "code": 403
           }
         ],
-        "exclude": "<% !empty(personalTimeGrid.getRows()) %>",
+        "exclude": "<% empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
         self.data = {'data':[]};
          self.data.data.addAll(getPTGridData(false));
@@ -121,7 +121,7 @@
             "code": 403
           }
         ],
-        "exclude": "<% !empty(personalTimeGrid.getRows()) %>",
+        "exclude": "<% empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(true));
@@ -945,7 +945,7 @@
                         "value": ""
                       },
                       {
-                        "type": "text",
+                        "type": "hidden",
                         "id": "numberId",
                         "value": "<%!empty(contactDetailsData.id) ? contactDetailsData.id : ''%>"
                       },
@@ -1072,9 +1072,8 @@
                         "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
                       },
                       {
-                        "type": "text",
+                        "type": "hidden",
                         "id": "personalTimeOffWID",
-                        "enabled": false,
                         "value": "<%!empty(timeOffData.id) ? timeOffData.id : ''%>"
                       }
                     ]
@@ -1089,7 +1088,11 @@
                     "id": "absenceTypeIL",
                     "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
                     "_selectedValues": "<% [pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id]  %>",
-                    "selectedValues": "<% []  %>"
+                    "selectedValuesAndDescriptors": "<%
+                      var data = getTimeOffTypes.data.map(result => {result.timeOffType});
+                      var field = data.find(x => {x.descriptor == timeOffData.leaveType});
+                      return ! empty(field) ? [field] : [];
+                    %>"
                   }
                 },
                 {
@@ -1110,16 +1113,6 @@
                     "type": "date",
                     "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>",
                     "enabled": true
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "widCol",
-                  "label": "<% 'Timeoff ID' %>",
-                  "cellTemplate": {
-                    "type": "text",
-                    "value": "<% !empty(pageVariables.TimeOffTypes) && !empty(timeOffData.type) ? json:asJSON(pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id) : 'empty'%>",
-                    "enabled": false
                   }
                 }
               ]
