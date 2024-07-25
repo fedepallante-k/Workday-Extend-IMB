@@ -836,6 +836,7 @@
               "id": "otherIndividualsChbx",
               "required": false,
               "enabled": true,
+              "visible": false,
               "value": "<% !empty(getAccompanyTravllers.data) ? true : false %>",
               "onChange": "<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
             },

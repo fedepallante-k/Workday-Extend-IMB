@@ -47,6 +47,13 @@
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries').urlEncode() %>",
       "authType": "wcpisu"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -59,6 +66,7 @@
         "httpMethod": "POST",
         "exclude": "<% !empty(destinationID.value) %>",
         "onSend": "<%
+                   console.info('destinationID.value = ' + destinationID.value);
            console.info('create DESTINATIONS = ' + self.data);
            return self.data;
          %>",
@@ -79,6 +87,7 @@
         "httpMethod": "PATCH",
         "exclude": "<% empty(destinationID.value) %>",
         "onSend": "<%
+                   console.info('destinationID.value = ' + destinationID.value);
            console.info('Update Destinations = ' + self.data);
            return self.data;
          %>",
@@ -234,9 +243,8 @@
                   %>"
                 },
                 {
-                  "type": "text",
+                  "type": "hidden",
                   "id": "accompanyTravellerID",
-                  "enabled": false,
                   "value": "<%  !empty(travelDeatilsPanels.id) ? travelDeatilsPanels.id : '' %>",
                   "valuesOut": [
                     {
@@ -626,7 +634,8 @@
           "label": "Lodging Events",
           "id": "LodgingPanel",
           "_panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging}) : [] %>",
-          "panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data[0].lodging : [] %>",
+          "__panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data[0].lodging : [] %>",
+          "panels": "<% !empty(getDestinations.data) ? getDestinations.data : [] %>",
           "panelName": "lodgingDetailsPanels",
           "indexVariableName": "travelPanelIndex",
           "isArrayOutBinding": false,
