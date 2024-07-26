@@ -667,7 +667,7 @@
               "doNotAdd": true,
               "deleteEndPoint": "deleteAccompanyingTravellers",
               "rowVariableName": "accompanyingMemeberData",
-              "label": "<% 'ACcompanying Travellers Grid' %>",
+              "label": "<% 'Accompanying Travellers Grid' %>",
               "visible": "<% !empty(getAccompanyTravllers.data) %>",
               "columns": [
                 {
