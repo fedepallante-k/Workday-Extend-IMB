@@ -50,7 +50,29 @@
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status where statusID = \\'1\\'').urlEncode() %>",
       "authType": "wcpisu"
+    },
+    {
+      "name": "getOOBRequest",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getPersonalTimeOff",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type AS leaveType, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
     }
+
   ],
   "outboundData": {
     "outboundEndPoints": [
@@ -61,9 +83,9 @@
         "httpMethod": "POST",
         "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false  %>",
         "onSend": "<%
-                   self.data = {'data' : []};
-                   self.data.data.addAll(getAllAccompanyingTravellers().data);
-                   return self.data;
+          self.data = {'data' : []};
+          self.data.data.addAll(getAllAccompanyingTravellers().data);
+          return self.data;
         %>",
         "failOnStatusCodes": [
           {
@@ -112,18 +134,9 @@
         ],
         "onSend": "<%
           self.data = {'data':[]};
-          for (var otherNumbers : allNumbers.getRows()) {
-            if(otherNumbers.childrenMap.NameCol.childrenMap.numberId.value){
-              self.data.data.add({
-                'name': !empty(otherNumbers.childrenMap.phoneNameCol.value) ? otherNumbers.childrenMap.phoneNameCol.value : '',
-                'number': !empty(otherNumbers.childrenMap.phoneNumberCol.value) ? otherNumbers.childrenMap.phoneNumberCol.value : '' ,
-                'notes': !empty(otherNumbers.childrenMap.notesCol.value) ? otherNumbers.childrenMap.notesCol.value : '',
-                'countryCode': !empty(otherNumbers.childrenMap.countryCodeCol.value) ? otherNumbers.childrenMap.countryCodeCol.selectedEntries[0].id : '',
-                'oobProfile': !empty(getOOBProfile.data[0].id) ? {'id' : getOOBProfile.data[0].id} : ''
-              });
-            }
-          }
-        self.data;
+          self.data.data.addAll(getPhoneData(false, false));
+          console.info('Create Phone Numbers = ' + json:asJSON(self.data));
+          return self.data;
         %>"
       },
       {
@@ -131,6 +144,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
         "authType": "sso",
         "httpMethod": "POST",
+        "exclude": "<% !empty(flowVariables.oobRequest) %>",
         "onSend": "<%
           return self.data;
         %>",
@@ -174,12 +188,6 @@
           {
             "outboundPath": "otherSTS",
             "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
-          },
-          {
-            "outboundPath": "accompanyingTravellers",
-            "_exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
-            "exclude": "<% true %>",
-            "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
             "outboundPath": "alternateArrangementForChildren",
@@ -233,21 +241,34 @@
             "code": 403
           }
         ],
+        "exclude": "<% empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
-         self.data = {'data':[]};
-         for (var personalTimeOff : personalTimeGrid.getRows()) {
-           if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
-             self.data.data.add({
-               'worker': !empty(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id) ? {'id' : personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id} : '',
-               'oobRequest': !empty(createOOBRequest.id) ? {'id' : createOOBRequest.id} : '' ,
-               'type': !empty(personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0]) ? personalTimeOff.childrenMap.absenceTypeCol.selectedEntries[0].descriptor : '',
-               'startDate': !empty(personalTimeOff.childrenMap.startDateCol.value) ? personalTimeOff.childrenMap.startDateCol.value.format('yyyy-MM-dd') : '',
-               'endDate': !empty(personalTimeOff.childrenMap.endDateCol.value) ? personalTimeOff.childrenMap.endDateCol.value.format('yyyy-MM-dd') : ''
-             });  
-           }
-         }
-         self.data;
-         %>"
+          self.data = {'data':[]};
+          self.data.data.addAll(getPTGridData(false));
+          console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
+          return self.data;
+        %>"
+      },
+      {
+        "name": "updatePersonalTimeOff",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "exclude": "<% empty(personalTimeGrid.getRows()) %>",
+        "onSend": "<%
+          self.data = {'data':[]};
+          self.data.data.addAll(getPTGridData(true));
+          console.info('Update Personal Time Off data = ' + json:asJSON(self.data));
+          return self.data;
+        %>"
       },
       {
         "name": "updateOOBProfile",
@@ -295,6 +316,127 @@
           }
         self.data;
         %>"
+      },
+      {
+        "name": "updateMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "onSend": "<%
+           self.data = {'data':[]};
+           self.data.data.addAll(getPhoneData(true, false));
+           console.info('Update Phone Numbers = ' + json:asJSON(self.data));
+           return self.data;
+         %>"
+      },
+      {
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(flowVariables.oobRequest) %>",
+        "onSend": "<%
+                   console.info('updateOOB Request datte = ' + self.data);
+                   return self.data;
+                   %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "initiator.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "expectedEndDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "accompanyingTravellers",
+            "exclude": true,
+            "value": "<% return getAccompanyingTravellers();%>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "_exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "value": "<%
+            var allMobileNumbers =[];
+            allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
+            allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
+            console.info('all numbers oob' + allMobileNumbers);
+            return !empty(allMobileNumbers) ? allMobileNumbers : [{:}];
+            %>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% elevatedRiskRG.value == ['yes'] ? true : false %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% 'true' %>"
+          },
+          {
+            "outboundPath": "status.id",
+            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
       },
       {
         "name": "transitionOutboundVars",
@@ -387,7 +529,7 @@
           },
           {
             "outboundPath": "oobRequest",
-            "value": "<% !empty(createOOBRequest.id) ?  createOOBRequest.id : '' %>"
+            "value": "<% !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '' %>"
           }
         ]
       }
@@ -424,6 +566,7 @@
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
     pageVariables.hasChildren = hasChildrenValue > 0;
+    //flowVariables.backButton = false;
   %>",
   "onSubmit": "<%
 
@@ -478,6 +621,89 @@
   var TravellerArray = {'data' : addAccompanyingTraveller}
   return TravellerArray;
   }
+
+  var getPTGridData = function(isEdit){
+      var updatePersonalTimeOff =[];
+      var createPersonalTimeOff = [];
+      var gridRows = personalTimeGrid.getRows();
+
+      for (var personalTimeOff : personalTimeGrid.getRows()) {
+          var columnPath = personalTimeOff.childrenMap;
+              var idValue = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWID.value;
+              var workerWidget = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWorker;
+              var typeWidget =  columnPath.absenceTypeCol ;
+              var startDateWidget = columnPath.startDateCol;
+              var endDateWidget = columnPath.endDateCol;
+              var oobRequestID = !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(createOOBRequest.id) ? createOOBRequest.id :'';
+
+              if(!empty(idValue) && workerWidget.selectedEntries[0].id && (workerWidget.isUpdated() || typeWidget.isUpdated() || startDateWidget.isUpdated() || endDateWidget.isUpdated())){
+                  updatePersonalTimeOff.add({
+                      'id': !empty(idValue) ? idValue : '',
+                      'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+                      'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+                      'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+                      'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+                      'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+                  });
+              }else if(empty(idValue) && workerWidget.selectedEntries[0].id){
+                  createPersonalTimeOff.add({
+                      'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+                      'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+                      'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+                      'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+                      'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+                  });
+              }
+      }
+      console.info('updatePersonalTimeOff = ' + updatePersonalTimeOff);
+      console.info('createPersonalTimeOff = ' + createPersonalTimeOff);
+      return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
+  }
+
+  var getPhoneData = function (isEdit, addToOOBRequest){
+    var updatePhoneNumbers =[];
+    var createPhoneNumbers = [];
+    var allGridNumbers = []
+    var gridRows = allNumbers.getRows();
+
+    for (var otherNumbers : gridRows) {
+      var columnPath = otherNumbers.childrenMap;
+      var newRow = columnPath.NameCol.childrenMap.isNewNumber.value;
+      var idValue = !empty(columnPath.NameCol.childrenMap.numberId.value) ? columnPath.NameCol.childrenMap.numberId.value : '';
+      var nameWidget = columnPath.phoneNameCol;
+      var countryCodeWidget =  columnPath.countryCodeCol ;
+      var PhoneNumberWidget = columnPath.phoneNumberCol;
+      var NotesWidget = columnPath.notesCol;
+      var oobProfileID = !empty(getOOBProfileWQL.data[0].id) ? {'id' : getOOBProfileWQL.data[0].id} : '';
+
+      if(!newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
+        console.info('!newRow and updated = ' + idValue);
+        updatePhoneNumbers.add({
+          'id': idValue,
+          'name': !empty(nameWidget.value) ? nameWidget.value : '',
+          'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+          'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+          'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+          'oobProfile': oobProfileID
+        });
+        allGridNumbers.add({'id': idValue});
+      } else if( newRow && columnPath.NameCol.childrenMap.nameCell.selectedEntries[0]){
+        console.info('newRow and selectedEnbtries = TRUE');
+        createPhoneNumbers.add({
+          'name': !empty(nameWidget.value) ? nameWidget.value : '',
+          'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+          'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+          'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+          'oobProfile': oobProfileID
+        });
+      }else if ( !newRow && idValue !='other'){
+        console.info('id for all grid = ' + idValue);
+        allGridNumbers.add({'id': idValue});
+      }
+     }
+    return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
+  }
+
              %>",
   "presentation": {
     "pageType": "edit",
@@ -511,7 +737,7 @@
               "id": "tripNameTxt",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].name) ? getOOBRequest.data[0].name : '' %>"
             },
             {
               "type": "textArea",
@@ -519,7 +745,7 @@
               "id": "tripPurposeTxtA",
               "required": true,
               "enabled": true,
-              "value": ""
+              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].purpose) ? getOOBRequest.data[0].purpose : '' %>"
             },
             {
               "type": "date",
@@ -527,7 +753,7 @@
               "id": "startDateDt",
               "required": true,
               "enabled": true,
-              "value": "<% OOB.getCurrentTime() %>"
+              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].startDate) ? getOOBRequest.data[0].startDate : '' %>"
             },
             {
               "type": "date",
@@ -535,7 +761,7 @@
               "id": "endDateDt",
               "required": true,
               "enabled": true,
-              "value": "<% OOB.getCurrentTime() %>"
+              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) ? getOOBRequest.data[0].endDate : '' %>"
             },
             {
               "type": "checkBox",
@@ -556,6 +782,7 @@
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
               "searchEndPoint": "<% %>",
               "searchResultValues": "<% [] %>",
+              "selectedValuesAndDescriptors": "<% !empty(getOOBRequest.data[0].sts) ? [OOB.getSTS().find(i => {i.descriptor == getOOBRequest.data[0].sts})] : [] %>",
               "onChange": "<%
                 if(self.selectedEntries[0].id == 'other'){
                   otherStsTxt.setVisible(true);
@@ -571,8 +798,8 @@
               "id": "otherStsTxt",
               "required": false,
               "enabled": true,
-              "visible": false,
-              "value": ""
+              "visible": "<% !empty(getOOBRequest.data[0].otherSTS) %>",
+              "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].otherSTS : '' %>"
             }
           ]
         },
@@ -689,8 +916,8 @@
               "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
               "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
               "enabled": true,
-              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-              "value": ""
+              "visible": "<% (pageVariables.isField && pageVariables.hasChildren) || (!empty(getOOBRequest.data[0].alternateArrangementForChildren && !empty(getOOBRequest.data))) %>",
+              "value": "<% !empty(getOOBRequest.data.alternateArrangementForChildren) ? getOOBRequest.data[0].alternateArrangementForChildren : '' %>"
             },
             {
               "type": "checkBox",
@@ -731,10 +958,16 @@
             },
             {
               "type": "grid",
-              "rows": "<% [] %>",
+              "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
               "rowVariableName": "contactDetailsData",
               "label": "<% 'Phone Numbers you are travelling with' %>",
+              "onRowAdd": "<%
+               var selfRows = self.getRows();
+               var newRow = selfRows[0];
+               //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
+               newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
+               %>",
               "columns": [
                 {
                   "type": "column",
@@ -749,6 +982,7 @@
                         "displayKey": "name",
                         "required": true,
                         "values": "<% pageVariables.phoneNumbers ?: [] %>",
+                        "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.id) && !empty(contactDetailsData.name) ? [{'id' :contactDetailsData.id, 'name' : contactDetailsData.name}] : [] %>",
                         "onChange": "<%
                           if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
                             numberName.value = self.selectedEntries[0].descriptor;
@@ -784,7 +1018,12 @@
                       {
                         "type": "hidden",
                         "id": "numberId",
-                        "value": ""
+                        "value": "<%!empty(contactDetailsData.id) ? contactDetailsData.id : ''%>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "isNewNumber",
+                        "value": "<% false %>"
                       }
                     ]
                   }
@@ -797,7 +1036,7 @@
                     "type": "text",
                     "id": "phoneNameCell",
                     "enabled": false,
-                    "value": ""
+                    "value": "<%!empty(contactDetailsData.name) ? contactDetailsData.name : ''%>"
                   }
                 },
                 {
@@ -808,6 +1047,7 @@
                     "type": "instanceList",
                     "id": "phoneCodeList",
                     "values": "<% [] %>",
+                    "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.countryCode) ? [{'phoneCode' : contactDetailsData.countryCode, 'phoneCode' : contactDetailsData.countryCode}] : [] %>",
                     "searchEndPoint": "<% endpoints.getPhoneCodes %>",
                     "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
                     "idKey": "phoneCode",
@@ -822,7 +1062,7 @@
                   "cellTemplate": {
                     "type": "text",
                     "id": "phoneNumberCol",
-                    "value": "",
+                    "value": "<%!empty(contactDetailsData.number) ? contactDetailsData.number : ''%>",
                     "required": true,
                     "onChange": "<%
                       self.clearError();
@@ -839,7 +1079,7 @@
                   "cellTemplate": {
                     "type": "text",
                     "id": "notesCol",
-                    "value": ""
+                    "value": "<%!empty(contactDetailsData.notes) ? contactDetailsData.notes : ''%>"
                   }
                 }
               ]
@@ -874,14 +1114,14 @@
                   "descriptor": "No"
                 }
               ],
-              "selectedValues": "<% ['no'] %>",
+              "selectedValues": "<% !empty(getPersonalTimeOff.data) ? ['yes'] : ['no'] %>",
               "onChange": "<% self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false)%>"
             },
             {
               "type": "grid",
               "id": "personalTimeGrid",
-              "rows": "<% [] %>",
-              "visible": false,
+              "rows": "<% !empty(getPersonalTimeOff.data) ? getPersonalTimeOff.data : [] %>",
+              "visible": "<% !empty(getPersonalTimeOff.data) %>",
               "isArrayOutBinding": "true",
               "rowVariableName": "timeOffData",
               "label": "<% 'Personal Time Off Details' %>",
@@ -891,9 +1131,21 @@
                   "columnId": "workerTimeOffCol",
                   "label": "<% 'Workers taking time off' %>",
                   "cellTemplate": {
-                    "type": "instanceList",
-                    "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
-                    "enabled": true
+                    "type": "fieldSet",
+                    "children": [
+                      {
+                        "type": "instanceList",
+                        "id": "personalTimeOffWorker",
+                        "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
+                        "enabled": true,
+                        "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
+                      },
+                      {
+                        "type": "hidden",
+                        "id": "personalTimeOffWID",
+                        "value": "<%!empty(timeOffData.id) ? timeOffData.id : ''%>"
+                      }
+                    ]
                   }
                 },
                 {
@@ -903,7 +1155,12 @@
                   "cellTemplate": {
                     "type": "instanceList",
                     "id": "absenceTypeIL",
-                    "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>"
+                    "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
+                    "selectedValuesAndDescriptors": "<%
+                      var data = getTimeOffTypes.data.map(result => {result.timeOffType});
+                      var field = data.find(x => {x.descriptor == timeOffData.leaveType});
+                      return ! empty(field) ? [field] : [];
+                    %>"
                   }
                 },
                 {
@@ -912,7 +1169,7 @@
                   "label": "<% 'Start Date' %>",
                   "cellTemplate": {
                     "type": "date",
-                    "value": "<% '' %>",
+                    "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>",
                     "enabled": true
                   }
                 },
@@ -922,7 +1179,7 @@
                   "label": "<% 'End Date' %>",
                   "cellTemplate": {
                     "type": "date",
-                    "value": "<% '' %>",
+                    "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>",
                     "enabled": true
                   }
                 }
@@ -940,7 +1197,7 @@
               "label": "Is this an Elevated Risk Situation",
               "id": "elevatedRiskRG",
               "required": true,
-              "selectedValues": "<% ['no']  %>",
+              "selectedValues": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRisk) && getOOBRequest.data[0].elevatedRisk ? ['yes'] : ['no'] %>",
               "instanceList": [
                 {
                   "id": "yes",
@@ -959,8 +1216,8 @@
               "id": "elevatedRiskTxtA",
               "required": false,
               "enabled": true,
-              "value": "",
-              "visible": false
+              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) ? getOOBRequest.data[0].elevatedRiskSituation : '' %>",
+              "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) %>"
             },
             {
               "type": "textArea",

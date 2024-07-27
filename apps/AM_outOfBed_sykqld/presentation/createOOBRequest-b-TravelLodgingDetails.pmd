@@ -42,6 +42,7 @@
         "name": "createDestinations",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
+        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
         "httpMethod": "POST",
         "failOnStatusCodes": [
           {
@@ -58,6 +59,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
+        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
         "onSend": "<%
         console.info('creating accompanying Travellers = ' + self.data);
                    return self.data;
@@ -104,7 +106,7 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "exclude": false,
+        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -141,6 +143,10 @@
           {
             "outboundPath": "proceed",
             "value": "<% !empty(nextBtn.value) && nextBtn.value == true %>"
+          },
+          {
+            "outboundPath": "backBtn",
+            "value": "<% !empty(backBtn.value) && backBtn.value == true %>"
           }
         ]
       }
@@ -844,16 +850,24 @@
           "editButtons": [
             {
               "type": "editButton",
+              "label": "<% 'Back' %>",
+              "id": "backBtn",
+              "ignoreRequiredFields": true,
+              "sortOrder": "a",
+              "buttonType": "AUXILIARY"
+            },
+            {
+              "type": "editButton",
               "label": "<% 'Next' %>",
               "buttonType": "PRIMARY",
-              "sortOrder": "a",
+              "sortOrder": "b",
               "id": "nextBtn"
             },
             {
               "type": "editButton",
               "label": "<% 'Save For Later' %>",
               "id": "saveForLaterBtn",
-              "sortOrder": "b",
+              "sortOrder": "c",
               "buttonType": "AUXILIARY"
             }
           ]

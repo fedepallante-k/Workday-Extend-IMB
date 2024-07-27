@@ -40,16 +40,11 @@
             },
             {
               "order": "c",
-              "value": "createOOBBackToRequest",
+              "value": "createOOB",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
           "taskId": "createOOBRequest-b-TravelLodgingDetails"
-        },
-        {
-          "id": "createOOBBackToRequest",
-          "endsFlow": true,
-          "taskId": "createOOBRequest"
         },
         {
           "id": "OOBReview",

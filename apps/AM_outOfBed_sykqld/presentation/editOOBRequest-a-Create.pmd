@@ -1165,7 +1165,7 @@
               "render": "<% !pageVariables.isField %>",
               "required": false,
               "enabled": true,
-              "visible": true,
+              "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) %>",
               "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
             }
           ]
