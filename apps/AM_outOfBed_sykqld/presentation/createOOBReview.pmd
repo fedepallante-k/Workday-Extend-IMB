@@ -53,6 +53,10 @@
       }
     ]
   },
+  "include": [
+    "OOB.script",
+    "Dates.script"
+  ],
   "presentation": {
     "pageType": "edit",
     "headerSize": "VPS_DEFAULT",
@@ -97,21 +101,21 @@
               "label": "Start Date",
               "id": "startDateDt",
               "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].startDate : '' %>"
+              "value": "<% !empty(getOOBRequest.data[0]) ? Dates.getDateFormattedUS(getOOBRequest.data[0].startDate) : '' %>"
             },
             {
               "type": "date",
               "label": "End Date ",
               "id": "endDateDt",
               "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].endDate : '' %>"
+              "value": "<% !empty(getOOBRequest.data[0]) ? Dates.getDateFormattedUS(getOOBRequest.data[0].endDate) : '' %>"
             },
             {
               "type": "date",
               "label": "End Date (or Expected End Date)",
               "id": "endDateDt",
               "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].expectedEndDate : '' %>"
+              "value": "<% !empty(getOOBRequest.data[0]) ? Dates.getDateFormattedUS(getOOBRequest.data[0].expectedEndDate) : '' %>"
             },
             {
               "type": "text",
@@ -143,7 +147,8 @@
               "doNotRemove": true,
               "doNotRemoveRow": true,
               "selectionEnabled": false,
-              "rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
+              "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
+              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -341,6 +346,8 @@
           "children": [
             {
               "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
               "title": "<% 'Travel Details - ' + (objectToLoopOn.firstName ?: '') + ' ' + (objectToLoopOn.lastName ?: '') %>",
               "children": [
                 {
@@ -351,11 +358,11 @@
                   "value": "<% !empty(objectToLoopOn.sts) ? objectToLoopOn.sts : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "date",
                   "label": "Depature Date",
                   "id": "departureDateDt",
                   "enabled": false,
-                  "value": "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>"
+                  "value": "<% !empty(objectToLoopOn.departureDate) ? Dates.getDateFormattedUS(objectToLoopOn.departureDate) : '' %>"
                 },
                 {
                   "type": "text",
@@ -369,7 +376,7 @@
                   "label": "Arrival Date",
                   "id": "arrivalDateDt",
                   "enabled": false,
-                  "value": "<% !empty(objectToLoopOn.arrivalDate) ? objectToLoopOn.arrivalDate : '' %>"
+                  "value": "<% !empty(objectToLoopOn.arrivalDate) ? Dates.getDateFormattedUS(objectToLoopOn.arrivalDate) : '' %>"
                 },
                 {
                   "type": "text",
@@ -456,21 +463,24 @@
           "children": [
             {
               "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
               "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName : '') %>",
               "children": [
                 {
                   "type": "date",
                   "label": "Start Date",
                   "id": "lodgingStartDateDt",
+                  "dateDisplayPattern": "MM-dd-yyyy",
                   "enabled": false,
-                  "value": "<% !empty(lodgingLoopObject.startDate) ? lodgingLoopObject.startDate : '' %>"
+                  "value": "<% !empty(lodgingLoopObject.startDate) ? Dates.getDateFormattedUS(lodgingLoopObject.startDate) : '' %>"
                 },
                 {
                   "type": "date",
                   "label": "End Date",
                   "id": "lodgingEndDateDt",
                   "enabled": false,
-                  "value": "<% !empty(lodgingLoopObject.endDate) ? lodgingLoopObject.endDate : '' %>"
+                  "value": "<% !empty(lodgingLoopObject.endDate) ? Dates.getDateFormattedUS(lodgingLoopObject.endDate) : '' %>"
                 },
                 {
                   "type": "text",

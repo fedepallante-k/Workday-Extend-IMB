@@ -78,13 +78,13 @@
         "name": "deletePersonalTimeOff",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs/' + personalTimeOffWID.value %>",
         "httpMethod": "DELETE",
-        "authType": "wcpisu",
+        "authType": "sso",
         "onSend": "<%
-                  console.info('delete Triggered = ');
+          console.info('delete Triggered = ');
           self.data ={'data': []};
           console.info('Edit page delete endPoint = ' + json:asJSON(self.data));
           return self.data;
-          %>",
+        %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
       },
       {
@@ -102,10 +102,10 @@
         ],
         "exclude": "<% empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
-        self.data = {'data':[]};
-         self.data.data.addAll(getPTGridData(false));
-        console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
-        return self.data;
+          self.data = {'data':[]};
+          self.data.data.addAll(getPTGridData(false));
+          console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
+          return self.data;
         %>"
       },
       {
@@ -175,6 +175,7 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "onSend": "<%
+        console.info('updateOOB Request datte = ' + self.data);
                    return self.data;
                    %>",
         "failOnStatusCodes": [
@@ -220,6 +221,7 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
+            "exclude": true,
             "value": "<% return getAccompanyingTravellers();%>"
           },
           {
@@ -234,7 +236,7 @@
               allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
               allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
               console.info('all numbers oob' + allMobileNumbers);
-              return allMobileNumbers;
+              return !empty(allMobileNumbers) ? allMobileNumbers : [{:}];
             %>"
           },
           {
@@ -635,13 +637,13 @@
               "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
               "selectedValuesAndDescriptors": "<% !empty(getOOBRequest.data[0].sts) ? [OOB.getSTS().find(i => {i.descriptor == getOOBRequest.data[0].sts})] : [] %>",
               "onChange": "<%
-               if(self.selectedEntries[0].id == 'other'){
+                 if(!empty(self.selectedEntries) && self.selectedEntries[0].id == 'other'){
                    otherStsTxt.setVisible(true);
-               }else{
+                 }else{
                    otherStsTxt.setVisible(false);
-                       otherStsTxt.setValue('');
-               }
-               %>"
+                   otherStsTxt.setValue('');
+                 }
+              %>"
             },
             {
               "type": "text",
@@ -968,6 +970,7 @@
                     "type": "text",
                     "id": "phoneNameCell",
                     "enabled": "<% true %>",
+                    "required": true,
                     "value": "<%!empty(contactDetailsData.name) ? contactDetailsData.name : ''%>"
                   }
                 },

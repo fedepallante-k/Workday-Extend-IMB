@@ -77,6 +77,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
         "authType": "sso",
         "httpMethod": "PATCH",
+        "exclude": true,
         "onSend": "<% self.data %>",
         "failOnStatusCodes": [
           {

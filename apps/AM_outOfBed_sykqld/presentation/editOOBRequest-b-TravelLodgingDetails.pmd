@@ -66,9 +66,10 @@
         "httpMethod": "POST",
         "exclude": "<% !empty(destinationID.value) %>",
         "onSend": "<%
-                   console.info('destinationID.value = ' + destinationID.value);
-           console.info('create DESTINATIONS = ' + self.data);
-           return self.data;
+          console.info('panels = ' + json:asJSON(travelPanel.getPanels()));
+          console.info('destinationID.value = ' + destinationID.value);
+          console.info('create DESTINATIONS = ' + self.data);
+          return self.data;
          %>",
         "failOnStatusCodes": [
           {
@@ -145,8 +146,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyTravellerID.value %>",
         "authType": "sso",
         "httpMethod": "DELETE",
-        "_exclude": "<% empty(accompanyTravellerID.value) %>",
-        "exclude": "<% true %>",
+        "exclude": "<% empty(accompanyTravellerID.value) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -662,7 +662,8 @@
                   "displayKey": "descriptor",
                   "_values": "<% getOOBRequest.data[0].lodging.map(x => {{'id' : x.travellerName, 'descriptor' : x.travellerName}}) %>",
                   "values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}).distinct() %>",
-                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
+                  "_selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
                       lodgingTravellerNameTxt.setValue('');
@@ -1037,7 +1038,7 @@
           "editButtons": [
             {
               "type": "editButton",
-              "label": "<% 'Submit' %>",
+              "label": "<% 'Next' %>",
               "buttonType": "PRIMARY",
               "sortOrder": "a",
               "id": "nextBtn"

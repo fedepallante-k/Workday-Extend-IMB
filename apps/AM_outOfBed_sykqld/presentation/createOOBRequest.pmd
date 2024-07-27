@@ -123,7 +123,6 @@
               });
             }
           }
-
         self.data;
         %>"
       },
@@ -178,7 +177,8 @@
           },
           {
             "outboundPath": "accompanyingTravellers",
-            "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
+            "_exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
+            "exclude": "<% true %>",
             "value": "<% createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) %>"
           },
           {
@@ -235,7 +235,6 @@
         ],
         "onSend": "<%
          self.data = {'data':[]};
-
          for (var personalTimeOff : personalTimeGrid.getRows()) {
            if(personalTimeOff.childrenMap.workerTimeOffCol.selectedEntries[0].id){
              self.data.data.add({
@@ -277,7 +276,7 @@
       {
         "name": "updateAccompanyTravellers",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
-        "authType": "wcpisu",
+        "authType": "sso",
         "httpMethod": "PATCH",
         "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
         "failOnStatusCodes": [
