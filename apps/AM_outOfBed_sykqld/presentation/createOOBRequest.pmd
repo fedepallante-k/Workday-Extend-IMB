@@ -77,26 +77,6 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "name": "createAccompanyingTravellers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
-        "httpMethod": "POST",
-        "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false  %>",
-        "onSend": "<%
-          self.data = {'data' : []};
-          self.data.data.addAll(getAllAccompanyingTravellers().data);
-          return self.data;
-        %>",
-        "failOnStatusCodes": [
-          {
-            "code": 400
-          },
-          {
-            "code": 403
-          }
-        ]
-      },
-      {
         "name": "createFrequentTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
         "authType": "wcpisu",
@@ -229,6 +209,27 @@
         ]
       },
       {
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "_exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false  %>",
+        "onSend": "<%
+          self.data = {'data' : []};
+          self.data.data.addAll(getAllAccompanyingTravellers().data);
+          console.info('createAccompanyingTravellers = ' + self.data);
+          return self.data;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
         "name": "createPersonalTimeOff",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
         "authType": "sso",
@@ -344,9 +345,9 @@
         "httpMethod": "PATCH",
         "exclude": "<% empty(flowVariables.oobRequest) %>",
         "onSend": "<%
-                   console.info('updateOOB Request datte = ' + self.data);
-                   return self.data;
-                   %>",
+          console.info('updateOOB Request datte = ' + self.data);
+          return self.data;
+        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -547,6 +548,7 @@
     var familyAndFrequent =[];
     var personalTimeOffMembers =[];
     var hasChildrenValue = 0;
+    var membersList =[];
     if(!empty(getWorkerFromSameUnit.data)){
     for (var item : getWorkerFromSameUnit.data){
       familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
@@ -561,7 +563,19 @@
     }
   }
 
-    pageVariables.frequentTravellers = familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+    familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+    var familyAndFrequent2 = [];
+    if(!empty(getAccompanyTravllers.data)){
+      console.info('familyAndFrequent before exclude = ' + json:asJSON(familyAndFrequent));
+      var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
+      console.info('listOfNames = ' + listOfNames);
+      familyAndFrequent2 = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
+      console.info('familyAndFrequent2 exclude = ' + json:asJSON(familyAndFrequent2));
+     }
+
+
+
+    pageVariables.frequentTravellers = !empty(familyAndFrequent2) ? familyAndFrequent2 : familyAndFrequent;
     pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
@@ -603,18 +617,34 @@
              
   var getAllAccompanyingTravellers = function(){
   var addAccompanyingTraveller = [];
+  var otherAccompanyingTraveller = [];
   
   for (var otherMembers : OtherMemberGrid.getRows()) {
-    addAccompanyingTraveller.add({'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '), 'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value });
+      addAccompanyingTraveller.add({
+      'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),
+      'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '),
+      'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
+      'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+    });
   }
   if(!empty(staffMemeberGrid.getSelectedRows())){
     for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
-      addAccompanyingTraveller.add( {'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '), 'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '), 'addToOOBProfile': false});
+      addAccompanyingTraveller.add( {
+        'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+        'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+        'addToOOBProfile': false,
+        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+      });
     }
   }
   if(!empty(fieldMemeberGrid.getSelectedRows())){
     for ( var i : fieldMemeberGrid.getSelectedRows()) {
-      addAccompanyingTraveller.add( {'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '), 'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '), 'addToOOBProfile': false});
+      addAccompanyingTraveller.add( {
+        'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+        'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+        'addToOOBProfile': false,
+        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+  });
     }
   }
   
@@ -704,7 +734,7 @@
     return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
   }
 
-             %>",
+  %>",
   "presentation": {
     "pageType": "edit",
     "title": {
@@ -716,6 +746,14 @@
       "type": "section",
       "id": "bodySection",
       "children": [
+        {
+          "type": "text",
+          "label": "getAccompanyTravllers",
+          "id": "getAccompanyTravllersTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getAccompanyTravllers) ? getAccompanyTravllers : 'empty' %>"
+        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -729,7 +767,8 @@
               "required": true,
               "enabled": true,
               "trueLabel": "True Label",
-              "falseLabel": "False Label"
+              "falseLabel": "False Label",
+              "value": "<% !empty(flowVariables.oobRequest) ? true : false %>"
             },
             {
               "type": "text",
@@ -816,6 +855,49 @@
                   "type": "fieldSet",
                   "render": "<% pageVariables.isField %>",
                   "children": [
+                    {
+                      "type": "grid",
+                      "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
+                      "id": "accompanyignTravellersGrid",
+                      "doNotAdd": true,
+                      "deleteEndPoint": "deleteAccompanyingTravellers",
+                      "rowVariableName": "accompanyingMemeberData",
+                      "label": "<% 'Accompanying Travellers Grid' %>",
+                      "visible": "<% !empty(getAccompanyTravllers.data) %>",
+                      "columns": [
+                        {
+                          "type": "column",
+                          "columnId": "accompanyingMemberCol",
+                          "label": "<% 'Accompanying Individuals Traveling ' %>",
+                          "cellTemplate": {
+                            "type": "fieldSet",
+                            "children": [
+                              {
+                                "type": "text",
+                                "id": "accompanyingMemberName",
+                                "enabled": false,
+                                "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') + (!empty(accompanyingMemeberData.departureDate) && !empty(accompanyingMemeberData.arrivalDate) ? (' (' +  (accompanyingMemeberData.departureDate ?: '') + ' to ' + (accompanyingMemeberData.arrivalDate ?: '') + ')') : '') %>"
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "accompanyingMemberID",
+                                "value": "<% accompanyingMemeberData.id %>"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "column",
+                          "columnId": "addToOOBCol",
+                          "label": "<% 'Add to OOB profile? ' %>",
+                          "cellTemplate": {
+                            "type": "checkBox",
+                            "value": "<% accompanyingMemeberData.fromProfile %>",
+                            "enabled": false
+                          }
+                        }
+                      ]
+                    },
                     {
                       "type": "grid",
                       "id": "fieldMemeberGrid",
