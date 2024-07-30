@@ -195,7 +195,7 @@
           "type": "panelList",
           "label": "Travel Events",
           "id": "travelPanel",
-          "panels": "<% getAccompanyTravllers.data %>",
+          "panels": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
           "isArrayOutBinding": false,
           "deleteEndPoint": "deleteAccompanyingTravellers",
           "panelName": "travelDeatilsPanels",
@@ -220,20 +220,18 @@
                   "multiSelect": false,
                   "required": true,
                   "enabled": true,
-                  "idKey": "fullName",
-                  "displayKey": "fullName",
-                  "values": "<% flowVariables.accompanyingTravellerNames.data.distinct() %>",
-                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.firstName) && !empty(travelDeatilsPanels.lastName) ? [flowVariables.accompanyingTravellerNames.data.find(x => {x.firstName == travelDeatilsPanels.firstName && x.lastName == travelDeatilsPanels.lastName} )] : [] %>",
+                  "values": "<% getAccompanyTravllers.data.map(x => {{'id' :x.id, 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
+                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) ? [{'id': getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).id, 'descriptor' : getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).firstName + ' ' + getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).lastName}] : []%>",
                   "onChange": "<%
-                    if(empty(self.selectedEntries[0])){
-                      firstNameTxt.setValue('');
-                      lastNameTxt.setValue('');
-                      addToOOBTxt.setValue(false);
-                    }else if(!empty(self.selectedEntries[0]))
-                      firstNameTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).firstName);
-                      lastNameTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).lastName);
-                      addToOOBTxt.setValue(flowVariables.accompanyingTravellerNames.data.find(x => {x.fullName == self.selectedEntries[0].id}).addToOOBProfile);
-                  %>"
+                               if(empty(self.selectedEntries[0])){
+                                   firstNameTxt.setValue('');
+                                       lastNameTxt.setValue('');
+                                       addToOOBTxt.setValue(false);
+                               }else if(!empty(self.selectedEntries[0]))
+                                   firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
+                               lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
+                               addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
+                               %>"
                 },
                 {
                   "type": "hidden",
@@ -653,9 +651,7 @@
                   "enabled": true,
                   "idKey": "id",
                   "displayKey": "descriptor",
-                  "_values": "<% getOOBRequest.data[0].lodging.map(x => {{'id' : x.travellerName, 'descriptor' : x.travellerName}}) %>",
-                  "values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}).distinct() %>",
-                  "_selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
+                  "values": "<% getAccompanyTravllers.data.map(x => {{'id' : (x.firstName + ' ' + x.lastName), 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
                   "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
@@ -723,7 +719,6 @@
                       "id": "lodgingStartDateDt",
                       "required": true,
                       "enabled": true,
-                      "_value": "<% date:now().format('yyyy-MM-dd') %>",
                       "value": "<% !empty(lodgingDetailsPanels.startDate) ? lodgingDetailsPanels.startDate : '' %>",
                       "valuesOut": [
                         {

@@ -19,7 +19,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -152,7 +152,8 @@
               "doNotRemoveRow": true,
               "selectionEnabled": false,
               "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
-              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
+              "__rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
+              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data.map(x => {{'firstName' : x.firstName, 'lastName' : x.lastName, 'addToProfile' : x.addToProfile}}).distinct() : [] %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -178,7 +179,7 @@
                   "cellTemplate": {
                     "id": "addToOOB",
                     "type": "text",
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.fromProfile ? 'Yes' : '' : '' %>",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.addToProfile ? 'Yes' : '' : '' %>",
                     "enabled": false
                   }
                 }

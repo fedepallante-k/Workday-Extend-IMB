@@ -119,11 +119,11 @@
             },
             {
               "order": "c",
-              "value": "editOOBBackToMain",
+              "value": "editOOB",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
-          "taskId": "editOOBRequest-b-TravelLodgingDetails"
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
         },
         {
           "id": "editOOBBackToRequest",
@@ -145,7 +145,7 @@
             },
             {
               "order": "c",
-              "value": "editOOBBackToMain",
+              "value": "editOOBRequestTravelLodging",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
