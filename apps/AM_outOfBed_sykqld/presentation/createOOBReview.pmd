@@ -39,11 +39,15 @@
         "values": [
           {
             "outboundPath": "saveForLater",
-            "value": "<% !empty(saveForLaterBtn.value) %>"
+            "value": "<% !empty(saveForLaterBtn.value) && saveForLaterBtn.value ==true %>"
           },
           {
             "outboundPath": "proceed",
-            "value": "<% !empty(nextBtn.value) %>"
+            "value": "<% !empty(nextBtn.value) && nextBtn.value == true %>"
+          },
+          {
+            "outboundPath": "backBtn",
+            "value": "<% !empty(backBtn.value) && backBtn.value == true %>"
           },
           {
             "outboundPath": "hasPersonalTimeOff",
@@ -560,6 +564,14 @@
         {
           "type": "editButtonBar",
           "editButtons": [
+            {
+              "type": "editButton",
+              "label": "<% 'Back' %>",
+              "id": "backBtn",
+              "ignoreRequiredFields": true,
+              "sortOrder": "a",
+              "buttonType": "AUXILIARY"
+            },
             {
               "type": "editButton",
               "label": "<% 'Submit' %>",

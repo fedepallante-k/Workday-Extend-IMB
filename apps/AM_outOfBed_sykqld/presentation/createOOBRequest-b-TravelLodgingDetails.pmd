@@ -14,6 +14,13 @@
       "authType": "sso"
     },
     {
+      "name": "getAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty( flowVariables.oobRequest )%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile AS addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "sso"
+    },
+    {
       "name": "getLodging",
       "url": "<% 'https://api.workday.com/wql/v1/data?query=' + ('SELECT favouriteDestinations{workdayID as id, name as descriptor, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles where worker in (\\'' + getCurrentWorker.id + '\\')').urlEncode() %>",
       "authType": "wcpisu",
@@ -28,11 +35,10 @@
       "deferred": true
     },
     {
-      "name": "getAccompanyTravllers",
+      "name": "getCountry",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<% empty( flowVariables.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile AS addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + ('SELECT workdayID, countryName AS descriptor, alpha_3Code AS id FROM countries').urlEncode() %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getDestinations",
@@ -45,12 +51,14 @@
   "outboundData": {
     "outboundEndPoints": [
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "createDestinations",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
-        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
         "httpMethod": "POST",
+        "exclude": "<% !empty(destinationID.value) %>",
+        "onSend": "<%
+          return self.data;
+        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -61,16 +69,32 @@
         ]
       },
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
+        "name": "updateDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(destinationID.value) %>",
+        "onSend": "<%
+          return self.data;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
         "name": "createAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
+        "exclude": "<% !empty(accompanyTravellerID.value) %>",
         "onSend": "<%
-        console.info('creating accompanying Travellers = ' + self.data);
-                   return self.data;
-                   %>",
+          return self.data;
+        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -81,29 +105,18 @@
         ]
       },
       {
-        "_generationNote": "Creates a single instance, as specified by of the OOBProfile business object resource.",
-        "name": "updateOOBRequest",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
+        "name": "updateAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
+        "exclude": "<% empty(accompanyTravellerID.value) %>",
+        "onSend": "<% return self.data; %>",
         "httpMethod": "PATCH",
-        "exclude": true,
-        "onSend": "<% self.data %>",
         "failOnStatusCodes": [
           {
             "code": 400
           },
           {
             "code": 403
-          }
-        ],
-        "values": [
-          {
-            "outboundPath": "accompanyingTravellers",
-            "value": "<% !empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : '' %>"
-          },
-          {
-            "outboundPath": "lodging",
-            "value": "<% !empty(createDestinations.data) ? createDestinations.data.map(x=> {{'id' : x.body.id}}) : '' %>"
           }
         ]
       },
@@ -127,14 +140,38 @@
             "outboundPath": "favouriteDestinations",
             "value": "<%
               var destinations = [];
-              for(var x : createDestinations.data){
-                if(x.body.addToProfile){
+              if(!empty(createDestinations.data)){
+                for(var x : createDestinations.data){
+                  if(x.body.addToProfile){
                     destinations.add({'id' : x.body.id});
+                  }
                 }
+              }
+              if(!empty(updateDestinations.data)){
+                  for(var x : updateDestinations.data){
+                      if(x.body.addToProfile){
+                          destinations.add({'id' : x.body.id});
+                      }
+                  }
               }
               destinations.addAll(getOOBProfile.data[0].favouriteDestinations);
               return destinations;
               %>"
+          }
+        ]
+      },
+      {
+        "name": "deleteAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyTravellerID.value %>",
+        "authType": "sso",
+        "httpMethod": "DELETE",
+        "exclude": "<% empty(accompanyTravellerID.value) %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
           }
         ]
       },
@@ -232,16 +269,16 @@
           x.setVisible(true);
           x.setRequired(true);
           x.setEnabled(true);
-          empty(x.value) ? '' : x.setValue('');
+          empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
         }
       }
       if(!empty(disableWidgets)){
-      for(var x : disableWidgets){
-        x.setVisible(false);
-        x.setRequired(false);
-        x.setEnabled(false);
-        empty(x.value) ? '' : x.setValue('');
-      }
+        for(var x : disableWidgets){
+          x.setVisible(false);
+          x.setRequired(false);
+          x.setEnabled(false);
+          empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
+        }
      }
   }
 
@@ -282,12 +319,12 @@
           "panelName": "travelDeatilsPanels",
           "indexVariableName": "travelPanelIndex",
           "onPanelAdd": "<%
-                         var travelPanels = self.getPanels();
-                         var newPanel = travelPanels[travelPanels.size() - 1];
-                         //newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
-                         //newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
-                         //newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
-                         %>",
+            var travelPanels = self.getPanels();
+            var newPanel = travelPanels[travelPanels.size() - 1];
+            //newPanel.getChildren()[0].firstNameTxt.setValue(travellerFirstNameTxt.value);
+            //newPanel.getChildren()[0].lastNameTxt.setValue(travellerLastNameTxt.value);
+            //newPanel.getChildren()[0].addToOOBTxt.setValue(travellerAddToOOBTxt.value);
+          %>",
           "children": [
             {
               "type": "fieldSet",
@@ -301,24 +338,21 @@
                   "multiSelect": false,
                   "required": true,
                   "enabled": true,
-                  "_values": "<% flowVariables.accompanyingTravellerNames.data.distinct() %>",
                   "values": "<% getAccompanyTravllers.data.map(x => {{'id' :x.id, 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
-                  "_selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.firstName) && !empty(travelDeatilsPanels.lastName) ? [flowVariables.accompanyingTravellerNames.data.find(x => {x.firstName == travelDeatilsPanels.firstName && x.lastName == travelDeatilsPanels.lastName} )] : [] %>",
                   "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) ? [{'id': getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).id, 'descriptor' : getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).firstName + ' ' + getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).lastName}] : []%>",
                   "onChange": "<%
-                               if(empty(self.selectedEntries[0])){
-                                   firstNameTxt.setValue('');
-                                       lastNameTxt.setValue('');
-                                       addToOOBTxt.setValue(false);
-                               }else if(!empty(self.selectedEntries[0]))
-                                 firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
-                                 lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
-                                 addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
-                               %>"
+                    if(empty(self.selectedEntries[0])){
+                      firstNameTxt.setValue('');
+                      lastNameTxt.setValue('');
+                      addToOOBTxt.setValue(false);
+                    }else if(!empty(self.selectedEntries[0]))
+                      firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
+                      lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
+                      addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
+                  %>"
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "accompanyTravellerID",
                   "value": "<%  !empty(travelDeatilsPanels.id) ? travelDeatilsPanels.id : '' %>",
                   "valuesOut": [
@@ -348,8 +382,7 @@
                   ]
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "firstNameTxt",
                   "value": "<% !empty(travelDeatilsPanels.firstName) ? travelDeatilsPanels.firstName : '' %>",
                   "valuesOut": [
@@ -364,8 +397,7 @@
                   ]
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "lastNameTxt",
                   "value": "<% !empty(travelDeatilsPanels.lastName) ? travelDeatilsPanels.lastName : '' %>",
                   "valuesOut": [
@@ -380,8 +412,7 @@
                   ]
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "addToOOBTxt",
                   "value": "<% travelDeatilsPanels.addToOOBProfile %>",
                   "valuesOut": [
@@ -493,44 +524,44 @@
                   "values": "<% OOB.getModeOfTransport() %>",
                   "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.modeOfTransport) ? [OOB.getModeOfTransport().find(x => {x.descriptor == travelDeatilsPanels.modeOfTransport})] : [] %>",
                   "onChange": "<%
-                               console.info('yourVehicleRG = ' + json:asJSON(yourVehicleRG));
-                               !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
-                               if(!empty(self.selectedEntries[0])) {
-                                   if(self.selectedEntries[0].id == 'air'){
-                                       var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
-                                           var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
-                                           togglewidgets(toggleOn,toggleOff);
-                                   }else if (self.selectedEntries[0].id == 'car'){
-                                       var toggleOn = [yourVehicleRG];
-                                           var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }else if (self.selectedEntries[0].id == 'bus'){
-                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
-                                           var toggleOff = [airlineTxt, yourVehicleRG, modeOfTransportOtherTxt, giveCarDetailsTxt];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }else if (self.selectedEntries[0].id == 'train'){
-                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
-                                           var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }else if (self.selectedEntries[0].id == 'boat'){
-                                       var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
-                                           var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }else if (self.selectedEntries[0].id == 'other'){
-                                       var toggleOn = [modeOfTransportOtherTxt];
-                                           var toggleOff = [airlineTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }else{
-                                       var toggleOn = [];
-                                           var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                           togglewidgets(toggleOn,toggleOff );
-                                   }
-                               }else{
-                                   var toggleOn = [];
-                                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
-                                       togglewidgets(toggleOn,toggleOff );
-                               }
-                               %>"
+                    console.info('yourVehicleRG = ' + json:asJSON(yourVehicleRG));
+                    !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
+                    if(!empty(self.selectedEntries[0])) {
+                      if(self.selectedEntries[0].id == 'air'){
+                        var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
+                        var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
+                        togglewidgets(toggleOn,toggleOff);
+                      }else if (self.selectedEntries[0].id == 'car'){
+                        var toggleOn = [yourVehicleRG];
+                        var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
+                        togglewidgets(toggleOn,toggleOff );
+                       }else if (self.selectedEntries[0].id == 'bus'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                         var toggleOff = [airlineTxt, yourVehicleRG, modeOfTransportOtherTxt, giveCarDetailsTxt];
+                         togglewidgets(toggleOn,toggleOff );
+                       }else if (self.selectedEntries[0].id == 'train'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                         var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                         togglewidgets(toggleOn,toggleOff );
+                       }else if (self.selectedEntries[0].id == 'boat'){
+                         var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
+                         var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
+                         togglewidgets(toggleOn,toggleOff );
+                       }else if (self.selectedEntries[0].id == 'other'){
+                         var toggleOn = [modeOfTransportOtherTxt];
+                         var toggleOff = [airlineTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                         togglewidgets(toggleOn,toggleOff );
+                       }else{
+                         var toggleOn = [];
+                         var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                         togglewidgets(toggleOn,toggleOff );
+                       }
+                    }else{
+                      var toggleOn = [];
+                      var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
+                      togglewidgets(toggleOn,toggleOff );
+                    }
+                  %>"
                 },
                 {
                   "type": "hidden",
@@ -653,17 +684,17 @@
                     }
                   ],
                   "onChange": "<%
-                               if(self.selectedEntries[0].id == 'yes'){
-                                   giveCarDetailsTxt.setEnabled(true);
-                                       giveCarDetailsTxt.setVisible(true);
-                                       giveCarDetailsTxt.setRequired(true);
-                               }else{
-                                   giveCarDetailsTxt.setEnabled(false);
-                                       giveCarDetailsTxt.setVisible(false);
-                                       giveCarDetailsTxt.setRequired(false);
-                                       giveCarDetailsTxt.setValue('');
-                               }
-                               %>"
+                    if(self.selectedEntries[0].id == 'yes'){
+                      giveCarDetailsTxt.setEnabled(true);
+                      giveCarDetailsTxt.setVisible(true);
+                      giveCarDetailsTxt.setRequired(true);
+                    }else{
+                      giveCarDetailsTxt.setEnabled(false);
+                      giveCarDetailsTxt.setVisible(false);
+                      giveCarDetailsTxt.setRequired(false);
+                      giveCarDetailsTxt.setValue('');
+                    }
+                  %>"
                 },
                 {
                   "type": "text",
@@ -718,10 +749,10 @@
           "indexVariableName": "travelPanelIndex",
           "isArrayOutBinding": false,
           "onPanelAdd": "<%
-                         var lodgingPanels = self.getPanels();
-                         var newPanel = lodgingPanels[lodgingPanels.size() - 1];
-                         //newPanel.getChildren()[0].lodgingTravellerNameTxt.setValue(travellerNameTxt.value);
-                         %>",
+            var lodgingPanels = self.getPanels();
+            var newPanel = lodgingPanels[lodgingPanels.size() - 1];
+            //newPanel.getChildren()[0].lodgingTravellerNameTxt.setValue(travellerNameTxt.value);
+          %>",
           "children": [
             {
               "type": "fieldSet",
@@ -739,15 +770,13 @@
                   "idKey": "id",
                   "displayKey": "descriptor",
                   "values": "<% getAccompanyTravllers.data.map(x => {{'id' : (x.firstName + ' ' + x.lastName), 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
-                  "_values": "<% flowVariables.accompanyingTravellerNames.data.map(x =>{{'id' : x.fullName, 'descriptor': x.fullName}}).distinct() %>",
-                  "_selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getOOBRequest.data[0].lodging.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
                   "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
                   "onChange": "<%
-                               if(empty(self.selectedEntries[0])){
-                                   lodgingTravellerNameTxt.setValue('');
-                               }else if(!empty(self.selectedEntries[0]))
-                                   lodgingTravellerNameTxt.setValue(self.selectedEntries[0].id);
-                               %>"
+                    if(empty(self.selectedEntries[0])){
+                      lodgingTravellerNameTxt.setValue('');
+                    }else if(!empty(self.selectedEntries[0]))
+                      lodgingTravellerNameTxt.setValue(self.selectedEntries[0].id);
+                  %>"
                 },
                 {
                   "type": "hidden",
@@ -808,7 +837,6 @@
                       "id": "lodgingStartDateDt",
                       "required": true,
                       "enabled": true,
-                      "_value": "<% date:now().format('yyyy-MM-dd') %>",
                       "value": "<% !empty(lodgingDetailsPanels.startDate) ? lodgingDetailsPanels.startDate : '' %>",
                       "valuesOut": [
                         {
@@ -851,52 +879,52 @@
                   "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.name) ? !empty(pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})) ? [pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})] : [] : [] %>",
                   "values": "<% pageVariables.lodgingList %>",
                   "onChange": "<%
-                               if(empty(self.selectedEntries[0])){
-                                   lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
-                                       freqDestChbx.setVisible(false);
-                                       freqDestChbx.setValue(false);
-                                       countryIl.setValues([]);
-                                       countryIl.setValue([]);
-                                       addressLine1Txt.setValue('');
-                                       addressLine2Txt.setValue('');
-                                       addressLine3Txt.setValue('');
-                                       postalCodeTxt.setValue('');
-                                       contactNumberOfDestinationTxt.setValue('');
-                                       cityText.setValue('');
-                                       countryCodeText.setValue('');
-                                       stateText.setValue('');
-                               }else if(self.selectedEntries[0].id == 'other'){
-                                   lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
-                                       freqDestChbx.setVisible(true);
-                                       countryIl.setValues([]);
-                                       countryIl.setValue([]);
-                                       addressLine1Txt.setValue('');
-                                       addressLine2Txt.setValue('');
-                                       addressLine3Txt.setValue('');
-                                       postalCodeTxt.setValue('');
-                                       contactNumberOfDestinationTxt.setValue('');
-                                       cityText.setValue('');
-                                       countryCodeText.setValue('');
-                                       stateText.setValue('');
-                                       freqDestChbx.setValue(false);
-                               }else{
-                                   lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
-                                       freqDestChbx.setVisible(false);
-                                       var valueToFindAgain = self.selectedEntries[0].id;
-                                       var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
-                                       countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
-                                       countryIl.setValue([destinationData.countryCode] ?: []);
-                                       addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
-                                       addressLine2Txt.setValue(destinationData.addressLine2 ?: '');
-                                       addressLine3Txt.setValue(destinationData.addressLine3 ?: '');
-                                       postalCodeTxt.setValue(destinationData.postalCode ?: '');
-                                       contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: '');
-                                       cityText.setValue(destinationData.city ?: '');
-                                       countryCodeText.setValue(destinationData.countryCode ?: '');
-                                       stateText.setValue(destinationData.state ?: '');
-                                       freqDestChbx.setValue(false);
-                               }
-                               %>"
+                    if(empty(self.selectedEntries[0])){
+                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(false); lodgingOtherTxt.setRequired(false);
+                      freqDestChbx.setVisible(false);
+                      freqDestChbx.setValue(false);
+                      countryIl.setValues([]);
+                      countryIl.setValue([]);
+                      addressLine1Txt.setValue('');
+                      addressLine2Txt.setValue('');
+                      addressLine3Txt.setValue('');
+                      postalCodeTxt.setValue('');
+                      contactNumberOfDestinationTxt.setValue('');
+                      cityText.setValue('');
+                      countryCodeText.setValue('');
+                      stateText.setValue('');
+                    }else if(self.selectedEntries[0].id == 'other'){
+                      lodgingOtherTxt.value = ''; lodgingOtherTxt.setVisible(true); lodgingOtherTxt.setRequired(true); lodgingOtherTxt.setEnabled(true);
+                      freqDestChbx.setVisible(true);
+                      countryIl.setValues([]);
+                      countryIl.setValue([]);
+                      addressLine1Txt.setValue('');
+                      addressLine2Txt.setValue('');
+                      addressLine3Txt.setValue('');
+                      postalCodeTxt.setValue('');
+                      contactNumberOfDestinationTxt.setValue('');
+                      cityText.setValue('');
+                      countryCodeText.setValue('');
+                      stateText.setValue('');
+                      freqDestChbx.setValue(false);
+                    }else{
+                      lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
+                      freqDestChbx.setVisible(false);
+                      var valueToFindAgain = self.selectedEntries[0].id;
+                      var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
+                      countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
+                      countryIl.setValue([destinationData.countryCode] ?: []);
+                      addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
+                      addressLine2Txt.setValue(destinationData.addressLine2 ?: '');
+                      addressLine3Txt.setValue(destinationData.addressLine3 ?: '');
+                      postalCodeTxt.setValue(destinationData.postalCode ?: '');
+                      contactNumberOfDestinationTxt.setValue(destinationData.contactNumber ?: '');
+                      cityText.setValue(destinationData.city ?: '');
+                      countryCodeText.setValue(destinationData.countryCode ?: '');
+                      stateText.setValue(destinationData.state ?: '');
+                      freqDestChbx.setValue(false);
+                   }
+                   %>"
                 },
                 {
                   "type": "text",
@@ -930,14 +958,14 @@
                   "searchResultValues": "<% !empty(getCountrySearch.data) ? getCountrySearch.data : [] %>",
                   "values": "<% !empty(getCountry.data) ? getCountry.data : [] %>",
                   "onChange": "<%
-                               if(empty(self.selectedEntries[0])){
-                                   countryText.value = '';
-                                       countryCodeText.value = '';
-                               }else{
-                                   countryText.value = self.selectedEntries[0].descriptor;
-                                       countryCodeText.value = self.selectedEntries[0].id;
-                               }
-                               %>"
+                    if(empty(self.selectedEntries[0])){
+                      countryText.value = '';
+                      countryCodeText.value = '';
+                    }else{
+                      countryText.value = self.selectedEntries[0].descriptor;
+                      countryCodeText.value = self.selectedEntries[0].id;
+                    }
+                  %>"
                 },
                 {
                   "type": "hidden",

@@ -213,7 +213,6 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "_exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false  %>",
         "onSend": "<%
           self.data = {'data' : []};
           self.data.data.addAll(getAllAccompanyingTravellers().data);
@@ -390,17 +389,11 @@
             "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
           },
           {
-            "outboundPath": "accompanyingTravellers",
-            "exclude": true,
-            "value": "<% return getAccompanyingTravellers();%>"
-          },
-          {
             "outboundPath": "alternateArrangementForChildren",
             "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
           },
           {
             "outboundPath": "phoneNumbers",
-            "_exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
             "value": "<%
             var allMobileNumbers =[];
             allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
@@ -599,7 +592,6 @@
   "onSubmit": "<%
 
   %>",
-  "_securityDomains": [ ],
   "script": "<%
 
   var getPhoneNumbers = function(){
@@ -760,14 +752,6 @@
       "type": "section",
       "id": "bodySection",
       "children": [
-        {
-          "type": "text",
-          "label": "getAccompanyTravllers",
-          "id": "getAccompanyTravllersTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(getAccompanyTravllers) ? getAccompanyTravllers : 'empty' %>"
-        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -1061,7 +1045,6 @@
               "onRowAdd": "<%
                var selfRows = self.getRows();
                var newRow = selfRows[0];
-               //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
                newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
                %>",
               "columns": [

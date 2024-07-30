@@ -61,7 +61,7 @@
             },
             {
               "order": "c",
-              "value": "createOOBBackToMain",
+              "value": "oobRequestTravelLodging",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
