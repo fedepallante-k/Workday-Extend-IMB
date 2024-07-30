@@ -69,7 +69,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     }
 
@@ -436,6 +436,20 @@
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
+          }
+        ]
+      },
+      {
+        "name": "deleteAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyingMemberID.value %>",
+        "authType": "sso",
+        "httpMethod": "DELETE",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
           }
         ]
       },
@@ -892,7 +906,7 @@
                           "label": "<% 'Add to OOB profile? ' %>",
                           "cellTemplate": {
                             "type": "checkBox",
-                            "value": "<% accompanyingMemeberData.fromProfile %>",
+                            "value": "<% accompanyingMemeberData.addToOOBProfile %>",
                             "enabled": false
                           }
                         }
