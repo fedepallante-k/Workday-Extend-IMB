@@ -17,7 +17,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty( flowVariables.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile AS addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -55,7 +55,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
-        "exclude": "<% !empty(destinationID.value) %>",
+        "exclude": "<% !empty(destinationID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "onSend": "<%
           return self.data;
         %>",
@@ -73,7 +73,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "PATCH",
-        "exclude": "<% empty(destinationID.value) %>",
+        "exclude": "<% empty(destinationID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "onSend": "<%
           return self.data;
         %>",
@@ -91,7 +91,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "sso",
         "httpMethod": "POST",
-        "exclude": "<% !empty(accompanyTravellerID.value) %>",
+        "exclude": "<% !empty(accompanyTravellerID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "onSend": "<%
           return self.data;
         %>",
@@ -165,7 +165,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyTravellerID.value %>",
         "authType": "sso",
         "httpMethod": "DELETE",
-        "exclude": "<% empty(accompanyTravellerID.value) %>",
+        "exclude": "<% empty(accompanyTravellerID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -345,10 +345,11 @@
                       firstNameTxt.setValue('');
                       lastNameTxt.setValue('');
                       addToOOBTxt.setValue(false);
-                    }else if(!empty(self.selectedEntries[0]))
+                    }else if(!empty(self.selectedEntries[0])){
                       firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
                       lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
                       addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
+                  }
                   %>"
                 },
                 {
@@ -826,8 +827,8 @@
                 {
                   "type": "section",
                   "columnWidthRatios": [
-                      0.5,
-                      0.5
+                    0.5,
+                    0.5
                   ],
                   "horizontal": true,
                   "children": [

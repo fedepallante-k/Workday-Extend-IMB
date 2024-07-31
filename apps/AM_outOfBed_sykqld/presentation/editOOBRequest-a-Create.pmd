@@ -416,17 +416,49 @@
        }
      }
 
-     pageVariables.frequentTravellers = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}})) : [];
+     pageVariables.frequentTravellers = !empty(familyMemberGridValues()) ? familyMemberGridValues() : [];
      pageVariables.frequentTravellersStaff = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}) : [];
      pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
      pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
      pageVariables.hasChildren = hasChildrenValue > 0;
-     pageVariables.frequentTravellersWIDs = pageVariables.frequentTravellers.map(x => {{'id' : x.id}});
+     //pageVariables.frequentTravellersWIDs = pageVariables.frequentTravellers.map(x => {{'id' : x.id}});
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
      pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers ?: [];
      pageVariables.isEdit = queryParams.isEdit;
      %>",
   "script": "<%
+     var familyMemberGridValues = function (){
+         var familyAndFrequent =[];
+         var hasChildrenValue = 0;
+         if(!empty(getWorkerFromSameUnit.data)){
+             for (var item : getWorkerFromSameUnit.data){
+                 familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
+                     if(!empty(item)){
+                         for( var child : item.dependent){
+                             if(child.isSpouse != true){
+                                 familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
+                                     child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
+                             }
+                         }
+                     }
+             }
+         }
+         if(!empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers)) {
+         familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+         }
+         var familyAndFrequentWithoutAccompany = [];
+         if(!empty(getAccompanyTravllers.data)){
+             var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
+                 familyAndFrequentWithoutAccompany = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
+         }
+         if(hasChildrenValue > 0) {
+             pageVariables.hasChildren=true
+         }else{
+             pageVariables.hasChildren=false;
+         }
+         return !empty(familyAndFrequentWithoutAccompany) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
+     }
+
     var getPhoneNumbers = function(){
       var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
       if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
@@ -571,6 +603,14 @@
       "horizontal": false,
       "children": [
         {
+          "type": "text",
+          "label": "pageVariables.frequentTravellers",
+          "id": "pageVariablesFrequentTravellersTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(pageVariables.frequentTravellers) ? json:asJSON(pageVariables.frequentTravellers) : 'empty' %>"
+        },
+        {
           "type": "fieldSet",
           "id": "tripDetailsFS",
           "title": "Trip Details",
@@ -712,7 +752,7 @@
               "children": [
                 {
                   "type": "fieldSet",
-                  "render": "<% false %>",
+                  "render": "<% true %>",
                   "children": [
                     {
                       "type": "grid",
@@ -723,21 +763,9 @@
                       "onRowSelect": "<% childrenArrangments() %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
-                      "rowSelected": "<% !empty(pageVariables.frequentTravellersWIDs) && pageVariables.frequentTravellersWIDs[0].containsValue(fieldMemeberData.id)  %>",
+                      "_rowSelected": "<% !empty(pageVariables.frequentTravellersWIDs) && pageVariables.frequentTravellersWIDs[0].containsValue(fieldMemeberData.id)  %>",
                       "label": "<% 'For Field Family Members' %>",
                       "columns": [
-                        {
-                          "type": "column",
-                          "columnId": "idCol",
-                          "label": "<% 'WorkdayID' %>",
-                          "cellTemplate": {
-                            "type": "text",
-                            "required": false,
-                            "enabled": false,
-                            "id": "workdayIDCel",
-                            "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
-                          }
-                        },
                         {
                           "type": "column",
                           "columnId": "familyMemberCol",
