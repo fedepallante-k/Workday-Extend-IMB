@@ -26,7 +26,7 @@
       "name": "getDestinations",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY travellerName ASC, startDate ASC').urlEncode() %>",
       "authType": "wcpisu"
     }
   ],
@@ -339,11 +339,9 @@
                   "columnId": "startDateCol",
                   "label": "<% 'Start Date' %>",
                   "cellTemplate": {
-                    "type": "date",
-                    "dateFormat": "yyyy-MM-dd",
-                    "dateDisplayPattern": "MM/dd/yyyy",
+                    "type": "text",
                     "enabled": false,
-                    "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>"
+                    "value": "<% !empty(timeOffData.startDate) ? Dates.getDateFormattedUS(timeOffData.startDate) : '' %>"
                   }
                 },
                 {
@@ -351,11 +349,9 @@
                   "columnId": "endDateCol",
                   "label": "<% 'End Date' %>",
                   "cellTemplate": {
-                    "type": "date",
+                    "type": "text",
                     "enabled": false,
-                    "dateFormat": "yyyy-MM-dd",
-                    "dateDisplayPattern": "MM/dd/yyyy",
-                    "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>"
+                    "value": "<% !empty(timeOffData.endDate) ? Dates.getDateFormattedUS(timeOffData.endDate) : '' %>"
                   }
                 }
               ]

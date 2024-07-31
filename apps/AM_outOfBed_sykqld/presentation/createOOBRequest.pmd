@@ -526,7 +526,7 @@
   var setMembersGrid = function (){
       var gridValues = familyMemberGridValues();
       console.info('set grid data = ' + json:asJSON(gridValues));
-      fieldMemeberGrid.setRows(gridValues);
+      fieldMemeberGrid.setRows(gridValues ?: []);
   }
 
   var getPhoneNumbers = function(){

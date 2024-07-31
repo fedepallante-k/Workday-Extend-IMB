@@ -19,7 +19,7 @@ var getDateFormatted = function(date) {
 }
 
 var getDateFormattedUS = function(date) {
-    return date:format(getDate(date), 'MM-dd-yyyy');
+    return date:format(getDate(date), 'MM/dd/yyyy');
 }
 
 var getDateFormattedWithMonthName = function(date) {
