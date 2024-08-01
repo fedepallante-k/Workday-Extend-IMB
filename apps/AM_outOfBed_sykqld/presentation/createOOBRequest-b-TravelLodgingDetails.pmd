@@ -329,7 +329,8 @@
             {
               "type": "fieldSet",
               "collapsible": true,
-              "title": "Travel Event Details",
+              "id": "travelEventFSID",
+              "title": "<% 'Travel Event Details ' + (!empty(getAccompanyTravllers.data) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).firstName + ' ' + getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).lastName : '') %>",
               "children": [
                 {
                   "type": "instanceList",
@@ -345,10 +346,12 @@
                       firstNameTxt.setValue('');
                       lastNameTxt.setValue('');
                       addToOOBTxt.setValue(false);
+                      travelEventFSID.setTitle('Travel Event Details ');
                     }else if(!empty(self.selectedEntries[0])){
                       firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
                       lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
                       addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
+                      travelEventFSID.setTitle('Travel Event Details ' + self.selectedEntries[0].descriptor);
                   }
                   %>"
                 },
@@ -758,8 +761,8 @@
             {
               "type": "fieldSet",
               "id": "LodgingDetails",
-              "title": "<% 'Lodging Details'%>",
               "collapsible": true,
+              "title": "<% 'Lodging Details ' + (!empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '') %>",
               "children": [
                 {
                   "type": "instanceList",
@@ -775,8 +778,11 @@
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
                       lodgingTravellerNameTxt.setValue('');
-                    }else if(!empty(self.selectedEntries[0]))
+                      LodgingDetails.setTitle('Lodging Details');
+                    }else if(!empty(self.selectedEntries[0])){
                       lodgingTravellerNameTxt.setValue(self.selectedEntries[0].id);
+                      LodgingDetails.setTitle('Lodging Details ' + self.selectedEntries[0].descriptor);
+                    }
                   %>"
                 },
                 {
