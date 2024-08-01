@@ -508,8 +508,7 @@
     "Dates.script"
   ],
   "onLoad": "<%
-    pageVariables.frequentTravellers = familyMemberGridValues();
-    console.info('pageVariables.frequentTravellers = ' + json:asJSON(pageVariables.frequentTravellers));
+    pageVariables.frequentTravellers = familyMemberGridValues(true);
     pageVariables.frequentTravellersStaff = getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}});
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
@@ -519,7 +518,7 @@
 
   %>",
   "script": "<%
-  var familyMemberGridValues = function (){
+  var familyMemberGridValues = function (onLoad){
     var familyAndFrequent =[];
     var hasChildrenValue = 0;
     if(!empty(getWorkerFromSameUnit.data)){
@@ -538,20 +537,31 @@
 
       familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
       var familyAndFrequentWithoutAccompany = [];
-      if(!empty(getAccompanyTravllers.data)){
-              var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
-                  familyAndFrequentWithoutAccompany = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
+      if(!empty(getAccompanyTravllers.data) && empty(accompanyignTravellersGrid.getRows()) && onLoad){
+        var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
+        familyAndFrequentWithoutAccompany = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
+      }else if ( !empty(accompanyignTravellersGrid.getRows())){
+        var listOfNames = [];
+        for( var x : accompanyignTravellersGrid.getRows()){
+          if(x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value){
+          listOfNames.add(x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value);
+          }
+        }
+        familyAndFrequentWithoutAccompany = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
       }
+
       if(hasChildrenValue > 0) {
         pageVariables.hasChildren=true
       }else{
         pageVariables.hasChildren=false;
       }
+
     return !empty(familyAndFrequentWithoutAccompany) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
   }
 
   var setMembersGrid = function (){
-      var gridValues = familyMemberGridValues();
+      console.info('setMembersGrid Triggered ');
+      var gridValues = familyMemberGridValues(false);
       console.info('set grid data = ' + json:asJSON(gridValues));
       fieldMemeberGrid.setRows(gridValues ?: []);
   }
@@ -702,7 +712,7 @@
     "title": {
       "type": "title",
       "id": "title",
-      "label": "Create Oob Request"
+      "label": "Create an OOB"
     },
     "body": {
       "type": "section",
@@ -840,6 +850,11 @@
                                 "type": "hidden",
                                 "id": "accompanyingMemberID",
                                 "value": "<% accompanyingMemeberData.id %>"
+                              },
+                              {
+                                "type": "hidden",
+                                "id": "accompanyingMemberFullName",
+                                "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') %>"
                               }
                             ]
                           }
