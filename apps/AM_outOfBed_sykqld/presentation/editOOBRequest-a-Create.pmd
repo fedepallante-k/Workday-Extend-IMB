@@ -75,6 +75,49 @@
   "outboundData": {
     "outboundEndPoints": [
       {
+        "name": "createFrequentTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/frequentTravellers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "onSend": "<%
+                   self.data = {'data':[]};
+                   for (var otherMembers : OtherMemberGrid.getRows()) {
+                       if(otherMembers.childrenMap.addToOOBCol.value){
+                           self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+                       }
+                   }
+                   self.data;
+                   %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "createMobileNumbers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "onSend": "<%
+                   self.data = {'data':[]};
+                   self.data.data.addAll(getPhoneData(false, false));
+                   console.info('Create Phone Numbers = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>"
+      },
+      {
         "name": "deletePersonalTimeOff",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs/' + personalTimeOffWID.value %>",
         "httpMethod": "DELETE",
@@ -86,6 +129,26 @@
           return self.data;
         %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
+      },
+      {
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "onSend": "<%
+                   self.data = {'data' : []};
+                   self.data.data.addAll(getAllAccompanyingTravellers().data);
+                   console.info('createAccompanyingTravellers = ' + self.data);
+                   return self.data;
+                   %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
       },
       {
         "name": "createPersonalTimeOff",
@@ -102,11 +165,11 @@
         ],
         "exclude": "<% empty(personalTimeGrid.getRows()) %>",
         "onSend": "<%
-          self.data = {'data':[]};
-          self.data.data.addAll(getPTGridData(false));
-          console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
-          return self.data;
-        %>"
+                   self.data = {'data':[]};
+                   self.data.data.addAll(getPTGridData(false));
+                   console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>"
       },
       {
         "name": "updatePersonalTimeOff",
@@ -130,10 +193,37 @@
         %>"
       },
       {
-        "name": "createMobileNumbers",
-        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers?bulk=true` %>",
-        "authType": "wcpisu",
-        "httpMethod": "POST",
+        "name": "updateOOBProfile",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "frequentTravellers",
+            "value": "<%
+                      var frequentTravellers = !empty(getOOBProfileWQL.data[0]) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID}}) : [];
+                      if(!empty(createFrequentTravellers.data)){
+                          frequentTravellers.addAll(createFrequentTravellers.data.map(x=> {{'id' : x.body.id}}));
+                      }
+                      return frequentTravellers;
+                      %>"
+          }
+        ]
+      },
+      {
+        "name": "updateAccompanyTravellers",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -143,11 +233,13 @@
           }
         ],
         "onSend": "<%
-          self.data = {'data':[]};
-          self.data.data.addAll(getPhoneData(false, false));
-          console.info('Create Phone Numbers = ' + json:asJSON(self.data));
-          return self.data;
-        %>"
+                   self.data = {'data':[]};
+                   var listOfAccompanyTravellers = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
+                   for(var x : listOfAccompanyTravellers){
+                       self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : !empty(queryParams.oobRequest) ? queryParams.oobRequest : flowVariables.oobRequest }});
+                   }
+                   self.data;
+                   %>"
       },
       {
         "name": "updateMobileNumbers",
@@ -163,11 +255,11 @@
           }
         ],
         "onSend": "<%
-          self.data = {'data':[]};
-          self.data.data.addAll(getPhoneData(true, false));
-          console.info('Update Phone Numbers = ' + json:asJSON(self.data));
-          return self.data;
-        %>"
+                   self.data = {'data':[]};
+                   self.data.data.addAll(getPhoneData(true, false));
+                   console.info('Update Phone Numbers = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>"
       },
       {
         "name": "updateOOBRequest",
@@ -175,7 +267,7 @@
         "authType": "sso",
         "httpMethod": "PATCH",
         "onSend": "<%
-        console.info('updateOOB Request datte = ' + self.data);
+                   console.info('updateOOB Request datte = ' + self.data);
                    return self.data;
                    %>",
         "failOnStatusCodes": [
@@ -232,12 +324,12 @@
             "outboundPath": "phoneNumbers",
             "_exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
             "value": "<%
-              var allMobileNumbers =[];
-              allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
-              allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
-              console.info('all numbers oob' + allMobileNumbers);
-              return !empty(allMobileNumbers) ? allMobileNumbers : [{:}];
-            %>"
+                      var allMobileNumbers =[];
+                      allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
+                      allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
+                      console.info('all numbers oob' + allMobileNumbers);
+                      return !empty(allMobileNumbers) ? allMobileNumbers : [{:}];
+                      %>"
           },
           {
             "outboundPath": "elevatedRisk",
@@ -484,19 +576,42 @@
       }
     }
 
-    var getAllAccompanyingTravellers = function(){
-      var addAccompanyingTraveller = [];
-      for (var otherMembers : accompanyignTravellersGrid.getRows()) {
-        addAccompanyingTraveller.add(
-          {
-            'firstName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringBefore(' '),
-            'lastName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringAfter(' ').substringBefore(' ('),
-            'fullName': otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringBefore(' ') + ' ' + otherMembers.accompanyingMemberCol.childrenMap.accompanyingMemberName.value.substringAfter(' ').substringBefore(' ('),
-            'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value });
-      }
-      var TravellerArray = {'data' : addAccompanyingTraveller}
-      return TravellerArray;
-    }
+     var getAllAccompanyingTravellers = function(){
+         var addAccompanyingTraveller = [];
+         var otherAccompanyingTraveller = [];
+
+         for (var otherMembers : OtherMemberGrid.getRows()) {
+             addAccompanyingTraveller.add({
+                 'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),
+                 'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '),
+                 'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
+                 'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+             });
+         }
+         if(!empty(staffMemeberGrid.getSelectedRows())){
+             for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+                 addAccompanyingTraveller.add( {
+                     'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+                     'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+                     'addToOOBProfile': false,
+                     'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+                 });
+             }
+         }
+         if(!empty(fieldMemeberGrid.getSelectedRows())){
+             for ( var i : fieldMemeberGrid.getSelectedRows()) {
+                 addAccompanyingTraveller.add( {
+                     'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+                     'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+                     'addToOOBProfile': false,
+                     'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+                 });
+             }
+         }
+
+         var TravellerArray = {'data' : addAccompanyingTraveller}
+         return TravellerArray;
+     }
 
     var getAccompanyingTravellers = function(){
         var addAccompanyingTraveller = [];
@@ -602,14 +717,6 @@
       "type": "section",
       "horizontal": false,
       "children": [
-        {
-          "type": "text",
-          "label": "pageVariables.frequentTravellers",
-          "id": "pageVariablesFrequentTravellersTxt",
-          "required": false,
-          "enabled": false,
-          "value": "<% !empty(pageVariables.frequentTravellers) ? json:asJSON(pageVariables.frequentTravellers) : 'empty' %>"
-        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -867,17 +974,15 @@
               "required": false,
               "enabled": true,
               "visible": false,
-              "value": "<% !empty(getAccompanyTravllers.data) ? true : false %>",
               "onChange": "<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
             },
             {
               "type": "grid",
-              "render": false,
-              "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
+              "rows": "<% [] %>",
               "id": "OtherMemberGrid",
               "rowVariableName": "otherMemeberData",
               "label": "<% 'For Other Members' %>",
-              "visible": "<% !empty(getAccompanyTravllers.data) %>",
+              "visible": "<% false %>",
               "columns": [
                 {
                   "type": "column",
@@ -885,24 +990,7 @@
                   "label": "<% 'Other Individuals Traveling ' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "enabled": true,
-                    "value": "<% (otherMemeberData.firstName ?: '') + ' ' + (otherMemeberData.lastName ?: '') %>"
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "familyMemberCol2",
-                  "label": "<% 'Other Traveller ID' %>",
-                  "cellTemplate": {
-                    "type": "fieldSet",
-                    "children": [
-                      {
-                        "type": "text",
-                        "id": "otherMemberID",
-                        "value": "<% otherMemeberData.id %>",
-                        "enabled": false
-                      }
-                    ]
+                    "enabled": true
                   }
                 },
                 {
@@ -911,7 +999,6 @@
                   "label": "<% 'Add to OOB profile? ' %>",
                   "cellTemplate": {
                     "type": "checkBox",
-                    "value": "<% otherMemeberData.fromProfile %>",
                     "enabled": true
                   }
                 }

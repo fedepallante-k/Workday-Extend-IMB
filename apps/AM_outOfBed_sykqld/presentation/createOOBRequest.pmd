@@ -119,6 +119,19 @@
         %>"
       },
       {
+        "name": "deletePersonalTimeOff",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs/' + personalTimeOffWID.value %>",
+        "httpMethod": "DELETE",
+        "authType": "sso",
+        "onSend": "<%
+                   console.info('delete Triggered = ');
+                   self.data ={'data': []};
+                   console.info('Edit page delete endPoint = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>",
+        "exclude": "<% empty(personalTimeOffWID.value) %>"
+      },
+      {
         "name": "createOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
         "authType": "sso",
@@ -428,6 +441,20 @@
             "value": "<% '' %>"
           }
         ]
+      },
+      {
+        "name": "deletePhoneNumber",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/mobileNumbers/' + numberId.value %>",
+        "httpMethod": "DELETE",
+        "authType": "wcpisu",
+        "onSend": "<%
+                   console.info('numberId.value= ' + numberId.value);
+                   console.info('delete Triggered = ');
+                   self.data ={'data': []};
+                   console.info('Edit page delete Phone Numbers = ' + json:asJSON(self.data));
+                   return self.data;
+                   %>",
+        "exclude": "<% empty(numberId.value) %>"
       },
       {
         "name": "deleteAccompanyingTravellers",
@@ -963,7 +990,6 @@
                   "label": "<% 'Add to OOB profile? ' %>",
                   "cellTemplate": {
                     "type": "checkBox",
-                    "value": "<% false %>",
                     "enabled": true
                   }
                 }
@@ -973,6 +999,7 @@
               "type": "grid",
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
+              "deleteEndPoint": "deletePhoneNumber",
               "rowVariableName": "contactDetailsData",
               "label": "<% 'Phone Numbers you are travelling with' %>",
               "onRowAdd": "<%
@@ -1136,6 +1163,7 @@
               "visible": "<% !empty(getPersonalTimeOff.data) %>",
               "isArrayOutBinding": "true",
               "rowVariableName": "timeOffData",
+              "deleteEndPoint": "deletePersonalTimeOff",
               "label": "<% 'Personal Time Off Details' %>",
               "columns": [
                 {
