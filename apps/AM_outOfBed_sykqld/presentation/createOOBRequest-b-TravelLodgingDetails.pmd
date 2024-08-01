@@ -176,6 +176,21 @@
         ]
       },
       {
+        "name": "deleteDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations/` + destinationID.value %>",
+        "authType": "wcpisu",
+        "httpMethod": "DELETE",
+        "exclude": "<% empty(destinationID.value) %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -751,6 +766,7 @@
           "panels": "<% !empty(getDestinations.data) ? getDestinations.data : [] %>",
           "panelName": "lodgingDetailsPanels",
           "indexVariableName": "travelPanelIndex",
+          "deleteEndPoint": "deleteDestinations",
           "isArrayOutBinding": false,
           "onPanelAdd": "<%
             var lodgingPanels = self.getPanels();

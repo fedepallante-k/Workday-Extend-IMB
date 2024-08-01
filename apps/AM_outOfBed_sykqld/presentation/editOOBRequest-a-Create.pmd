@@ -70,6 +70,13 @@
       "exclude": "<% empty(queryParams.oobRequest )%>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID is not null AND workdayID = \\'' + queryParams.oobRequest +  '\\' WHERE travellerName = \\''+ searchValue +'\\' AND oobRequest is not empty').urlEncode() %>",
+      "authType": "wcpisu",
+      "deferred": true
     }
   ],
   "outboundData": {
@@ -113,7 +120,6 @@
         "onSend": "<%
                    self.data = {'data':[]};
                    self.data.data.addAll(getPhoneData(false, false));
-                   console.info('Create Phone Numbers = ' + json:asJSON(self.data));
                    return self.data;
                    %>"
       },
@@ -123,9 +129,7 @@
         "httpMethod": "DELETE",
         "authType": "sso",
         "onSend": "<%
-          console.info('delete Triggered = ');
           self.data ={'data': []};
-          console.info('Edit page delete endPoint = ' + json:asJSON(self.data));
           return self.data;
         %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
@@ -138,7 +142,6 @@
         "onSend": "<%
                    self.data = {'data' : []};
                    self.data.data.addAll(getAllAccompanyingTravellers().data);
-                   console.info('createAccompanyingTravellers = ' + self.data);
                    return self.data;
                    %>",
         "failOnStatusCodes": [
@@ -167,7 +170,6 @@
         "onSend": "<%
                    self.data = {'data':[]};
                    self.data.data.addAll(getPTGridData(false));
-                   console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
                    return self.data;
                    %>"
       },
@@ -188,7 +190,6 @@
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(true));
-          console.info('Update Personal Time Off data = ' + json:asJSON(self.data));
           return self.data;
         %>"
       },
@@ -257,7 +258,6 @@
         "onSend": "<%
                    self.data = {'data':[]};
                    self.data.data.addAll(getPhoneData(true, false));
-                   console.info('Update Phone Numbers = ' + json:asJSON(self.data));
                    return self.data;
                    %>"
       },
@@ -266,10 +266,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + queryParams.oobRequest %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "onSend": "<%
-                   console.info('updateOOB Request datte = ' + self.data);
-                   return self.data;
-                   %>",
+        "onSend": "<% return self.data;  %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -327,7 +324,6 @@
                       var allMobileNumbers =[];
                       allMobileNumbers.addAll(createMobileNumbers.data.map(x=> {{'id' : x.body.id}}));
                       allMobileNumbers.addAll(getPhoneData(false, true).map(x => {{'id' : x.id}}));
-                      console.info('all numbers oob' + allMobileNumbers);
                       return !empty(allMobileNumbers) ? allMobileNumbers : [{:}];
                       %>"
           },
@@ -367,10 +363,7 @@
         "httpMethod": "DELETE",
         "authType": "wcpisu",
         "onSend": "<%
-                   console.info('numberId.value= ' + numberId.value);
-                  console.info('delete Triggered = ');
                   self.data ={'data': []};
-                  console.info('Edit page delete Phone Numbers = ' + json:asJSON(self.data));
                   return self.data;
                   %>",
         "exclude": "<% empty(numberId.value) %>"
@@ -380,6 +373,27 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyingMemberID.value %>",
         "authType": "sso",
         "httpMethod": "DELETE",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "deleteDestinations",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true' %>",
+        "authType": "wcpisu",
+        "httpMethod": "DELETE",
+        "exclude": "<% empty(destinationsToDelete()) %>",
+        "onSend":"<%
+          self.data = {'data':[]};
+          self.data.data.addAll(destinationsToDelete());
+          console.info('Delete Destination self.data = ' + json:asJSON(self.data));
+          return self.data;
+        %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -481,6 +495,10 @@
           {
             "outboundPath": "oobRequest",
             "value": "<% !empty(queryParams.oobRequest) ?  queryParams.oobRequest : '' %>"
+          },
+          {
+            "outboundPath": "deleteData",
+            "value": "<% !empty(queryParams.oobRequest) ?  queryParams.oobRequest : '' %>"
           }
         ]
       }
@@ -516,8 +534,33 @@
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
      pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers ?: [];
      pageVariables.isEdit = queryParams.isEdit;
+     pageVariables.deletedTravellers = [];
      %>",
   "script": "<%
+    var destinationsToDelete = function(){
+      var travellersOnLoad = [];
+      var gridAccompanyingTravellers = [];
+      var travellersToRemove = [];
+      var listOfIDs = [];
+      if(!empty(getAccompanyTravllers.data)){
+        travellersOnLoad.addAll(getAccompanyTravllers.data.map(x => {{'name' : x.firstName + ' ' + x.lastName}}));
+      }
+        if(!empty(accompanyignTravellersGrid.getRows())) {
+          for( var x : accompanyignTravellersGrid.getRows()){
+            if(!empty(x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value)){
+             gridAccompanyingTravellers.add(x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value);
+            }
+          }
+        }
+      travellersToRemove = list:excludeMultiple(travellersOnLoad, 'name', gridAccompanyingTravellers);
+        for(var x : travellersToRemove){
+          listOfIDs.addAll(getDestinations.invoke({'searchValue': x.name}).data);
+        }
+        console.info('listOfIDs = ' + listOfIDs);
+        return listOfIDs;
+      }
+
+
      var familyMemberGridValues = function (onLoad){
        var familyAndFrequent =[];
        var hasChildrenValue = 0;
@@ -557,15 +600,12 @@
          }else{
              pageVariables.hasChildren=false;
          }
-       console.info('familyAndFrequentWithoutAccompany = ' + familyAndFrequentWithoutAccompany);
-       console.info('familyAndFrequent = ' + familyAndFrequent);
+
          return !empty(familyAndFrequentWithoutAccompany) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
      }
 
      var setMembersGrid = function (){
-         console.info('setMembersGrid Triggered ');
          var gridValues = familyMemberGridValues(false);
-         console.info('set grid data = ' + json:asJSON(gridValues));
          fieldMemeberGrid.setRows(gridValues ?: []);
      }
 
@@ -633,11 +673,9 @@
 
     var getAccompanyingTravellers = function(){
         var addAccompanyingTraveller = [];
-        console.info('Accomp list before = ' + addAccompanyingTraveller);
         for (var members : accompanyignTravellersGrid.getRows()) {
             addAccompanyingTraveller.add({'id': members.accompanyingMemberCol.childrenMap.accompanyingMemberID.value});
         }
-        console.info('Accomp list after = ' + addAccompanyingTraveller);
         return addAccompanyingTraveller;
     }
 
@@ -674,8 +712,6 @@
           });
         }
       }
-      console.info('updatePersonalTimeOff = ' + updatePersonalTimeOff);
-      console.info('createPersonalTimeOff = ' + createPersonalTimeOff);
       return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
     }
 
@@ -696,7 +732,6 @@
         var oobProfileID = !empty(getOOBProfileWQL.data[0].id) ? {'id' : getOOBProfileWQL.data[0].id} : '';
 
         if(!newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
-          console.info('!newRow and updated = ' + idValue);
           updatePhoneNumbers.add({
             'id': idValue,
             'name': !empty(nameWidget.value) ? nameWidget.value : '',
@@ -707,7 +742,6 @@
         });
           allGridNumbers.add({'id': idValue});
         } else if( newRow && columnPath.NameCol.childrenMap.nameCell.selectedEntries[0]){
-            console.info('newRow and selectedEnbtries = TRUE');
             createPhoneNumbers.add({
               'name': !empty(nameWidget.value) ? nameWidget.value : '',
               'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
@@ -716,7 +750,6 @@
               'oobProfile': oobProfileID
             });
         }else if ( !newRow && idValue !='other'){
-            console.info('id for all grid = ' + idValue);
             allGridNumbers.add({'id': idValue});
         }
       }
@@ -736,6 +769,14 @@
       "horizontal": false,
       "children": [
         {
+          "type": "text",
+          "label": "test1",
+          "id": "test1Txt",
+          "required": false,
+          "enabled": false,
+          "value": "Value"
+        },
+        {
           "type": "fieldSet",
           "id": "tripDetailsFS",
           "title": "Trip Details",
@@ -749,7 +790,8 @@
               "enabled": true,
               "trueLabel": "True Label",
               "falseLabel": "False Label",
-              "value": true
+              "value": true,
+              "onChange": "<% test1Txt.setValue(destinationsToDelete()); %>"
             },
             {
               "type": "text",
@@ -835,10 +877,7 @@
               "deleteEndPoint": "deleteAccompanyingTravellers",
               "rowVariableName": "accompanyingMemeberData",
               "label": "<% 'Accompanying Travellers Grid' %>",
-              "onRowRemove": "<%
-                              console.info('Row remove triggered');
-                              setMembersGrid();
-                              %>",
+              "onRowRemove": "<% setMembersGrid(); %>",
               "visible": "<% !empty(getAccompanyTravllers.data) %>",
               "columns": [
                 {
@@ -860,8 +899,7 @@
                         "value": "<% accompanyingMemeberData.id %>"
                       },
                       {
-                        "type": "text",
-                        "enabled": false,
+                        "type": "hidden",
                         "id": "accompanyingMemberFullName",
                         "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') %>"
                       }
