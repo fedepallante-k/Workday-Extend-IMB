@@ -1,0 +1,105 @@
+{
+  "id": "viewOOBProfile",
+  "_generationNote": "This page displays a single instance of the OOBProfile business object. ",
+  "endPoints": [
+    {
+      "_generationNote": "Gets a single instance, as specified by 'queryParams.instanceId' of the OOBProfile business object resource.",
+      "name": "getOOBProfile",
+      "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/{{queryParams.instanceId}}` %>",
+      "authType": "sso",
+      "httpMethod": "GET"
+    }
+  ],
+  "_securityDomains": [ ],
+  "script": "",
+  "presentation": {
+    "pageType": "view",
+    "title": {
+      "type": "title",
+      "id": "title",
+      "label": "View Oob Profile"
+    },
+    "body": {
+      "type": "section",
+      "id": "bodySection",
+      "children": [
+        {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Field",
+          "taskReference": {
+            "taskId": "createOOBRequest",
+            "parameterBindings": {
+              "isField": "<% true %>"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Staff",
+          "taskReference": {
+            "taskId": "createOOBRequest",
+            "parameterBindings": {
+              "isField": "<% false %>"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Edit",
+          "taskReference": {
+            "taskId": "editOOBRequest-a-Create",
+            "parameterBindings": {
+              "oobRequest": "<% '9761f928748081044176b896a6320000' %>",
+              "isEdit": "<% true %>"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "id": "sts",
+          "label": "STS",
+          "value": "<% getOOBProfile.sts %>"
+        },
+        {
+          "type": "instanceList",
+          "id": "mobileNumbers",
+          "label": "Mobile Numbers",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getOOBProfile.mobileNumbers %>"
+        },
+        {
+          "type": "instanceList",
+          "id": "frequentTravellers",
+          "label": "Frequent Travellers",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getOOBProfile.frequentTravellers %>"
+        },
+        {
+          "type": "instanceList",
+          "id": "favouriteDestinations",
+          "label": "Favourite Destinations",
+          "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
+          "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
+          "values": "<% getOOBProfile.favouriteDestinations %>"
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "id": "footer",
+      "children": [
+        {
+          "type": "richText",
+          "id": "footerText",
+          "enabled": "false",
+          "value": "Powered By Workday Extend"
+        }
+      ]
+    }
+  }
+}
