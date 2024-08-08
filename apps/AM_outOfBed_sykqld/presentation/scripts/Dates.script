@@ -138,6 +138,10 @@ var getDateTimeNowFormatted = function(timezone) {
   return getDateTimeFormatted(getDateTimeNow(timezone));
 }
 
+var getTimeFormatted = function(time) {
+    return date:format(getDate(time), 'HH:mm:ss');
+}
+
 {
   "getDate": getDate,
   "getNumber": getNumber,
@@ -165,5 +169,6 @@ var getDateTimeNowFormatted = function(timezone) {
   "getDateTimeLocalFormatted": getDateTimeLocalFormatted,
   "getDateTimeNow": getDateTimeNow,
   "getDateTimeNowFormatted": getDateTimeNowFormatted,
-  "getDateFormattedUS": getDateFormattedUS
+  "getDateFormattedUS": getDateFormattedUS,
+  "getTimeFormatted": getTimeFormatted
 }

@@ -480,20 +480,23 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Departure Time",
                   "id": "departureTimeTxt",
                   "required": true,
                   "enabled": true,
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "value": "<% !empty(travelDeatilsPanels.departureTime) ? travelDeatilsPanels.departureTime : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].departureTime",
-                      "value": "<% self.value %>"
+                      "value": "<% Dates.getTimeFormatted(self.value) %>"
                     },
                     {
                       "valueOutBinding": "updateAccompanyingTravellers.data[].departureTime",
-                      "value": "<% self.value %>"
+                      "value": "<%  Dates.getTimeFormatted(self.value) %>"
                     }
                   ]
                 },
@@ -516,20 +519,23 @@
                   ]
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Arrival Time",
                   "id": "arrivalTimeTxt",
                   "required": true,
                   "enabled": true,
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "value": "<% !empty(travelDeatilsPanels.arrivalTime) ? travelDeatilsPanels.arrivalTime : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].arrivalTime",
-                      "value": "<% self.value %>"
+                      "value": "<% Dates.getTimeFormatted(self.value) %>"
                     },
                     {
                       "valueOutBinding": "updateAccompanyingTravellers.data[].arrivalTime",
-                      "value": "<% self.value %>"
+                      "value": "<% Dates.getTimeFormatted(self.value) %>"
                     }
                   ]
                 },

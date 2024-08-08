@@ -412,9 +412,12 @@
                   "value": "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Departure Time",
                   "id": "departureTimeTxt",
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "enabled": false,
                   "value": "<% !empty(objectToLoopOn.departureTime) ? objectToLoopOn.departureTime : '' %>"
                 },
@@ -428,9 +431,12 @@
                   "value": "<% !empty(objectToLoopOn.arrivalDate) ? objectToLoopOn.arrivalDate : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Arrival Time",
                   "id": "arrivalTimeTxt",
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "enabled": false,
                   "value": "<% !empty(objectToLoopOn.arrivalTime) ? objectToLoopOn.arrivalTime : '' %>"
                 },

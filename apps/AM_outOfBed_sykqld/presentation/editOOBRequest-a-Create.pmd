@@ -870,10 +870,20 @@
           "collapsible": true,
           "children": [
             {
+              "type": "text",
+              "label": "Removing Accompanying Travellers",
+              "id": "removingAccompanyingTravellersTxt",
+              "required": false,
+              "enabled": false,
+              "visible": "<% !empty(getAccompanyTravllers.data) %>",
+              "value": "Please navigate to the next page to remove accompanying travellers"
+            },
+            {
               "type": "grid",
               "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
               "id": "accompanyignTravellersGrid",
               "doNotAdd": true,
+              "doNotRemove": true,
               "deleteEndPoint": "deleteAccompanyingTravellers",
               "rowVariableName": "accompanyingMemeberData",
               "label": "<% 'Accompanying Travellers Grid' %>",
