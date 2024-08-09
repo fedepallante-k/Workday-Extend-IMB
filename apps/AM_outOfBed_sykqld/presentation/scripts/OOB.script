@@ -1,0 +1,160 @@
+var getCurrentTime = function() {
+    return date:getTodaysDate(date:getDateTimeZone('US/Pacific'));
+};
+
+var getWorkerDetails = function(additionalFields, additionalQuery) {
+    var query ='';
+    query = 'SELECT ' + (!empty(additionalFields) ? additionalFields + ', ' : '') + 'worker FROM workersForHCMReporting(dataSourceFilter=allActiveWorkers) ' + (!empty(additionalQuery) ? ' WHERE ' + additionalQuery : '');
+    console.debug("Query text = " + query);
+    return query.urlEncode();
+}
+var getSTS = function() {
+  return [
+    {'id': 'visitFamily', 'descriptor': ' I am traveling to visit family in the USA (STAS, Trips to USA)'},
+    {'id': 'vacation', 'descriptor': 'I am on vacation/sightseeing. (Visa runs, actual vacations)'},
+    {'id': 'visitFriends', 'descriptor': 'I am visiting friends'},
+    {'id': 'training', 'descriptor': 'I am attending a training/meeting'},
+    {'id': 'other', 'descriptor': 'Other (None of these apply)'}
+  ];
+}
+
+var getModeOfTransport = function() {
+  return [
+    {'id': 'air', 'descriptor': 'Air'},
+    {'id': 'car', 'descriptor': 'Car'},
+    {'id': 'bus', 'descriptor': 'Bus'},
+    {'id': 'train', 'descriptor': 'Train'},
+    {'id': 'boat', 'descriptor': 'Boat'},
+    {'id': 'other', 'descriptor': 'Other'}
+  ];
+}
+
+var getAllAccompanyingTravellers = function(OtherMemberGrid, staffMemeberGrid, fieldMemeberGrid, createOOBRequest, oobRequest){
+    var addAccompanyingTraveller = [];
+    var otherAccompanyingTraveller = [];
+
+    for (var otherMembers : OtherMemberGrid.getRows()) {
+        addAccompanyingTraveller.add({
+            'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),
+            'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '),
+            'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
+            'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(oobRequest)  ? oobRequest : ''}
+        });
+    }
+    if(!empty(staffMemeberGrid.getSelectedRows())){
+        for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+            addAccompanyingTraveller.add( {
+                'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+                'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+                'addToOOBProfile': false,
+                'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(oobRequest)  ? oobRequest : ''}
+            });
+        }
+    }
+    if(!empty(fieldMemeberGrid.getSelectedRows())){
+        for ( var i : fieldMemeberGrid.getSelectedRows()) {
+            addAccompanyingTraveller.add( {
+                'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+                'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+                'addToOOBProfile': false,
+                'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(oobRequest)  ? oobRequest : ''}
+            });
+        }
+    }
+
+    var TravellerArray = {'data' : addAccompanyingTraveller}
+    return TravellerArray;
+}
+
+var getPhoneData = function (isEdit, addToOOBRequest, allNumbers){
+    var updatePhoneNumbers =[];
+    var createPhoneNumbers = [];
+    var allGridNumbers = []
+    var gridRows = allNumbers.getRows();
+
+    for (var otherNumbers : gridRows) {
+        var columnPath = otherNumbers.childrenMap;
+            var newRow = columnPath.NameCol.childrenMap.isNewNumber.value;
+            var idValue = !empty(columnPath.NameCol.childrenMap.numberId.value) ? columnPath.NameCol.childrenMap.numberId.value : '';
+            var nameWidget = columnPath.phoneNameCol;
+            var countryCodeWidget =  columnPath.countryCodeCol ;
+            var PhoneNumberWidget = columnPath.phoneNumberCol;
+            var NotesWidget = columnPath.notesCol;
+            var oobProfileID = !empty(getOOBProfileWQL.data[0].id) ? {'id' : getOOBProfileWQL.data[0].id} : '';
+
+            if(!newRow && idValue !='other' && (nameWidget.isUpdated() || countryCodeWidget.isUpdated() || PhoneNumberWidget.isUpdated() || NotesWidget.isUpdated())){
+                console.info('!newRow and updated = ' + idValue);
+                    updatePhoneNumbers.add({
+                        'id': idValue,
+                        'name': !empty(nameWidget.value) ? nameWidget.value : '',
+                        'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+                        'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+                        'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+                        'oobProfile': oobProfileID
+                    });
+                    allGridNumbers.add({'id': idValue});
+            } else if( newRow && columnPath.NameCol.childrenMap.nameCell.selectedEntries[0]){
+                console.info('newRow and selectedEnbtries = TRUE');
+                    createPhoneNumbers.add({
+                        'name': !empty(nameWidget.value) ? nameWidget.value : '',
+                        'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+                        'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+                        'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+                        'oobProfile': oobProfileID
+                    });
+            }else if ( !newRow && idValue !='other'){
+                console.info('id for all grid = ' + idValue);
+                    allGridNumbers.add({'id': idValue});
+            }
+    }
+    return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
+}
+
+var getPTGridData = function(isEdit, personalTimeGrid, oobRequest, createOOBRequest){
+    var updatePersonalTimeOff =[];
+    var createPersonalTimeOff = [];
+    var gridRows = personalTimeGrid.getRows();
+
+    for (var personalTimeOff : personalTimeGrid.getRows()) {
+        var columnPath = personalTimeOff.childrenMap;
+            var idValue = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWID.value;
+            var workerWidget = columnPath.workerTimeOffCol.childrenMap.personalTimeOffWorker;
+            var typeWidget =  columnPath.absenceTypeCol ;
+            var startDateWidget = columnPath.startDateCol;
+            var endDateWidget = columnPath.endDateCol;
+            var oobRequestID = !empty(oobRequest) ? oobRequest : !empty(createOOBRequest) ? createOOBRequest :'';
+
+            if(!empty(idValue) && workerWidget.selectedEntries[0].id && (workerWidget.isUpdated() || typeWidget.isUpdated() || startDateWidget.isUpdated() || endDateWidget.isUpdated())){
+                updatePersonalTimeOff.add({
+                    'id': !empty(idValue) ? idValue : '',
+                    'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+                    'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+                    'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+                    'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+                    'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+                });
+            }else if(empty(idValue) && workerWidget.selectedEntries[0].id){
+                createPersonalTimeOff.add({
+                    'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+                    'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+                    'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+                    'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+                    'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+                });
+            }
+    }
+    console.info('updatePersonalTimeOff = ' + updatePersonalTimeOff);
+    console.info('createPersonalTimeOff = ' + createPersonalTimeOff);
+    return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
+}
+
+
+{
+    "getCurrentTime": getCurrentTime,
+    "getWorkerDetails": getWorkerDetails,
+    "getSTS": getSTS,
+    "getModeOfTransport": getModeOfTransport,
+    "getAllAccompanyingTravellers": getAllAccompanyingTravellers,
+    "getPhoneData": getPhoneData,
+    "getPTGridData" : getPTGridData
+}

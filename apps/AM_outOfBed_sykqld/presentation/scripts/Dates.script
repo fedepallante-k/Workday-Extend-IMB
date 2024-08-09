@@ -1,0 +1,174 @@
+var getDateTimeZone = function(timezone) {
+  return string:isString(timezone) ? date:getDateTimeZone(timezone) : timezone;
+}
+
+var getNumber = function(raw) {
+  return string:isString(raw) ? number:convertStringToInt(raw) : raw;
+}
+
+var getDate = function(date) {
+  return string:isString(date) ? date.size() == 10 ? date:parseDateString(date) : date:parseFormattedDateString(date, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : date;
+}
+
+var getDateRelativeTo = function(startDate, daysOffset) {
+  return date:add(getDate(startDate), 'DAY', getNumber(daysOffset));
+}
+
+var getDateFormatted = function(date) {
+  return date:format(getDate(date), 'yyyy-MM-dd');
+}
+
+var getDateFormattedUS = function(date) {
+    return date:format(getDate(date), 'MM/dd/yyyy');
+}
+
+var getDateFormattedWithMonthName = function(date) {
+  return date:format(getDate(date), 'dd-MMM-yyyy');
+}
+
+var getDateFormattedRelativeTo = function(startDate, daysOffset) {
+  return getDateFormatted(getDateRelativeTo(startDate, daysOffset));
+}
+
+var getDateLongFormatted = function(date) {
+  return date:format(getDate(date), 'EEE, d MMM');
+}
+
+var getDateTodayFormatted = function(timezone) {
+  return date:getTodaysDateFormatted(getDateTimeZone(timezone), 'yyyy-MM-dd');
+}
+
+var getDateToday = function(timezone) {
+  return getDate(getDateTodayFormatted(timezone));
+}
+
+var getDateRelativeToToday = function(daysOffset, timezone) {
+  var relativeDate = getDateToday(timezone);
+  if (getNumber(daysOffset) != 0) relativeDate = getDateRelativeTo(relativeDate, daysOffset);
+  return relativeDate;
+}
+
+var getDateRelativeToTodayFormatted = function(daysOffset, timezone) {
+  return getDateFormatted(getDateRelativeToToday(daysOffset, timezone));
+}
+
+var isDateAfterToday = function(date, timezone) {
+  return date:after(getDate(date), getDateRelativeToToday(0, timezone));
+}
+
+var getDayNames = function() {
+  return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+}
+
+var getWeekStartDate = function(weekOffset, timezone) {
+  var weekdays = getDayNames();
+  var todayDayOfWeek = date:getTodaysDateFormatted(getDateTimeZone(timezone), 'EEEE').lowerCase();
+  var adjustment = -weekdays.indexOf(todayDayOfWeek) + (weekOffset ? weekOffset * 7 : 0);
+
+  return getDateRelativeToToday(adjustment, timezone);
+}
+
+var getWeekStartDateFormatted = function(weekOffset, timezone) {
+  return getDateFormatted(getWeekStartDate(weekOffset, timezone));
+}
+
+var getWeekEndDate = function(weekOffset, timezone) {
+  return date:add(getWeekStartDate(weekOffset, timezone), 'DAY', 6);
+}
+
+var getWeekEndDateFormatted = function(weekOffset, timezone) {
+  return getDateFormatted(getWeekEndDate(weekOffset, timezone));
+}
+
+var getDatesOfWeek = function(weekOffset, timezone) {
+  var dates = [];
+  var counter = 0;
+  var startDate = getWeekStartDate(weekOffset, timezone);
+  do {
+    var adjustedDate = date:add(startDate, 'DAY', counter);
+    dates.add(getDateFormatted(adjustedDate));
+    counter += 1;
+  } while (counter < 7);
+
+  return dates;
+}
+
+var getYearStartDate = function(day) {
+  return getDate(day).withDayOfYear(1);
+}
+
+var getYearEndDate = function(day) {
+  return getDate(day).plusYears(1).withDayOfYear(1).minusDays(1);
+}
+
+var getDatesForRange = function(startDate, endDate, boundaries) {
+  if(!empty(boundaries)) {
+    if(string:toString(startDate) < string:toString(boundaries.first())) startDate = boundaries.first();
+    if(string:toString(endDate) > string:toString(boundaries.last())) endDate = boundaries.last();
+  }
+  var dates = [];
+  var currentDate = getDate(startDate);
+  endDate = getDate(endDate);
+  do {
+    dates.add(getDateFormatted(currentDate));
+    currentDate = currentDate.plusDays(1);
+  } while (currentDate <= endDate);
+
+  return dates;
+}
+
+// DATE-TIME
+var getDateTimeFormat = function() {
+  return "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+}
+
+var getDateTimeFormatted = function(date) {
+  return getDate(date).format(getDateTimeFormat());
+}
+
+var getDateTimeLocalFormatted = function(date, localFormat, timeZone) {
+  return getDate(date).formatWithTimeZone(localFormat.replace("2000", "yyyy").replace("12", "MM").replace("30", "dd") + " hh:mm:ss a", timeZone ?: 'UTC'); // e.g. "<local date format> 12:59:59 PM"
+}
+
+var getDateTimeNow = function(timezone) {
+  return !empty(timezone) ? date:now(timezone) : date:now();
+}
+
+var getDateTimeNowFormatted = function(timezone) {
+  return getDateTimeFormatted(getDateTimeNow(timezone));
+}
+
+var getTimeFormatted = function(time) {
+    return date:format(getDate(time), 'HH:mm:ss');
+}
+
+{
+  "getDate": getDate,
+  "getNumber": getNumber,
+  "getDateRelativeTo": getDateRelativeTo,
+  "getDateFormatted": getDateFormatted,
+  "getDateFormattedWithMonthName": getDateFormattedWithMonthName,
+  "getDateFormattedRelativeTo": getDateFormattedRelativeTo,
+  "getDateLongFormatted": getDateLongFormatted,
+  "getDateTodayFormatted": getDateTodayFormatted,
+  "getDateToday": getDateToday,
+  "getDateRelativeToToday": getDateRelativeToToday,
+  "getDateRelativeToTodayFormatted": getDateRelativeToTodayFormatted,
+  "getDayNames": getDayNames,
+  "getWeekStartDate": getWeekStartDate,
+  "getWeekStartDateFormatted": getWeekStartDateFormatted,
+  "getWeekEndDate": getWeekEndDate,
+  "getWeekEndDateFormatted": getWeekEndDateFormatted,
+  "getDatesOfWeek": getDatesOfWeek,
+  "getDatesForRange": getDatesForRange,
+  "getYearStartDate" : getYearStartDate,
+  "getYearEndDate": getYearEndDate,
+  "isDateAfterToday": isDateAfterToday,
+  "getDateTimeFormat": getDateTimeFormat,
+  "getDateTimeFormatted": getDateTimeFormatted,
+  "getDateTimeLocalFormatted": getDateTimeLocalFormatted,
+  "getDateTimeNow": getDateTimeNow,
+  "getDateTimeNowFormatted": getDateTimeNowFormatted,
+  "getDateFormattedUS": getDateFormattedUS,
+  "getTimeFormatted": getTimeFormatted
+}

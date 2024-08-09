@@ -1,0 +1,29 @@
+{
+  "id": "AM_outOfBed_sykqld",
+  "languages": [
+    {
+      "code": "en-US",
+      "description": "English"
+    }
+  ],
+  "siteAuth": {
+    "authTypes": [
+      {
+        "scheme": "SSO",
+        "id": "sso"
+      },
+      {
+        "scheme": "WCPISU",
+        "id": "wcpisu",
+        "tokenEndpoint": "https://auth.api.workday.com/v1/token",
+        "appId": "outOfBed_sykqld",
+        "tokenHolder": "XTND_ISU_OOB",
+        "checkEnvironment": true
+      }
+    ]
+  },
+  "siteId": "AM_outOfBed_sykqld",
+  "cdnEnabled": true,
+  "siteProperties": [ ],
+  "applicationId": "AM_outOfBed_sykqld"
+}

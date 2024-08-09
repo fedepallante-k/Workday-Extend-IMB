@@ -1,0 +1,290 @@
+{
+  "appProperties": [
+    {
+      "key": "mainAppId",
+      "value": "outOfBed_sykqld"
+    }
+  ],
+  "flowDefinitions": [
+    {
+      "id": "createOOBFlow",
+      "flowSteps": [
+        {
+          "id": "createOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "oobRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "oobRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "OOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "createOOB",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "OOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "OOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "createOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "oobRequestTravelLodging",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "OOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "createOOBBackToMain",
+              "condition": "true"
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "createOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
+    },
+    {
+      "id": "editOOBFlow",
+      "flowSteps": [
+        {
+          "id": "editOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "editOOBRequest-a-Create"
+        },
+        {
+          "id": "editOOBRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOB",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "editOOBBackToRequest",
+          "endsFlow": true,
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "editOOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOBRequestTravelLodging",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "editOOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBBackToMain",
+              "condition": "true"
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "editOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "createOOBProfile",
+      "routingPattern": "/",
+      "page": {
+        "id": "createOOBProfile"
+      }
+    },
+    {
+      "id": "editOOBProfile",
+      "routingPattern": "/editOOBProfile",
+      "page": {
+        "id": "editOOBProfile"
+      }
+    },
+    {
+      "id": "createOOBRequest",
+      "routingPattern": "/createOOBRequest",
+      "page": {
+        "id": "createOOBRequest"
+      }
+    },
+    {
+      "id": "editOOBRequest",
+      "routingPattern": "/editOOBRequest",
+      "page": {
+        "id": "editOOBRequest"
+      }
+    },
+    {
+      "id": "viewOOBRequest",
+      "routingPattern": "/viewOOBRequest",
+      "page": {
+        "id": "viewOOBRequest"
+      }
+    },
+    {
+      "id": "viewOOBProfile",
+      "routingPattern": "/viewOOBProfile",
+      "page": {
+        "id": "viewOOBProfile"
+      }
+    },
+    {
+      "id": "createAccompanyingTravellers",
+      "routingPattern": "/createAccompanyingTravellers",
+      "page": {
+        "id": "createAccompanyingTravellers"
+      }
+    },
+    {
+      "id": "createOOBReview",
+      "routingPattern": "createOOBReview",
+      "page": {
+        "id": "createOOBReview"
+      }
+    },
+    {
+      "id": "createOOBRequest-b-TravelLodgingDetails",
+      "routingPattern": "createOOBRequest-b-TravelLodgingDetails",
+      "page": {
+        "id": "createOOBRequest-b-TravelLodgingDetails"
+      }
+    },
+    {
+      "id": "createOOBRequest-d-Confirm",
+      "routingPattern": "createOOBRequest-d-Confirm",
+      "page": {
+        "id": "createOOBRequest-d-Confirm"
+      }
+    },
+    {
+      "id": "editOOBRequest-a-Create",
+      "routingPattern": "editOOBRequest-a-Create",
+      "page": {
+        "id": "editOOBRequest-a-Create"
+      }
+    },
+    {
+      "id": "editOOBRequest-b-TravelLodgingDetails",
+      "routingPattern": "editOOBRequest-b-TravelLodgingDetails",
+      "page": {
+        "id": "editOOBRequest-b-TravelLodgingDetails"
+      }
+    }
+  ],
+  "applicationId": "AM_outOfBed_sykqld",
+  "dataProviders": [
+    {
+      "key": "WORKDAY-COMMON",
+      "value": "https://api.workday.com/common/v1"
+    },
+    {
+      "key": "WORKDAY-RAAS",
+      "value": "https://api.workday.com/raas"
+    },
+    {
+      "key": "WORKDAY-WQL",
+      "value": "https://api.workday.com/wql/v1"
+    },
+    {
+      "key": "APP-V1",
+      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
+    },
+    {
+      "key": "WORKDAY-BP",
+      "value": "https://api.workday.com/businessProcess/v1"
+    },
+    {
+      "key": "APP-ORCHESTRATE-V1",
+      "value": "https://api.workday.com/orchestrate/v1/apps/<% site.applicationId %>/orchestrations"
+    },
+    {
+      "key": "WORKDAY-CONNECT-V1",
+      "value": "https://api.workday.com/connect/v1"
+    }
+  ]
+}
