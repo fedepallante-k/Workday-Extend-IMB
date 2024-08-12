@@ -87,7 +87,7 @@
     }
   %>",
   "onLoad": "<%
-  pageVariables.warningCount = 0;
+    pageVariables.warningCount = 0;
   %>",
   "presentation": {
     "pageType": "edit",
@@ -191,7 +191,7 @@
               "selectionEnabled": false,
               "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
               "__rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
-              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data.map(x => {{'firstName' : x.firstName, 'lastName' : x.lastName, 'addToProfile' : x.addToProfile}}).distinct() : [] %>",
+              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data.map(x => {{'firstName' : x.firstName, 'lastName' : x.lastName, 'addToOOBProfile' : x.addToOOBProfile}}).distinct() : [] %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -217,7 +217,7 @@
                   "cellTemplate": {
                     "id": "addToOOB",
                     "type": "text",
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.addToProfile ? 'Yes' : '' : '' %>",
+                    "value": "<% !empty(fieldMemeberData) && fieldMemeberData.addToOOBProfile ? 'Yes' : 'No'  %>",
                     "enabled": false
                   }
                 }
@@ -233,7 +233,7 @@
             },
             {
               "type": "grid",
-              "visible": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) %>",
+              "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].phoneNumbers) %>",
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
               "enabled": false,

@@ -44,7 +44,21 @@
       "name": "getDestinations",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, travellerName, Destination, name AS descriptor, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getDestinationsOnProfileOLD",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name AS descriptor FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty AND addToProfile = true ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getDestinationsOnProfile",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, name AS descriptor,travellerName, Destination, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobProfile workdayID = \\''+  flowVariables.oobProfileID + '\\' WHERE oobProfile is not empty AND addToProfile = true ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     }
   ],
@@ -126,7 +140,8 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
         "authType": "sso",
         "httpMethod": "PATCH",
-        "exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
+        "_exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
+        "exclude": "<% true %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -311,7 +326,7 @@
 */
   %>",
   "onLoad": "<%
-    pageVariables.lodgingList = !empty(getLodging.data[0]) && !empty(getLodging.data[0].favouriteDestinations) ? getLodging.data[0].favouriteDestinations.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}]
+    pageVariables.lodgingList = !empty(getDestinationsOnProfile.data) ? getDestinationsOnProfile.data.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}];
    %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -824,6 +839,21 @@
                 },
                 {
                   "type": "hidden",
+                  "id": "oobProfileIDDestintation",
+                  "value": "<%  !empty(flowVariables.oobProfileID) ? flowVariables.oobProfileID : '' %>",
+                  "valuesOut": [
+                    {
+                      "valueOutBinding": "createDestinations.data[].oobProfile.id",
+                      "value": "<% self.value %>"
+                    },
+                    {
+                      "valueOutBinding": "updateDestinations.data[].oobProfile.id",
+                      "value": "<% self.value %>"
+                    }
+                  ]
+                },
+                {
+                  "type": "hidden",
                   "id": "destinationID",
                   "value": "<%  !empty(lodgingDetailsPanels.id) ? lodgingDetailsPanels.id : '' %>",
                   "valuesOut": [
@@ -905,7 +935,8 @@
                   "multiSelect": false,
                   "required": true,
                   "enabled": true,
-                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.name) ? !empty(pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})) ? [pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})] : [] : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(getDestinations.data[0].descriptor) ? !empty(getDestinations.data.find(x => {x.descriptor == lodgingDetailsPanels.descriptor})) ? [getDestinations.data.find(x => {x.descriptor == lodgingDetailsPanels.descriptor})] : [] : [] %>",
+                  "_selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.name) ? !empty(pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})) ? [pageVariables.lodgingList.find(x => {x.descriptor == lodgingDetailsPanels.name})] : [] : [] %>",
                   "values": "<% pageVariables.lodgingList %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
@@ -940,7 +971,9 @@
                       lodgingOtherTxt.setValue(self.selectedEntries[0].descriptor); lodgingOtherTxt.setRequired(false); lodgingOtherTxt.setEnabled(false);
                       freqDestChbx.setVisible(false);
                       var valueToFindAgain = self.selectedEntries[0].id;
-                      var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
+                      //var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
+                      //var destinationData = getDestinations.data.find(x=>{x.id == valueToFindAgain});
+                      var destinationData = getDestinationsOnProfile.data.find(x=>{x.id == valueToFindAgain});
                       countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
                       countryIl.setValue([destinationData.countryCode] ?: []);
                       addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
@@ -962,7 +995,7 @@
                   "required": false,
                   "enabled": false,
                   "visible": true,
-                  "value": "<% !empty(lodgingDetailsPanels.name) ? lodgingDetailsPanels.name : ''  %>",
+                  "value": "<% !empty(lodgingDetailsPanels.descriptor) ? lodgingDetailsPanels.descriptor : ''  %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createDestinations.data[].name",

@@ -28,6 +28,7 @@
     {
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(getWorkerDetails.data[0]) || empty(getWorkerDetails.data[0].unitId) %>",
       "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
       "authType": "wcpisu"
     },
@@ -68,7 +69,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(queryParams.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
@@ -89,7 +90,7 @@
         "onSend": "<%
                    self.data = {'data':[]};
                    for (var otherMembers : OtherMemberGrid.getRows()) {
-                       if(otherMembers.childrenMap.addToOOBCol.value){
+                       if(!empty(otherMembers.childrenMap.addToOOBCol.value) && otherMembers.childrenMap.addToOOBCol.value == true){
                            self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
                        }
                    }
@@ -373,6 +374,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyingMemberID.value %>",
         "authType": "sso",
         "httpMethod": "DELETE",
+        "exclude": "<% empty(accompanyingMemberID.value) %>",
         "failOnStatusCodes": [
           {
             "code": 400
@@ -499,6 +501,14 @@
           {
             "outboundPath": "deleteData",
             "value": "<% !empty(queryParams.oobRequest) ?  queryParams.oobRequest : '' %>"
+          },
+          {
+            "outboundPath": "oobProfileID",
+            "value": "<% !empty(getOOBProfileWQL.data[0]) && !empty(getOOBProfileWQL.data[0].id) ? getOOBProfileWQL.data[0].id : '' %>"
+          },
+          {
+            "outboundPath": "backBtn",
+            "value": "<% !empty(backBtn.value) && backBtn.value == true %>"
           }
         ]
       }
@@ -526,15 +536,13 @@
        }
      }
      pageVariables.frequentTravellers = familyMemberGridValues(true);
-     pageVariables.frequentTravellersStaff = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}) : [];
+     pageVariables.frequentTravellersStaff = getStaffGridValues(true) ;
+     pageVariables.frequentTravellersStaffOLD = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}) : [];
      pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
      pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
      pageVariables.hasChildren = hasChildrenValue > 0;
-     //pageVariables.frequentTravellersWIDs = pageVariables.frequentTravellers.map(x => {{'id' : x.id}});
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
      pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers ?: [];
-     pageVariables.isEdit = queryParams.isEdit;
-     pageVariables.deletedTravellers = [];
      %>",
   "script": "<%
     var destinationsToDelete = function(){
@@ -576,7 +584,10 @@
              }
            }
          }
+       }else{
+           familyAndFrequent.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor})
        }
+
          if(!empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers)) {
          familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
          }
@@ -601,12 +612,37 @@
              pageVariables.hasChildren=false;
          }
 
-         return !empty(familyAndFrequentWithoutAccompany) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
+         return !empty(getAccompanyTravllers.data) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
      }
+
+    var getStaffGridValues = function (onLoad){
+        var fieldFrequentTravellers = [{'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}];
+
+        if(!empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers)){
+            fieldFrequentTravellers.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
+        }
+
+        var fieldWithoutAccompany = [];
+        if(!empty(getAccompanyTravllers.data) && empty(fieldMemberGrid.getRows()) && onLoad){
+            var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
+                fieldWithoutAccompany = list:excludeMultiple(fieldFrequentTravellers, 'name', listOfNames );
+        }else if ( !empty(accompanyignTravellersGrid.getRows())){
+            var listOfNames = [];
+                for( var x : fieldMemberGrid.getRows()){
+                    if(x.familyMemberCol.childrenMap.worker.value){
+                        listOfNames.add(x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value);
+                    }
+                }
+                fieldWithoutAccompany = list:excludeMultiple(fieldFrequentTravellers, 'name', listOfNames );
+        }
+
+        return !empty(getAccompanyTravllers.data) ? fieldWithoutAccompany : fieldFrequentTravellers;
+
+    }
 
      var setMembersGrid = function (){
          var gridValues = familyMemberGridValues(false);
-         fieldMemeberGrid.setRows(gridValues ?: []);
+         fieldMemberGrid.setRows(gridValues ?: []);
      }
 
     var getPhoneNumbers = function(){
@@ -620,7 +656,7 @@
     }
 
     var childrenArrangments = function(){
-      var counter = fieldMemeberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+      var counter = fieldMemberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
       for(var children : counter){
        if(!children.isSelected()){
          alternativeTxtA.setVisible(true);
@@ -646,8 +682,8 @@
                  'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
              });
          }
-         if(!empty(staffMemeberGrid.getSelectedRows())){
-             for ( var selectedMembers : staffMemeberGrid.getSelectedRows()) {
+         if(!empty(staffMemberGrid.getSelectedRows())){
+             for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
                  addAccompanyingTraveller.add( {
                      'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
                      'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
@@ -656,8 +692,8 @@
                  });
              }
          }
-         if(!empty(fieldMemeberGrid.getSelectedRows())){
-             for ( var i : fieldMemeberGrid.getSelectedRows()) {
+         if(!empty(fieldMemberGrid.getSelectedRows())){
+             for ( var i : fieldMemberGrid.getSelectedRows()) {
                  addAccompanyingTraveller.add( {
                      'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
                      'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
@@ -769,12 +805,32 @@
       "horizontal": false,
       "children": [
         {
-          "type": "text",
-          "label": "test1",
-          "id": "test1Txt",
-          "required": false,
-          "enabled": false,
-          "value": "Value"
+          "type": "fieldSet",
+          "id": "noProfile",
+          "render": "<% !pageVariables.hasOOBProfile %>",
+          "children": [
+            {
+              "type": "text",
+              "label": "Please create an OOB Profile",
+              "id": "pleaseCreateAnOobProfileTxt",
+              "required": false,
+              "enabled": false,
+              "value": "You will need to create an OOB profile before you can create OOB requests. Please navigate back to the OOB home page and create a Profile."
+            },
+            {
+              "type": "editButtonBar",
+              "editButtons": [
+                {
+                  "type": "editButton",
+                  "label": "<% 'Next' %>",
+                  "buttonType": "PRIMARY",
+                  "sortOrder": "a",
+                  "visible": false,
+                  "id": "nextBtn"
+                }
+              ]
+            }
+          ]
         },
         {
           "type": "fieldSet",
@@ -885,7 +941,7 @@
               "doNotAdd": true,
               "doNotRemove": true,
               "deleteEndPoint": "deleteAccompanyingTravellers",
-              "rowVariableName": "accompanyingMemeberData",
+              "rowVariableName": "accompanyingMemberData",
               "label": "<% 'Accompanying Travellers Grid' %>",
               "onRowRemove": "<% setMembersGrid(); %>",
               "visible": "<% !empty(getAccompanyTravllers.data) %>",
@@ -901,17 +957,17 @@
                         "type": "text",
                         "id": "accompanyingMemberName",
                         "enabled": false,
-                        "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') + (!empty(accompanyingMemeberData.departureDate) && !empty(accompanyingMemeberData.arrivalDate) ? (' (' +  (accompanyingMemeberData.departureDate ?: '') + ' to ' + (accompanyingMemeberData.arrivalDate ?: '') + ')') : '') %>"
+                        "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') + (!empty(accompanyingMemberData.departureDate) && !empty(accompanyingMemberData.arrivalDate) ? (' (' +  (accompanyingMemberData.departureDate ?: '') + ' to ' + (accompanyingMemberData.arrivalDate ?: '') + ')') : '') %>"
                       },
                       {
                         "type": "hidden",
                         "id": "accompanyingMemberID",
-                        "value": "<% accompanyingMemeberData.id %>"
+                        "value": "<% accompanyingMemberData.id %>"
                       },
                       {
                         "type": "hidden",
                         "id": "accompanyingMemberFullName",
-                        "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') %>"
+                        "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') %>"
                       }
                     ]
                   }
@@ -922,7 +978,7 @@
                   "label": "<% 'Add to OOB profile? ' %>",
                   "cellTemplate": {
                     "type": "checkBox",
-                    "value": "<% accompanyingMemeberData.fromProfile %>",
+                    "value": "<% accompanyingMemberData.addToOOBProfile %>",
                     "enabled": false
                   }
                 }
@@ -939,14 +995,14 @@
                   "children": [
                     {
                       "type": "grid",
-                      "id": "fieldMemeberGrid",
+                      "id": "fieldMemberGrid",
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
                       "render": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
                       "onRowSelect": "<% childrenArrangments() %>",
-                      "rowVariableName": "fieldMemeberData",
+                      "rowVariableName": "fieldMemberData",
                       "isArrayOutBinding": true,
-                      "_rowSelected": "<% !empty(pageVariables.frequentTravellersWIDs) && pageVariables.frequentTravellersWIDs[0].containsValue(fieldMemeberData.id)  %>",
+                      "_rowSelected": "<% !empty(pageVariables.frequentTravellersWIDs) && pageVariables.frequentTravellersWIDs[0].containsValue(fieldMemberData.id)  %>",
                       "label": "<% 'For Field Family Members' %>",
                       "columns": [
                         {
@@ -959,7 +1015,7 @@
                               {
                                 "id": "worker",
                                 "type": "text",
-                                "value": "<% !empty(fieldMemeberData.name) ? fieldMemeberData.name : '' %>",
+                                "value": "<% !empty(fieldMemberData.name) ? fieldMemberData.name : '' %>",
                                 "enabled": false,
                                 "valuesOut": [
                                   {
@@ -970,12 +1026,12 @@
                               {
                                 "type": "hidden",
                                 "id": "staffId",
-                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.id : '' %>"
+                                "value": "<% !empty(fieldMemberData.id) ? fieldMemberData.id : '' %>"
                               },
                               {
                                 "type": "hidden",
                                 "id": "relationship",
-                                "value": "<% !empty(fieldMemeberData.id) ? fieldMemeberData.relationship : '' %>"
+                                "value": "<% !empty(fieldMemberData.id) ? fieldMemberData.relationship : '' %>"
                               }
                             ]
                           }
@@ -990,9 +1046,9 @@
                   "children": [
                     {
                       "type": "grid",
-                      "id": "staffMemeberGrid",
-                      "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff.add({'id': getWorkerDetails.data[0].worker.id,'name': getWorkerDetails.data[0].worker.descriptor}) : [] %>",
-                      "rowVariableName": "staffMemeberData",
+                      "id": "staffMemberGrid",
+                      "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff : [] %>",
+                      "rowVariableName": "staffMemberData",
                       "render": "<% !pageVariables.isField %>",
                       "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
@@ -1007,13 +1063,13 @@
                               {
                                 "type": "text",
                                 "id": "staffMemberName",
-                                "value": "<% staffMemeberData.name %>",
+                                "value": "<% staffMemberData.name %>",
                                 "enabled": false
                               },
                               {
                                 "type": "hidden",
                                 "id": "StaffId",
-                                "value": "<% staffMemeberData.id %>"
+                                "value": "<% staffMemberData.id %>"
                               }
                             ]
                           }
@@ -1049,14 +1105,14 @@
               "id": "otherIndividualsChbx",
               "required": false,
               "enabled": true,
-              "visible": false,
+              "visible": true,
               "onChange": "<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
             },
             {
               "type": "grid",
               "rows": "<% [] %>",
               "id": "OtherMemberGrid",
-              "rowVariableName": "otherMemeberData",
+              "rowVariableName": "otherMemberData",
               "label": "<% 'For Other Members' %>",
               "visible": "<% false %>",
               "columns": [
@@ -1379,16 +1435,6 @@
               "buttonType": "AUXILIARY"
             }
           ]
-        }
-      ]
-    },
-    "footer": {
-      "type": "footer",
-      "children": [
-        {
-          "type": "richText",
-          "enabled": "false",
-          "value": "Powered By Workday Extend"
         }
       ]
     }
