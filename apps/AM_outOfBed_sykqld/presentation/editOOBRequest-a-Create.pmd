@@ -91,7 +91,7 @@
                    self.data = {'data':[]};
                    for (var otherMembers : OtherMemberGrid.getRows()) {
                        if(!empty(otherMembers.childrenMap.addToOOBCol.value) && otherMembers.childrenMap.addToOOBCol.value == true){
-                           self.data.data.add({'name': otherMembers.childrenMap.familyMemberCol.value});
+                           self.data.data.add({'name': otherMembers.childrenMap.otherMemberCol.value});
                        }
                    }
                    self.data;
@@ -460,7 +460,7 @@
           },
           {
             "outboundPath": "elevatedRisk",
-            "value": "<% (elevatedRiskRG.value == ['yes'])%>"
+            "value": "<% (elevatedRiskRG.value == ['yes']) %>"
           },
           {
             "outboundPath": "elevatedRiskSituation",
@@ -519,28 +519,13 @@
     "Dates.script"
   ],
   "onLoad": "<%
-     var familyAndFrequent =[];
-     var personalTimeOffMembers =[];
-     var hasChildrenValue = 0;
-     if(!empty(getWorkerFromSameUnit.data)){
-       for (var item : getWorkerFromSameUnit.data){
-         familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
-         if(!empty(item)){
-           for( var child : item.dependent){
-             if(child.isSpouse != true){
-                 familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
-                     child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
-             }
-           }
-         }
-       }
-     }
+     pageVariables.hasOOBProfile = !empty(getOOBProfileWQL.data);
      pageVariables.frequentTravellers = familyMemberGridValues(true);
      pageVariables.frequentTravellersStaff = getStaffGridValues(true) ;
      pageVariables.frequentTravellersStaffOLD = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers) ? getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}) : [];
      pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
      pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
-     pageVariables.hasChildren = hasChildrenValue > 0;
+     pageVariables.hasChildren = false;
      pageVariables.TimeOffTypes = !empty(getTimeOffTypes.data) && !empty(getTimeOffTypes.data[0].timeOffType) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [];
      pageVariables.WorkerPhoneNumbers = getWorkerDetails.data[0].phoneNumbers ?: [];
      %>",
@@ -676,8 +661,8 @@
 
          for (var otherMembers : OtherMemberGrid.getRows()) {
              addAccompanyingTraveller.add({
-                 'firstName': otherMembers.childrenMap.familyMemberCol.value.substringBefore(' '),
-                 'lastName': otherMembers.childrenMap.familyMemberCol.value.substringAfter(' '),
+                 'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
+                 'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
                  'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
                  'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
              });
@@ -685,8 +670,8 @@
          if(!empty(staffMemberGrid.getSelectedRows())){
              for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
                  addAccompanyingTraveller.add( {
-                     'firstName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
-                     'lastName': selectedMembers.childrenMap.familyMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+                     'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+                     'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
                      'addToOOBProfile': false,
                      'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
                  });
@@ -792,6 +777,15 @@
         return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
     }
 
+  var removeGridRows = function(widget) {
+    var totalRows = widget.getRows().size() - 1;
+      var index = totalRows;
+    while (index >= 0){
+      widget.removeRow(index);
+      index = index - 1;
+    }
+  }
+
   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -834,164 +828,163 @@
         },
         {
           "type": "fieldSet",
-          "id": "tripDetailsFS",
-          "title": "Trip Details",
-          "collapsible": true,
+          "id": "createOOBForm",
+          "render": "<% pageVariables.hasOOBProfile %>",
           "children": [
             {
-              "type": "checkBox",
-              "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
-              "id": "vismoChbx",
-              "required": true,
-              "enabled": true,
-              "trueLabel": "True Label",
-              "falseLabel": "False Label",
-              "value": true,
-              "onChange": "<% test1Txt.setValue(destinationsToDelete()); %>"
-            },
-            {
-              "type": "text",
-              "label": "Trip Name",
-              "id": "tripNameTxt",
-              "required": true,
-              "enabled": true,
-              "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].name : '' %>"
-            },
-            {
-              "type": "textArea",
-              "label": "Trip Purpose",
-              "id": "tripPurposeTxtA",
-              "required": true,
-              "enabled": true,
-              "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].purpose : '' %>"
-            },
-            {
-              "type": "date",
-              "label": "Start Date",
-              "id": "startDateDt",
-              "required": true,
-              "enabled": true,
-              "value": "<% OOB.getCurrentTime() %>"
-            },
-            {
-              "type": "date",
-              "label": "End Date (or Expected End Date)",
-              "id": "endDateDt",
-              "required": true,
-              "enabled": true,
-              "value": "<% OOB.getCurrentTime() %>"
-            },
-            {
-              "type": "checkBox",
-              "label": "End Date is an Expected End Date",
-              "id": "endDateChbx",
-              "required": true,
-              "enabled": true,
-              "trueLabel": "True Label",
-              "falseLabel": "False Label",
-              "value": "<% true %>"
-            },
-            {
-              "type": "instanceList",
-              "label": "STS",
-              "id": "stsIL",
-              "required": true,
-              "enabled": true,
-              "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
-              "selectedValuesAndDescriptors": "<% !empty(getOOBRequest.data[0].sts) ? [OOB.getSTS().find(i => {i.descriptor == getOOBRequest.data[0].sts})] : [] %>",
-              "onChange": "<%
-                 if(!empty(self.selectedEntries) && self.selectedEntries[0].id == 'other'){
-                   otherStsTxt.setVisible(true);
-                 }else{
-                   otherStsTxt.setVisible(false);
-                   otherStsTxt.setValue('');
-                 }
-              %>"
-            },
-            {
-              "type": "text",
-              "label": "Other - STS specific to this Trip",
-              "id": "otherStsTxt",
-              "required": false,
-              "enabled": true,
-              "visible": "<% !empty(getOOBRequest.data[0].otherSTS) %>",
-              "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].otherSTS : '' %>"
-            }
-          ]
-        },
-        {
-          "type": "fieldSet",
-          "title": "Accompanying Travelers included in OOB",
-          "id": "travelDetailsFS",
-          "collapsible": true,
-          "children": [
-            {
-              "type": "text",
-              "label": "Removing Accompanying Travellers",
-              "id": "removingAccompanyingTravellersTxt",
-              "required": false,
-              "enabled": false,
-              "visible": "<% !empty(getAccompanyTravllers.data) %>",
-              "value": "Please navigate to the next page to remove accompanying travellers"
-            },
-            {
-              "type": "grid",
-              "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
-              "id": "accompanyignTravellersGrid",
-              "doNotAdd": true,
-              "doNotRemove": true,
-              "deleteEndPoint": "deleteAccompanyingTravellers",
-              "rowVariableName": "accompanyingMemberData",
-              "label": "<% 'Accompanying Travellers Grid' %>",
-              "onRowRemove": "<% setMembersGrid(); %>",
-              "visible": "<% !empty(getAccompanyTravllers.data) %>",
-              "columns": [
+              "type": "fieldSet",
+              "id": "tripDetailsFS",
+              "title": "Trip Details",
+              "collapsible": true,
+              "children": [
                 {
-                  "type": "column",
-                  "columnId": "accompanyingMemberCol",
-                  "label": "<% 'Accompanying Individuals Traveling ' %>",
-                  "cellTemplate": {
-                    "type": "fieldSet",
-                    "children": [
-                      {
-                        "type": "text",
-                        "id": "accompanyingMemberName",
-                        "enabled": false,
-                        "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') + (!empty(accompanyingMemberData.departureDate) && !empty(accompanyingMemberData.arrivalDate) ? (' (' +  (accompanyingMemberData.departureDate ?: '') + ' to ' + (accompanyingMemberData.arrivalDate ?: '') + ')') : '') %>"
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "accompanyingMemberID",
-                        "value": "<% accompanyingMemberData.id %>"
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "accompanyingMemberFullName",
-                        "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') %>"
-                      }
-                    ]
-                  }
+                  "type": "checkBox",
+                  "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
+                  "id": "vismoChbx",
+                  "required": true,
+                  "enabled": true,
+                  "trueLabel": "True Label",
+                  "falseLabel": "False Label",
+                  "value": true,
+                  "onChange": "<% test1Txt.setValue(destinationsToDelete()); %>"
                 },
                 {
-                  "type": "column",
-                  "columnId": "addToOOBCol",
-                  "label": "<% 'Add to OOB profile? ' %>",
-                  "cellTemplate": {
-                    "type": "checkBox",
-                    "value": "<% accompanyingMemberData.addToOOBProfile %>",
-                    "enabled": false
-                  }
+                  "type": "text",
+                  "label": "Trip Name",
+                  "id": "tripNameTxt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].name : '' %>"
+                },
+                {
+                  "type": "textArea",
+                  "label": "Trip Purpose",
+                  "id": "tripPurposeTxtA",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].purpose : '' %>"
+                },
+                {
+                  "type": "date",
+                  "label": "Start Date",
+                  "id": "startDateDt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% OOB.getCurrentTime() %>"
+                },
+                {
+                  "type": "date",
+                  "label": "End Date (or Expected End Date)",
+                  "id": "endDateDt",
+                  "required": true,
+                  "enabled": true,
+                  "value": "<% OOB.getCurrentTime() %>"
+                },
+                {
+                  "type": "checkBox",
+                  "label": "End Date is an Expected End Date",
+                  "id": "endDateChbx",
+                  "required": true,
+                  "enabled": true,
+                  "trueLabel": "True Label",
+                  "falseLabel": "False Label",
+                  "value": "<% true %>"
+                },
+                {
+                  "type": "instanceList",
+                  "label": "STS",
+                  "id": "stsIL",
+                  "required": true,
+                  "enabled": true,
+                  "values": "<% !empty(OOB.getSTS()) ? OOB.getSTS() : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(getOOBRequest.data[0].sts) ? [OOB.getSTS().find(i => {i.descriptor == getOOBRequest.data[0].sts})] : [] %>",
+                  "onChange": "<%
+                     if(!empty(self.selectedEntries) && self.selectedEntries[0].id == 'other'){
+                       otherStsTxt.setVisible(true);
+                     }else{
+                       otherStsTxt.setVisible(false);
+                       otherStsTxt.setValue('');
+                     }
+                  %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Other - STS specific to this Trip",
+                  "id": "otherStsTxt",
+                  "required": false,
+                  "enabled": true,
+                  "visible": "<% !empty(getOOBRequest.data[0].otherSTS) %>",
+                  "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data[0].otherSTS : '' %>"
                 }
               ]
             },
             {
               "type": "fieldSet",
-              "horizontal": true,
-              "id": "fieldMembersGridFS",
+              "title": "Accompanying Travelers included in OOB",
+              "id": "travelDetailsFS",
+              "collapsible": true,
               "children": [
                 {
+                  "type": "text",
+                  "label": "Removing Accompanying Travellers",
+                  "id": "removingAccompanyingTravellersTxt",
+                  "required": false,
+                  "enabled": false,
+                  "visible": "<% !empty(getAccompanyTravllers.data) %>",
+                  "value": "Please navigate to the next page to remove accompanying travellers"
+                },
+                {
+                  "type": "grid",
+                  "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
+                  "id": "accompanyignTravellersGrid",
+                  "doNotAdd": true,
+                  "doNotRemove": true,
+                  "deleteEndPoint": "deleteAccompanyingTravellers",
+                  "rowVariableName": "accompanyingMemberData",
+                  "label": "<% 'Accompanying Travellers Grid' %>",
+                  "onRowRemove": "<% setMembersGrid(); %>",
+                  "visible": "<% !empty(getAccompanyTravllers.data) %>",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "accompanyingMemberCol",
+                      "label": "<% 'Accompanying Individuals Traveling ' %>",
+                      "cellTemplate": {
+                        "type": "fieldSet",
+                        "children": [
+                          {
+                            "type": "text",
+                            "id": "accompanyingMemberName",
+                            "enabled": false,
+                            "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') + (!empty(accompanyingMemberData.departureDate) && !empty(accompanyingMemberData.arrivalDate) ? (' (' +  (accompanyingMemberData.departureDate ?: '') + ' to ' + (accompanyingMemberData.arrivalDate ?: '') + ')') : '') %>"
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "accompanyingMemberID",
+                            "value": "<% accompanyingMemberData.id %>"
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "accompanyingMemberFullName",
+                            "value": "<% (accompanyingMemberData.firstName ?: '') + ' ' + (accompanyingMemberData.lastName ?: '') %>"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "addToOOBCol",
+                      "label": "<% 'Add to OOB profile? ' %>",
+                      "cellTemplate": {
+                        "type": "checkBox",
+                        "value": "<% accompanyingMemberData.addToOOBProfile %>",
+                        "enabled": false
+                      }
+                    }
+                  ]
+                },
+                {
                   "type": "fieldSet",
-                  "render": "<% true %>",
                   "children": [
                     {
                       "type": "grid",
@@ -1042,7 +1035,7 @@
                 },
                 {
                   "type": "fieldSet",
-                  "render": "<% false %>",
+                  "render": "<% !pageVariables.isField %>",
                   "children": [
                     {
                       "type": "grid",
@@ -1055,7 +1048,7 @@
                       "columns": [
                         {
                           "type": "column",
-                          "columnId": "familyMemberCol",
+                          "columnId": "staffMemberCol",
                           "label": "<% 'Travelers (yourself plus Frequent Travelers from OOB Profile)' %>",
                           "cellTemplate": {
                             "type": "fieldSet",
@@ -1077,362 +1070,371 @@
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "type": "richText",
-              "label": "Alternative arrangements for Dependent Children ",
-              "id": "AlternativeRTxt",
-              "required": false,
-              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-              "enabled": false,
-              "render": false
-            },
-            {
-              "type": "textArea",
-              "id": "alternativeTxtA",
-              "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
-              "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
-              "enabled": true,
-              "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-              "render": false,
-              "value": ""
-            },
-            {
-              "type": "checkBox",
-              "label": "Other individuals (not list above) that will be traveling",
-              "id": "otherIndividualsChbx",
-              "required": false,
-              "enabled": true,
-              "visible": true,
-              "onChange": "<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
-            },
-            {
-              "type": "grid",
-              "rows": "<% [] %>",
-              "id": "OtherMemberGrid",
-              "rowVariableName": "otherMemberData",
-              "label": "<% 'For Other Members' %>",
-              "visible": "<% false %>",
-              "columns": [
-                {
-                  "type": "column",
-                  "columnId": "familyMemberCol",
-                  "label": "<% 'Other Individuals Traveling ' %>",
-                  "cellTemplate": {
-                    "type": "text",
-                    "enabled": true
-                  }
                 },
                 {
-                  "type": "column",
-                  "columnId": "addToOOBCol",
-                  "label": "<% 'Add to OOB profile? ' %>",
-                  "cellTemplate": {
-                    "type": "checkBox",
-                    "enabled": true
-                  }
-                }
-              ]
-            },
-            {
-              "type": "grid",
-              "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
-              "id": "allNumbers",
-              "deleteEndPoint": "deletePhoneNumber",
-              "rowVariableName": "contactDetailsData",
-              "onRowAdd": "<%
-                           var selfRows = self.getRows();
-                           var newRow = selfRows[0];
-                //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
-                newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
-              %>",
-              "label": "<% 'Phone Numbers you are travelling with' %>",
-              "columns": [
+                  "type": "richText",
+                  "label": "Alternative arrangements for Dependent Children ",
+                  "id": "AlternativeRTxt",
+                  "required": false,
+                  "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
+                  "enabled": false,
+                  "render": false
+                },
                 {
-                  "type": "column",
-                  "columnId": "NameCol",
-                  "label": "<% 'Name' %>",
-                  "cellTemplate": {
-                    "type": "fieldSet",
-                    "children": [
-                      {
-                        "type": "instanceList",
-                        "id": "nameCell",
-                        "displayKey": "name",
-                        "required": true,
-                        "values": "<% pageVariables.phoneNumbers ?: [] %>",
-                        "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.id) && !empty(contactDetailsData.name) ? [{'id' :contactDetailsData.id, 'name' : contactDetailsData.name}] : [] %>",
-                        "onChange": "<%
-                          if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
-                            numberName.value = self.selectedEntries[0].descriptor;
-                            numberId.value = self.selectedEntries[0].id;
-                            numberName.value = self.selectedEntries[0].descriptor;
-                            phoneNameCell.value = self.selectedEntries[0].descriptor;
-                            phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
-                            phoneNameCell.enabled=false;
-                          }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
-                            numberId.value = 'other';
-                            phoneNameCell.value = '';
-                            phoneCodeList.setValue([]);
-                            phoneNumberCol.value = '';
-                            phoneNameCell.enabled=true;
-                            notesCol.value = '';
+                  "type": "textArea",
+                  "id": "alternativeTxtA",
+                  "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
+                  "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
+                  "enabled": true,
+                  "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
+                  "render": false,
+                  "value": ""
+                },
+                {
+                  "type": "checkBox",
+                  "label": "Other individuals (not list above) that will be traveling",
+                  "id": "otherIndividualsChbx",
+                  "required": false,
+                  "enabled": true,
+                  "visible": true,
+                  "onChange": "<%
+                    self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) ;
+                    self.value == false ? removeGridRows(OtherMemberGrid) : '' ;
+                  %>"
+                },
+                {
+                  "type": "grid",
+                  "rows": "<% [] %>",
+                  "id": "OtherMemberGrid",
+                  "rowVariableName": "otherMemberData",
+                  "label": "<% 'For Other Members' %>",
+                  "visible": "<% false %>",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "otherMemberCol",
+                      "label": "<% 'Other Individuals Traveling ' %>",
+                      "cellTemplate": {
+                        "type": "text",
+                        "enabled": true
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "addToOOBCol",
+                      "label": "<% 'Add to OOB profile? ' %>",
+                      "cellTemplate": {
+                        "type": "checkBox",
+                        "enabled": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "grid",
+                  "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
+                  "id": "allNumbers",
+                  "deleteEndPoint": "deletePhoneNumber",
+                  "rowVariableName": "contactDetailsData",
+                  "onRowAdd": "<%
+                               var selfRows = self.getRows();
+                               var newRow = selfRows[0];
+                    //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
+                    newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
+                  %>",
+                  "label": "<% 'Phone Numbers you are travelling with' %>",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "NameCol",
+                      "label": "<% 'Name' %>",
+                      "cellTemplate": {
+                        "type": "fieldSet",
+                        "children": [
+                          {
+                            "type": "instanceList",
+                            "id": "nameCell",
+                            "displayKey": "name",
+                            "required": true,
+                            "values": "<% pageVariables.phoneNumbers ?: [] %>",
+                            "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.id) && !empty(contactDetailsData.name) ? [{'id' :contactDetailsData.id, 'name' : contactDetailsData.name}] : [] %>",
+                            "onChange": "<%
+                              if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                                numberName.value = self.selectedEntries[0].descriptor;
+                                numberId.value = self.selectedEntries[0].id;
+                                numberName.value = self.selectedEntries[0].descriptor;
+                                phoneNameCell.value = self.selectedEntries[0].descriptor;
+                                phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
+                                phoneNameCell.enabled=false;
+                              }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                                numberId.value = 'other';
+                                phoneNameCell.value = '';
+                                phoneCodeList.setValue([]);
+                                phoneNumberCol.value = '';
+                                phoneNameCell.enabled=true;
+                                notesCol.value = '';
+                              }
+                              else{
+                                numberId.value = '';
+                                numberName.value = '';
+                                phoneCodeList.setValue([]);
+                                phoneNumberCol.value = '';
+                                notesCol.value = '';
+                                phoneNameCell.value = '';
+                                phoneNameCell.enabled=false;
+                              }
+                            %>"
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "numberName",
+                            "value": ""
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "numberId",
+                            "value": "<%!empty(contactDetailsData.id) ? contactDetailsData.id : ''%>"
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "isNewNumber",
+                            "value": "<% false %>"
                           }
-                          else{
-                            numberId.value = '';
-                            numberName.value = '';
-                            phoneCodeList.setValue([]);
-                            phoneNumberCol.value = '';
-                            notesCol.value = '';
-                            phoneNameCell.value = '';
-                            phoneNameCell.enabled=false;
+                        ]
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "phoneNameCol",
+                      "label": "<% 'Name' %>",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "phoneNameCell",
+                        "enabled": "<% true %>",
+                        "required": true,
+                        "value": "<%!empty(contactDetailsData.name) ? contactDetailsData.name : ''%>"
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "countryCodeCol",
+                      "label": "<% 'Country Phone Code' %>",
+                      "cellTemplate": {
+                        "type": "instanceList",
+                        "id": "phoneCodeList",
+                        "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.countryCode) ? [{'phoneCode' : contactDetailsData.countryCode, 'phoneCode' : contactDetailsData.countryCode}] : [] %>",
+                        "values": "<% [] %>",
+                        "searchEndPoint": "<% endpoints.getPhoneCodes %>",
+                        "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
+                        "idKey": "phoneCode",
+                        "displayKey": "phoneCode",
+                        "multiSelect": false
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "phoneNumberCol",
+                      "label": "<% 'Phone Number' %>",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "phoneNumberCol",
+                        "value": "<%!empty(contactDetailsData.number) ? contactDetailsData.number : ''%>",
+                        "required": true,
+                        "onChange": "<%
+                          self.clearError();
+                          if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
+                            self.setError('Only numbers allowed');
                           }
                         %>"
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "numberName",
-                        "value": ""
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "numberId",
-                        "value": "<%!empty(contactDetailsData.id) ? contactDetailsData.id : ''%>"
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "isNewNumber",
-                        "value": "<% false %>"
                       }
-                    ]
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "phoneNameCol",
-                  "label": "<% 'Name' %>",
-                  "cellTemplate": {
-                    "type": "text",
-                    "id": "phoneNameCell",
-                    "enabled": "<% true %>",
-                    "required": true,
-                    "value": "<%!empty(contactDetailsData.name) ? contactDetailsData.name : ''%>"
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "countryCodeCol",
-                  "label": "<% 'Country Phone Code' %>",
-                  "cellTemplate": {
-                    "type": "instanceList",
-                    "id": "phoneCodeList",
-                    "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.countryCode) ? [{'phoneCode' : contactDetailsData.countryCode, 'phoneCode' : contactDetailsData.countryCode}] : [] %>",
-                    "values": "<% [] %>",
-                    "searchEndPoint": "<% endpoints.getPhoneCodes %>",
-                    "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
-                    "idKey": "phoneCode",
-                    "displayKey": "phoneCode",
-                    "multiSelect": false
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "phoneNumberCol",
-                  "label": "<% 'Phone Number' %>",
-                  "cellTemplate": {
-                    "type": "text",
-                    "id": "phoneNumberCol",
-                    "value": "<%!empty(contactDetailsData.number) ? contactDetailsData.number : ''%>",
-                    "required": true,
-                    "onChange": "<%
-                      self.clearError();
-                      if(!empty(self.value) && !regex:match(self.value, '[0-9]+')) {
-                        self.setError('Only numbers allowed');
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "notesCol",
+                      "label": "<% 'Notes' %>",
+                      "cellTemplate": {
+                        "type": "text",
+                        "id": "notesCol",
+                        "value": "<%!empty(contactDetailsData.notes) ? contactDetailsData.notes : ''%>"
                       }
-                    %>"
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "notesCol",
-                  "label": "<% 'Notes' %>",
-                  "cellTemplate": {
-                    "type": "text",
-                    "id": "notesCol",
-                    "value": "<%!empty(contactDetailsData.notes) ? contactDetailsData.notes : ''%>"
-                  }
+                    }
+                  ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "type": "fieldSet",
-          "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
-          "id": "personalTimeFS",
-          "title": "Personal Time",
-          "collapsible": true,
-          "children": [
-            {
-              "type": "richText",
-              "id": "personalTimeRTxt",
-              "required": false,
-              "enabled": false,
-              "value": "Please specify the date(s) and time off type for your personal time.  Upon submission of this OOB the time off requests will be created for you."
             },
             {
-              "type": "radioGroup",
-              "label": "Trip includes Vacation, Bereavement or Holiday days",
-              "id": "PersonalLeaveRG",
-              "required": true,
-              "instanceList": [
+              "type": "fieldSet",
+              "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
+              "id": "personalTimeFS",
+              "title": "Personal Time",
+              "collapsible": true,
+              "children": [
                 {
-                  "id": "yes",
-                  "descriptor": "Yes"
+                  "type": "richText",
+                  "id": "personalTimeRTxt",
+                  "required": false,
+                  "enabled": false,
+                  "value": "Please specify the date(s) and time off type for your personal time.  Upon submission of this OOB the time off requests will be created for you."
                 },
                 {
-                  "id": "no",
-                  "descriptor": "No"
-                }
-              ],
-              "selectedValues": "<% !empty(getPersonalTimeOff.data) ? ['yes'] : ['no'] %>",
-              "onChange": "<% self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false)%>"
-            },
-            {
-              "type": "grid",
-              "id": "personalTimeGrid",
-              "rows": "<% !empty(getPersonalTimeOff.data) ? getPersonalTimeOff.data : [] %>",
-              "visible": "<% !empty(getPersonalTimeOff.data) %>",
-              "isArrayOutBinding": "true",
-              "rowVariableName": "timeOffData",
-              "deleteEndPoint": "deletePersonalTimeOff",
-              "label": "<% 'Personal Time Off Details' %>",
-              "columns": [
+                  "type": "radioGroup",
+                  "label": "Trip includes Vacation, Bereavement or Holiday days",
+                  "id": "PersonalLeaveRG",
+                  "required": true,
+                  "instanceList": [
+                    {
+                      "id": "yes",
+                      "descriptor": "Yes"
+                    },
+                    {
+                      "id": "no",
+                      "descriptor": "No"
+                    }
+                  ],
+                  "selectedValues": "<% !empty(getPersonalTimeOff.data) ? ['yes'] : ['no'] %>",
+                  "onChange": "<%
+                    self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false);
+                    self.value == ['yes'] ? removeGridRows(personalTimeGrid) : '' ;
+                  %>"
+                },
                 {
-                  "type": "column",
-                  "columnId": "workerTimeOffCol",
-                  "label": "<% 'Workers taking time off' %>",
-                  "cellTemplate": {
-                    "type": "fieldSet",
-                    "children": [
-                      {
+                  "type": "grid",
+                  "id": "personalTimeGrid",
+                  "rows": "<% !empty(getPersonalTimeOff.data) ? getPersonalTimeOff.data : [] %>",
+                  "visible": "<% !empty(getPersonalTimeOff.data) %>",
+                  "isArrayOutBinding": "true",
+                  "rowVariableName": "timeOffData",
+                  "deleteEndPoint": "deletePersonalTimeOff",
+                  "label": "<% 'Personal Time Off Details' %>",
+                  "columns": [
+                    {
+                      "type": "column",
+                      "columnId": "workerTimeOffCol",
+                      "label": "<% 'Workers taking time off' %>",
+                      "cellTemplate": {
+                        "type": "fieldSet",
+                        "children": [
+                          {
+                            "type": "instanceList",
+                            "id": "personalTimeOffWorker",
+                            "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
+                            "enabled": true,
+                            "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
+                          },
+                          {
+                            "type": "hidden",
+                            "id": "personalTimeOffWID",
+                            "value": "<%!empty(timeOffData.id) ? timeOffData.id : ''%>"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "absenceTypeCol",
+                      "label": "<% 'Absence Type' %>",
+                      "cellTemplate": {
                         "type": "instanceList",
-                        "id": "personalTimeOffWorker",
-                        "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
-                        "enabled": true,
-                        "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
-                      },
-                      {
-                        "type": "hidden",
-                        "id": "personalTimeOffWID",
-                        "value": "<%!empty(timeOffData.id) ? timeOffData.id : ''%>"
+                        "id": "absenceTypeIL",
+                        "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
+                        "_selectedValues": "<% [pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id]  %>",
+                        "selectedValuesAndDescriptors": "<%
+                          var data = getTimeOffTypes.data.map(result => {result.timeOffType});
+                          var field = data.find(x => {x.descriptor == timeOffData.leaveType});
+                          return ! empty(field) ? [field] : [];
+                        %>"
                       }
-                    ]
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "absenceTypeCol",
-                  "label": "<% 'Absence Type' %>",
-                  "cellTemplate": {
-                    "type": "instanceList",
-                    "id": "absenceTypeIL",
-                    "values": "<% !empty(getTimeOffTypes.data) ? getTimeOffTypes.data.map(result => {result.timeOffType}) : [] %>",
-                    "_selectedValues": "<% [pageVariables.TimeOffTypes.find(x => {x.descriptor == timeOffData.type}).id]  %>",
-                    "selectedValuesAndDescriptors": "<%
-                      var data = getTimeOffTypes.data.map(result => {result.timeOffType});
-                      var field = data.find(x => {x.descriptor == timeOffData.leaveType});
-                      return ! empty(field) ? [field] : [];
-                    %>"
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "startDateCol",
-                  "label": "<% 'Start Date' %>",
-                  "cellTemplate": {
-                    "type": "date",
-                    "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>",
-                    "enabled": true
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "endDateCol",
-                  "label": "<% 'End Date' %>",
-                  "cellTemplate": {
-                    "type": "date",
-                    "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>",
-                    "enabled": true
-                  }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "startDateCol",
+                      "label": "<% 'Start Date' %>",
+                      "cellTemplate": {
+                        "type": "date",
+                        "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>",
+                        "enabled": true
+                      }
+                    },
+                    {
+                      "type": "column",
+                      "columnId": "endDateCol",
+                      "label": "<% 'End Date' %>",
+                      "cellTemplate": {
+                        "type": "date",
+                        "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>",
+                        "enabled": true
+                      }
+                    }
+                  ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "type": "fieldSet",
-          "title": "Elevated Risk",
-          "id": "elevatedRiskFS",
-          "collapsible": true,
-          "children": [
+            },
             {
-              "type": "radioGroup",
-              "label": "Is this an Elevated Risk Situation",
-              "id": "elevatedRiskRG",
-              "required": true,
-              "instanceList": [
+              "type": "fieldSet",
+              "title": "Elevated Risk",
+              "id": "elevatedRiskFS",
+              "collapsible": true,
+              "children": [
                 {
-                  "id": "yes",
-                  "descriptor": "Yes"
+                  "type": "radioGroup",
+                  "label": "Is this an Elevated Risk Situation",
+                  "id": "elevatedRiskRG",
+                  "required": true,
+                  "instanceList": [
+                    {
+                      "id": "yes",
+                      "descriptor": "Yes"
+                    },
+                    {
+                      "id": "no",
+                      "descriptor": "No"
+                    }
+                  ],
+                  "selectedValues": "<% !empty(getOOBRequest.data) && getOOBRequest.data[0].elevatedRisk ? ['yes'] : ['no'] %>",
+                  "onChange": "<%
+                    self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false);
+                    elevatedRiskTxtA.setValue('');
+                  %>"
                 },
                 {
-                  "id": "no",
-                  "descriptor": "No"
+                  "type": "textArea",
+                  "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+                  "id": "elevatedRiskTxtA",
+                  "required": false,
+                  "enabled": true,
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) ? getOOBRequest.data[0].elevatedRiskSituation : '' %>",
+                  "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) %>"
+                },
+                {
+                  "type": "textArea",
+                  "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
+                  "id": "addCommentsOnBehalfOfTxtA",
+                  "render": "<% !pageVariables.isField %>",
+                  "required": false,
+                  "enabled": true,
+                  "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) %>",
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
                 }
-              ],
-              "onChange": "<% self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>",
-              "selectedValues": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRisk) && getOOBRequest.data[0].elevatedRisk ? ['yes'] : ['no'] %>"
+              ]
             },
             {
-              "type": "textArea",
-              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
-              "id": "elevatedRiskTxtA",
-              "required": false,
-              "enabled": true,
-              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) ? getOOBRequest.data[0].elevatedRiskSituation : '' %>",
-              "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRiskSituation) %>"
-            },
-            {
-              "type": "textArea",
-              "label": "Comments can be entered here for this OOB.  NOTE that these are not private comments and are visible to others who have access to view this OOB.",
-              "id": "addCommentsOnBehalfOfTxtA",
-              "render": "<% !pageVariables.isField %>",
-              "required": false,
-              "enabled": true,
-              "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) %>",
-              "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
-            }
-          ]
-        },
-        {
-          "type": "editButtonBar",
-          "editButtons": [
-            {
-              "type": "editButton",
-              "label": "<% 'Next' %>",
-              "buttonType": "PRIMARY",
-              "sortOrder": "a",
-              "id": "nextBtn"
-            },
-            {
-              "type": "editButton",
-              "label": "<% 'Save For Later' %>",
-              "id": "saveForLaterBtn",
-              "sortOrder": "b",
-              "buttonType": "AUXILIARY"
+              "type": "editButtonBar",
+              "editButtons": [
+                {
+                  "type": "editButton",
+                  "label": "<% 'Next' %>",
+                  "buttonType": "PRIMARY",
+                  "sortOrder": "a",
+                  "id": "nextBtn"
+                },
+                {
+                  "type": "editButton",
+                  "label": "<% 'Save For Later' %>",
+                  "id": "saveForLaterBtn",
+                  "sortOrder": "b",
+                  "buttonType": "AUXILIARY"
+                }
+              ]
             }
           ]
         }

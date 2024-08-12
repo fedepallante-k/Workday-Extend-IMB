@@ -751,6 +751,14 @@
     return isEdit ? updatePhoneNumbers : addToOOBRequest ? allGridNumbers : createPhoneNumbers;
   }
 
+  var removeGridRows = function(widget) {
+    var totalRows = widget.getRows().size() - 1;
+    var index = totalRows;
+    while (index >= 0){
+      widget.removeRow(index);
+      index = index - 1;
+    }
+  }
   %>",
   "presentation": {
     "pageType": "edit",
@@ -1063,7 +1071,10 @@
                   "visible": true,
                   "required": false,
                   "enabled": true,
-                  "onChange": "<% self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) %>"
+                "onChange": "<%
+                  self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) ;
+                  self.value == false ? removeGridRows(OtherMemberGrid) : '' ;
+                %>"
                 },
                 {
                   "type": "grid",
@@ -1252,7 +1263,10 @@
                     }
                   ],
                   "selectedValues": "<% !empty(getPersonalTimeOff.data) ? ['yes'] : ['no'] %>",
-                  "onChange": "<% self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false)%>"
+                  "onChange": "<%
+                    self.value == ['yes'] ? personalTimeGrid.setVisible(true) : personalTimeGrid.setVisible(false);
+                    self.value == ['yes'] ? removeGridRows(personalTimeGrid) : '' ;
+                  %>"
                 },
                 {
                   "type": "grid",
@@ -1335,7 +1349,7 @@
                   "label": "Is this an Elevated Risk Situation",
                   "id": "elevatedRiskRG",
                   "required": true,
-                  "selectedValues": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].elevatedRisk) && getOOBRequest.data[0].elevatedRisk ? ['yes'] : ['no'] %>",
+                  "selectedValues": "<% !empty(getOOBRequest.data) && getOOBRequest.data[0].elevatedRisk ? ['yes'] : ['no'] %>",
                   "instanceList": [
                     {
                       "id": "yes",

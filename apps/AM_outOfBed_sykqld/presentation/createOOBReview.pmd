@@ -195,12 +195,11 @@
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
-              "label": "<% 'For Field Family Members' %>",
               "columns": [
                 {
                   "type": "column",
                   "columnId": "familyMemberCol",
-                  "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
+                  "label": "<% 'Traveler' %>",
                   "cellTemplate": {
                     "id": "traveller",
                     "type": "text",
@@ -212,7 +211,7 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "fieldMemberNameCol",
+                  "columnId": "addToOOBCol",
                   "label": "<% 'If Other selected - Add to OOB Profile?' %>",
                   "cellTemplate": {
                     "id": "addToOOB",
