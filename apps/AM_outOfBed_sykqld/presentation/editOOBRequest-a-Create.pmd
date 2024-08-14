@@ -55,29 +55,35 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(queryParams.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + queryParams.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(queryParams.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type AS leaveType, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type AS leaveType, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(queryParams.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "sso"
     },
     {
       "name": "getDestinations",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID is not null AND workdayID = \\'' + queryParams.oobRequest +  '\\' WHERE travellerName = \\''+ searchValue +'\\' AND oobRequest is not empty').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID is not null AND workdayID = \\'' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) +  '\\' WHERE travellerName = \\''+ searchValue +'\\' AND oobRequest is not empty').urlEncode() %>",
       "authType": "wcpisu",
       "deferred": true
+    },
+    {
+      "name": "getDestinationsData",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT name , countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, travellerName, addToProfile, oobRequest, oobProfile FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID is not null AND workdayID = \\'' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) +  '\\' WHERE oobRequest is not empty').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -123,6 +129,93 @@
                    self.data.data.addAll(getPhoneData(false, false));
                    return self.data;
                    %>"
+      },
+      {
+        "name": "createOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
+        "authType": "sso",
+        "httpMethod": "POST",
+        "exclude": "<% (!empty(queryParams.isEdit) && queryParams.isEdit && empty(flowVariables.oobRequest)) || (!empty(queryParams.isEdit) && queryParams.isEdit && !empty(flowVariables.oobRequest)) || ((empty(queryParams.isCopy) || !queryParams.isCopy) && !empty(flowVariables.oobRequest))%>",
+        "onSend": "<% return self.data; %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "initiator.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "name",
+            "value": "<% !empty(tripNameTxt.value) ? tripNameTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "purpose",
+            "value": "<% !empty(tripPurposeTxtA.value) ? tripPurposeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "startDate",
+            "value": "<% !empty(startDateDt.value) ?  Dates.getDateFormatted(startDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "expectedEndDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "endDate",
+            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+          },
+          {
+            "outboundPath": "sts",
+            "value": "<% !empty(stsIL.selectedEntries[0]) ? stsIL.selectedEntries[0].descriptor : '' %>"
+          },
+          {
+            "outboundPath": "otherSTS",
+            "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
+          },
+          {
+            "outboundPath": "alternateArrangementForChildren",
+            "value": "<% !empty(alternativeTxtA.value) ? alternativeTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "phoneNumbers",
+            "exclude": "<% empty(createMobileNumbers.data) && empty(allNumbers.getRows()) %>",
+            "value": "<% createMobileNumbers.data.map(x=> {{'id' : x.body.id}})%>"
+          },
+          {
+            "outboundPath": "elevatedRisk",
+            "value": "<% elevatedRiskRG.value == ['yes'] ? true : false %>"
+          },
+          {
+            "outboundPath": "elevatedRiskSituation",
+            "value": "<% !empty(elevatedRiskTxtA) ? elevatedRiskTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "initiatorComments",
+            "value": "<% !empty(addCommentsOnBehalfOfTxtA) ? addCommentsOnBehalfOfTxtA.value : '' %>"
+          },
+          {
+            "outboundPath": "traveller.id",
+            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+          },
+          {
+            "outboundPath": "cancelConfirmation",
+            "value": "<% 'true' %>"
+          },
+          {
+            "outboundPath": "status.id",
+            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+          },
+          {
+            "outboundPath": "affinity",
+            "value": "<% '' %>"
+          }
+        ]
       },
       {
         "name": "deletePersonalTimeOff",
@@ -238,7 +331,8 @@
                    self.data = {'data':[]};
                    var listOfAccompanyTravellers = createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}});
                    for(var x : listOfAccompanyTravellers){
-                       self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : !empty(queryParams.oobRequest) ? queryParams.oobRequest : flowVariables.oobRequest }});
+                       //self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : !empty(queryParams.oobRequest) ? queryParams.oobRequest : flowVariables.oobRequest }});
+                       self.data.data.add({'id' : x.id, 'oobRequest' : {'id' : !empty(queryParams.oobRequest) ? queryParams.isCopy ? createOOBRequest.id : queryParams.oobRequest : flowVariables.oobRequest }});
                    }
                    self.data;
                    %>"
@@ -267,6 +361,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + queryParams.oobRequest %>",
         "authType": "sso",
         "httpMethod": "PATCH",
+        "exclude": "<% empty(flowVariables.oobRequest) && !empty(queryParams.isCopy) && queryParams.isCopy %>",
         "onSend": "<% return self.data;  %>",
         "failOnStatusCodes": [
           {
@@ -393,7 +488,26 @@
         "onSend":"<%
           self.data = {'data':[]};
           self.data.data.addAll(destinationsToDelete());
-          console.info('Delete Destination self.data = ' + json:asJSON(self.data));
+          return self.data;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
+      },
+      {
+        "name": "createDestinations",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/destinations?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "exclude": "<% !empty(flowVariables.oobRequest) && !empty(queryParams.isCopy) && !queryParams.isCopy %>",
+        "onSend": "<%
+          self.data = {'data':[]};
+          self.data.data.addAll(destinationsToCreate());
           return self.data;
         %>",
         "failOnStatusCodes": [
@@ -496,7 +610,7 @@
           },
           {
             "outboundPath": "oobRequest",
-            "value": "<% !empty(queryParams.oobRequest) ?  queryParams.oobRequest : '' %>"
+            "value": "<% queryParams.isCopy ? createOOBRequest.id : queryParams.oobRequest %>"
           },
           {
             "outboundPath": "deleteData",
@@ -549,9 +663,19 @@
         for(var x : travellersToRemove){
           listOfIDs.addAll(getDestinations.invoke({'searchValue': x.name}).data);
         }
-        console.info('listOfIDs = ' + listOfIDs);
         return listOfIDs;
       }
+
+    var destinationsToCreate = function(){
+      var travellersOnLoad = [];
+      var addDestinations = !empty(getDestinationsData.data) ? getDestinationsData.data : [];
+
+      for(var x : addDestinations){
+        x.oobRequest = {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : ''};
+        x.oobProfile = {'id': !empty(getOOBProfile.data[0].id) ? getOOBProfile.data[0].id : ''};
+      }
+      return addDestinations;
+    }
 
 
      var familyMemberGridValues = function (onLoad){
@@ -655,38 +779,68 @@
       }
     }
 
-     var getAllAccompanyingTravellers = function(){
-         var addAccompanyingTraveller = [];
-         var otherAccompanyingTraveller = [];
+    var getAllAccompanyingTravellers = function(){
+      var addAccompanyingTraveller = [];
+      var otherAccompanyingTraveller = [];
 
-         for (var otherMembers : OtherMemberGrid.getRows()) {
-             addAccompanyingTraveller.add({
-                 'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
-                 'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
-                 'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
-                 'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-             });
-         }
-         if(!empty(staffMemberGrid.getSelectedRows())){
-             for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
-                 addAccompanyingTraveller.add( {
-                     'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
-                     'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
-                     'addToOOBProfile': false,
-                     'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-                 });
-             }
-         }
-         if(!empty(fieldMemberGrid.getSelectedRows())){
-             for ( var i : fieldMemberGrid.getSelectedRows()) {
-                 addAccompanyingTraveller.add( {
-                     'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
-                     'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
-                     'addToOOBProfile': false,
-                     'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-                 });
-             }
-         }
+      for (var otherMembers : OtherMemberGrid.getRows()) {
+        addAccompanyingTraveller.add({
+          'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
+          'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
+          'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
+          //'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''},
+          'oobRequest': {'id': !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(queryParams.isCopy) && queryParams.isCopy ?  createOOBRequest.id : queryParams.oobRequest }
+        });
+      }
+      if(!empty(staffMemberGrid.getSelectedRows())){
+        for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
+          addAccompanyingTraveller.add( {
+            'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+            'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+            'addToOOBProfile': false,
+            //'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+            'oobRequest': {'id': !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(queryParams.isCopy) && queryParams.isCopy ?  createOOBRequest.id : queryParams.oobRequest }
+          });
+        }
+      }
+
+      if(!empty(fieldMemberGrid.getSelectedRows())){
+        for ( var i : fieldMemberGrid.getSelectedRows()) {
+          addAccompanyingTraveller.add( {
+            'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+            'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+            'addToOOBProfile': false,
+            //'oobRequest': {'id': !empty(queryParams.oobRequest) ? queryParams.oobRequest : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+            'oobRequest': {'id': !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(queryParams.isCopy) && queryParams.isCopy ?  createOOBRequest.id : queryParams.oobRequest }
+          });
+        }
+      }
+
+      if(!empty(accompanyignTravellersGrid.getRows()) && empty(flowVariables.oobRequest) && !empty(queryParams.isCopy) && queryParams.isCopy){
+        for ( var i : accompanyignTravellersGrid.getRows()) {
+
+          var travellerData = !empty(getAccompanyTravllers.data.find(x => {x.id == i.accompanyingMemberCol.childrenMap.accompanyingMemberID.value})) ? getAccompanyTravllers.data.find(x => {x.id == i.accompanyingMemberCol.childrenMap.accompanyingMemberID.value}) : [];
+          addAccompanyingTraveller.add( {
+            'departureDate' : !empty(travellerData.departureDate) ? travellerData.departureDate : '',
+            'arrivalDate' : !empty(travellerData.arrivalDate) ? travellerData.arrivalDate : '',
+            'modeOfTransport' : !empty(travellerData.modeOfTransport) ? travellerData.modeOfTransport : '',
+            'departurePoint' : !empty(travellerData.departurePoint) ? travellerData.departurePoint : '',
+            'arrivalPoint' : !empty(travellerData.arrivalPoint) ? travellerData.arrivalPoint : '',
+            'firstName': !empty(travellerData.firstName) ?  travellerData.firstName : '',
+            'lastName': !empty(travellerData.lastName) ? travellerData.lastName : '',
+            'fromProfile' : !empty(travellerData.fromProfile) ? travellerData.fromProfile : false,
+            'oobRequest': {'id': !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(queryParams.isCopy) && queryParams.isCopy ?  createOOBRequest.id : queryParams.oobRequest },
+            'airline' : !empty(travellerData.airline) ? travellerData.airline : '',
+            'assignedVehicle' : !empty(travellerData.assignedVehicle) ? travellerData.assignedVehicle : '',
+            'otherTransport' : !empty(travellerData.otherTransport) ? travellerData.otherTransport : '',
+            'addToOOBProfile': !empty(travellerData.addToOOBProfile) ? travellerData.addToOOBProfile : '',
+            'transportNumber' : !empty(travellerData.transportNumber) ? travellerData.transportNumber : '',
+            'carDetails' : !empty(travellerData.carDetails) ? travellerData.carDetails : '',
+            'departureTime' : !empty(travellerData.departureTime) ? travellerData.departureTime : '',
+            'arrivalTime' : !empty(travellerData.arrivalTime) ? travellerData.arrivalTime : ''
+            });
+        }
+      }
 
          var TravellerArray = {'data' : addAccompanyingTraveller}
          return TravellerArray;
@@ -712,7 +866,7 @@
         var typeWidget =  columnPath.absenceTypeCol ;
         var startDateWidget = columnPath.startDateCol;
         var endDateWidget = columnPath.endDateCol;
-        var oobRequestID = queryParams.oobRequest;
+        var oobRequestID = !empty(flowVariables.oobRequest) ? flowVariables.oobRequest : !empty(queryParams.isCopy) && queryParams.isCopy ?  createOOBRequest.id : queryParams.oobRequest;
 
         if(!empty(idValue) && workerWidget.selectedEntries[0].id && (workerWidget.isUpdated() || typeWidget.isUpdated() || startDateWidget.isUpdated() || endDateWidget.isUpdated())){
           updatePersonalTimeOff.add({
@@ -731,7 +885,15 @@
             'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
             'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
           });
-        }
+        }else if(!empty(idValue) && workerWidget.selectedEntries[0].id && empty(flowVariables.oobRequest) && !empty(queryParams.isCopy) && queryParams.isCopy){
+             createPersonalTimeOff.add({
+             'worker': !empty(workerWidget.selectedEntries[0].id) ? {'id' : workerWidget.selectedEntries[0].id} : '',
+             'oobRequest': !empty(oobRequestID) ? {'id' : oobRequestID} : '' ,
+             'type': !empty(typeWidget.selectedEntries[0]) ? typeWidget.selectedEntries[0].descriptor : '',
+             'startDate': !empty(startDateWidget.value) ? startDateWidget.value.format('yyyy-MM-dd') : '',
+             'endDate': !empty(endDateWidget.value) ? endDateWidget.value.format('yyyy-MM-dd') : ''
+             });
+             }
       }
       return isEdit ? updatePersonalTimeOff : createPersonalTimeOff;
     }
@@ -770,6 +932,14 @@
               'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
               'oobProfile': oobProfileID
             });
+        }else if ( !newRow && idValue !='other' && empty(flowVariables.oobRequest) && !empty(queryParams.isCopy) && queryParams.isCopy){
+          createPhoneNumbers.add({
+            'name': !empty(nameWidget.value) ? nameWidget.value : '',
+            'countryCode': !empty(countryCodeWidget.selectedEntries[0]) ? countryCodeWidget.selectedEntries[0].id : '',
+            'number': !empty(PhoneNumberWidget.value) ? PhoneNumberWidget.value : '' ,
+            'notes': !empty(NotesWidget.value) ? NotesWidget.value : '',
+            'oobProfile': oobProfileID
+          });
         }else if ( !newRow && idValue !='other'){
             allGridNumbers.add({'id': idValue});
         }
@@ -1139,7 +1309,6 @@
                   "onRowAdd": "<%
                                var selfRows = self.getRows();
                                var newRow = selfRows[0];
-                    //newRow.childrenMap.NameCol.childrenMap.isNewNumber.value='true';
                     newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
                   %>",
                   "label": "<% 'Phone Numbers you are travelling with' %>",

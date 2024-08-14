@@ -53,7 +53,21 @@
             "taskId": "editOOBRequest-a-Create",
             "parameterBindings": {
               "oobRequest": "<% '9761f928748081044176b896a6320000' %>",
-              "isEdit": "<% true %>"
+              "isEdit": "<% true %>",
+              "isCopy": "<% false %>"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "Copy",
+          "taskReference": {
+            "taskId": "editOOBRequest-a-Create",
+            "parameterBindings": {
+              "oobRequest": "<% 'd675b55f4d4c9000b40a6a796c1c0000' %>",
+              "isEdit": "<% false %>",
+              "isCopy": "<% true %>"
             }
           }
         },
