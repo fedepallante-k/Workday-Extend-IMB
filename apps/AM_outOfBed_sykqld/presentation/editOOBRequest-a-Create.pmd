@@ -673,6 +673,7 @@
       for(var x : addDestinations){
         x.oobRequest = {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : ''};
         x.oobProfile = {'id': !empty(getOOBProfile.data[0].id) ? getOOBProfile.data[0].id : ''};
+        x.addToProfile = false;
       }
       return addDestinations;
     }
