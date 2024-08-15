@@ -1,10 +1,8 @@
 {
   "id": "createOOBRequest-d-Confirm",
-  "endPoints": [
-  ],
+  "endPoints": [ ],
   "outboundData": {
-    "outboundEndPoints": [
-    ]
+    "outboundEndPoints": [ ]
   },
   "presentation": {
     "headerSize": "VPS_DEFAULT",

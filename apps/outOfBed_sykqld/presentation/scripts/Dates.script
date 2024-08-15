@@ -18,6 +18,10 @@ var getDateFormatted = function(date) {
   return date:format(getDate(date), 'yyyy-MM-dd');
 }
 
+var getDateFormattedUS = function(date) {
+    return date:format(getDate(date), 'MM/dd/yyyy');
+}
+
 var getDateFormattedWithMonthName = function(date) {
   return date:format(getDate(date), 'dd-MMM-yyyy');
 }
@@ -134,6 +138,10 @@ var getDateTimeNowFormatted = function(timezone) {
   return getDateTimeFormatted(getDateTimeNow(timezone));
 }
 
+var getTimeFormatted = function(time) {
+    return date:format(getDate(time), 'HH:mm:ss');
+}
+
 {
   "getDate": getDate,
   "getNumber": getNumber,
@@ -160,5 +168,7 @@ var getDateTimeNowFormatted = function(timezone) {
   "getDateTimeFormatted": getDateTimeFormatted,
   "getDateTimeLocalFormatted": getDateTimeLocalFormatted,
   "getDateTimeNow": getDateTimeNow,
-  "getDateTimeNowFormatted": getDateTimeNowFormatted
+  "getDateTimeNowFormatted": getDateTimeNowFormatted,
+  "getDateFormattedUS": getDateFormattedUS,
+  "getTimeFormatted": getTimeFormatted
 }
