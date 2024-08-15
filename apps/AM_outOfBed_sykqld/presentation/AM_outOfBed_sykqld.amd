@@ -8,9 +8,11 @@
   "flowDefinitions": [
     {
       "id": "createOOBFlow",
+      "cancelOutOfFlow": true,
       "flowSteps": [
         {
           "id": "createOOB",
+          "startsFlow": true,
           "transitions": [
             {
               "order": "a",
@@ -87,9 +89,11 @@
     },
     {
       "id": "editOOBFlow",
+      "cancelOutOfFlow": true,
       "flowSteps": [
         {
           "id": "editOOB",
+          "startsFlow": true,
           "transitions": [
             {
               "order": "a",

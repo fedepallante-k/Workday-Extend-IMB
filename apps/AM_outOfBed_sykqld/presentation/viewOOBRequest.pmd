@@ -74,7 +74,7 @@
         {
           "type": "instanceList",
           "id": "accompanyingTravellers",
-          "label": "Accompanying Travellers",
+          "label": "Accompanying Travelers",
           "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
           "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
           "values": "<% getOOBRequest.accompanyingTravellers %>"
@@ -116,7 +116,7 @@
         {
           "type": "instanceList",
           "id": "traveller",
-          "label": "Traveller",
+          "label": "Traveler",
           "idKey": "id",
           "displayKey": "descriptor",
           "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",

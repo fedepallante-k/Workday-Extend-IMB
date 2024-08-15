@@ -81,7 +81,7 @@
 
     warningWidgetTxt.clearWarning();
     if(!empty(checkDestinations()) && (!empty(nextBtn.value) && nextBtn.value == true) && pageVariables.warningCount==0 ){
-      warningWidgetTxt.setWarning('These following travellers are about to be submitted without destination details ' + checkDestinations().map(x => {x.name}).join(', '));
+      warningWidgetTxt.setWarning('These following traveler(s) are about to be submitted without destination details: ' + checkDestinations().map(x => {x.name}).join(', '));
       pageVariables.warningCount +=1;
 
     }

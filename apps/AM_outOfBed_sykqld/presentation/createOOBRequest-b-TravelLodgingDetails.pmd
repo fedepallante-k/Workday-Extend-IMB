@@ -803,7 +803,7 @@
               "children": [
                 {
                   "type": "instanceList",
-                  "label": "Traveller Destiantions ",
+                  "label": "Traveler Destiantions ",
                   "id": "travellerDestinationsIL",
                   "multiSelect": false,
                   "required": true,

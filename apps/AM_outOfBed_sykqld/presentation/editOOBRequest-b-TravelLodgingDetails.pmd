@@ -185,7 +185,7 @@
     "pageType": "edit",
     "title": {
       "type": "title",
-      "label": "Workday Extend"
+      "label": "Create an OOB"
     },
     "body": {
       "type": "section",
@@ -644,7 +644,7 @@
               "children": [
                 {
                   "type": "instanceList",
-                  "label": "Traveller Destiantions ",
+                  "label": "Traveler Destiantions ",
                   "id": "travellerDestinationsIL",
                   "multiSelect": false,
                   "required": true,

@@ -80,7 +80,7 @@
         {
           "type": "instanceList",
           "id": "frequentTravellers",
-          "label": "Frequent Travellers",
+          "label": "Frequent Travelers",
           "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
           "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
           "values": "<% getFrequentTravellers.data %>",

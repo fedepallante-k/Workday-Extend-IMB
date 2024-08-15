@@ -26,33 +26,19 @@
         {
           "type": "button",
           "action": "AUXILIARY",
-          "label": "Field",
+          "label": "Create OOB",
           "taskReference": {
-            "taskId": "createOOBRequest",
-            "parameterBindings": {
-              "isField": "<% true %>"
-            }
+            "taskId": "createOOBRequest"
           }
         },
         {
           "type": "button",
           "action": "AUXILIARY",
-          "label": "Staff",
-          "taskReference": {
-            "taskId": "createOOBRequest",
-            "parameterBindings": {
-              "isField": "<% false %>"
-            }
-          }
-        },
-        {
-          "type": "button",
-          "action": "AUXILIARY",
-          "label": "Edit",
+          "label": "Edit OOB",
           "taskReference": {
             "taskId": "editOOBRequest-a-Create",
             "parameterBindings": {
-              "oobRequest": "<% '9761f928748081044176b896a6320000' %>",
+              "oobRequest": "<% 'd675b55f4d4c90014b2a3b3e1a9d0000' %>",
               "isEdit": "<% true %>",
               "isCopy": "<% false %>"
             }
@@ -65,7 +51,7 @@
           "taskReference": {
             "taskId": "editOOBRequest-a-Create",
             "parameterBindings": {
-              "oobRequest": "<% 'd675b55f4d4c9000b40a6a796c1c0000' %>",
+              "oobRequest": "<% 'd675b55f4d4c90014b2a3b3e1a9d0000' %>",
               "isEdit": "<% false %>",
               "isCopy": "<% true %>"
             }
@@ -88,7 +74,7 @@
         {
           "type": "instanceList",
           "id": "frequentTravellers",
-          "label": "Frequent Travellers",
+          "label": "Frequent Travelers",
           "_generationNote": "The values, used to create the selectable options, conforms to a Workday collection resource.",
           "_generationNote2": "In particular, the response contains 'data' with an array of objects with both 'id' and 'descriptor'.",
           "values": "<% getOOBProfile.frequentTravellers %>"

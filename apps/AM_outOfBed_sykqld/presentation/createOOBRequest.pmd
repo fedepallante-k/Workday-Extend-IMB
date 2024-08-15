@@ -30,7 +30,7 @@
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(getWorkerDetails.data[0]) || empty(getWorkerDetails.data[0].unitId) %>",
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse, age, dateOfDeath} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE (cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\" AND currentlyActive = true )').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -538,7 +538,7 @@
         familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
           if(!empty(item)){
             for( var child : item.dependent){
-              if(child.isSpouse != true){
+              if(child.isSpouse != true && child.age <= 26 && empty(child.dateOfDeath)){
                 familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
                 child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
               }
@@ -619,18 +619,23 @@
   }
 
    var childrenArrangments = function(){
-     var counter = fieldMemberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
-     for(var children : counter){
-       if(!children.isSelected()){
-         alternativeTxtA.setVisible(true);
-         alternativeTxtA.setRequired(true);
-         AlternativeRTxt.setVisible(true);
-       }else{
-         alternativeTxtA.setVisible(false);
-         alternativeTxtA.setRequired(false);
-         AlternativeRTxt.setVisible(false);
-       }
+     var allChildrenRows = fieldMemberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+     var numberOfChildren = allChildrenRows.size();
+     var counter = 0;
+
+     for(var x : allChildrenRows){
+       x.isSelected() ? counter += 1 : counter;
      }
+
+    if(numberOfChildren != counter){
+      alternativeTxtA.setVisible(true);
+      alternativeTxtA.setRequired(true);
+      AlternativeRTxt.setVisible(true);
+    }else{
+      alternativeTxtA.setVisible(false);
+      alternativeTxtA.setRequired(false);
+      AlternativeRTxt.setVisible(false);
+    }
    }
              
   var getAllAccompanyingTravellers = function(){
@@ -898,13 +903,12 @@
               "collapsible": true,
               "children": [
                 {
-                  "type": "text",
-                  "label": "Removing Accompanying Travellers",
+                  "type": "richText",
                   "id": "removingAccompanyingTravellersTxt",
                   "required": false,
                   "enabled": false,
                   "visible": "<% !empty(getAccompanyTravllers.data) %>",
-                  "value": "Please navigate to the next page to remove accompanying travellers"
+                  "value": "<% '<b> <p style=color:#f38b00>' + 'Please navigate to the next page to remove accompanying travelers' + '</p> </b>'%>"
                 },
                 {
                   "type": "grid",
@@ -1380,6 +1384,10 @@
                   "enabled": true,
                   "visible": true,
                   "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
+                },
+                {
+                  "type": "hidden",
+                  "value": "<% childrenArrangments() %>"
                 }
               ]
             },

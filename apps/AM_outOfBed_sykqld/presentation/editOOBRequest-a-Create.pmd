@@ -766,17 +766,22 @@
     }
 
     var childrenArrangments = function(){
-      var counter = fieldMemberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
-      for(var children : counter){
-       if(!children.isSelected()){
-         alternativeTxtA.setVisible(true);
-         alternativeTxtA.setRequired(true);
-         AlternativeRTxt.setVisible(true);
-       }else{
-         alternativeTxtA.setVisible(false);
-         alternativeTxtA.setRequired(false);
-         AlternativeRTxt.setVisible(false);
-       }
+      var allChildrenRows = fieldMemberGrid.getRows().filter(x => { (x.childrenMap.familyMemberCol.childrenMap.relationship.value ?: '') == 'Child' });
+      var numberOfChildren = allChildrenRows.size();
+      var counter = 0;
+
+      for(var x : allChildrenRows){
+        x.isSelected() ? counter += 1 : counter;
+      }
+
+      if(numberOfChildren != counter){
+        alternativeTxtA.setVisible(true);
+        alternativeTxtA.setRequired(true);
+        AlternativeRTxt.setVisible(true);
+      }else{
+        alternativeTxtA.setVisible(false);
+        alternativeTxtA.setRequired(false);
+        AlternativeRTxt.setVisible(false);
       }
     }
 
@@ -963,7 +968,7 @@
     "pageType": "edit",
     "title": {
       "type": "title",
-      "label": "Workday Extend"
+      "label": "<% 'Create an OOB' %>"
     },
     "body": {
       "type": "section",
@@ -1096,13 +1101,12 @@
               "collapsible": true,
               "children": [
                 {
-                  "type": "text",
-                  "label": "Removing Accompanying Travellers",
+                  "type": "richText",
                   "id": "removingAccompanyingTravellersTxt",
                   "required": false,
                   "enabled": false,
                   "visible": "<% !empty(getAccompanyTravllers.data) %>",
-                  "value": "Please navigate to the next page to remove accompanying travellers"
+                  "value": "<% '<b> <p style=color:#f38b00>' + 'Please navigate to the next page to remove accompanying travelers' + '</p> </b>'%>"
                 },
                 {
                   "type": "grid",
@@ -1248,8 +1252,7 @@
                   "id": "AlternativeRTxt",
                   "required": false,
                   "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-                  "enabled": false,
-                  "render": false
+                  "enabled": false
                 },
                 {
                   "type": "textArea",
@@ -1258,7 +1261,6 @@
                   "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
                   "enabled": true,
                   "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-                  "render": false,
                   "value": ""
                 },
                 {
@@ -1584,7 +1586,12 @@
                   "enabled": true,
                   "visible": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) %>",
                   "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].initiatorComments) ? getOOBRequest.data[0].initiatorComments : '' %>"
+                },
+                {
+                  "type": "hidden",
+                  "value": "<% childrenArrangments() %>"
                 }
+
               ]
             },
             {
