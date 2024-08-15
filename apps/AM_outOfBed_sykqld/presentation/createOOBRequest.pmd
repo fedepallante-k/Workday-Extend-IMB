@@ -970,7 +970,7 @@
                       "type": "grid",
                       "id": "fieldMemberGrid",
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
-                      "render": "<% pageVariables.isField %>",
+                      "visible": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
                       "onRowSelect": "<% childrenArrangments() %>",
                       "rowVariableName": "fieldMemeberData",
@@ -1240,7 +1240,7 @@
             },
             {
               "type": "fieldSet",
-              "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
+              "render": "<% !empty(getWorkerDetails.data[0].workerIsContingentWorker) || !getWorkerDetails.data[0].workerIsContingentWorker %>",
               "title": "Personal Time",
               "collapsible": true,
               "children": [
@@ -1387,7 +1387,7 @@
                 },
                 {
                   "type": "hidden",
-                  "value": "<% childrenArrangments() %>"
+                  "value": "<% pageVariables.isField ? childrenArrangments() : ''  %>"
                 }
               ]
             },

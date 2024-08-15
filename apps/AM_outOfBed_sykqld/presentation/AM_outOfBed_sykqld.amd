@@ -130,11 +130,6 @@
           "taskId": "createOOBRequest-b-TravelLodgingDetails"
         },
         {
-          "id": "editOOBBackToRequest",
-          "endsFlow": true,
-          "taskId": "createOOBRequest"
-        },
-        {
           "id": "editOOBReview",
           "transitions": [
             {

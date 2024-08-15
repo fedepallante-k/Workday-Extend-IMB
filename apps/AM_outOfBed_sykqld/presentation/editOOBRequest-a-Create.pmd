@@ -29,7 +29,7 @@
       "name": "getWorkerFromSameUnit",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(getWorkerDetails.data[0]) || empty(getWorkerDetails.data[0].unitId) %>",
-      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\"').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT worker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse, age, dateOfDeath} as dependent FROM workersForHCMReporting (dataSourceFilter = allActiveWorkers) WHERE (cf_CFLRVUnitIDTextWorker =\"' + (!empty(getWorkerDetails.data[0]) && !empty(getWorkerDetails.data[0].unitId) ? getWorkerDetails.data[0].unitId : '') + '\" AND currentlyActive = true )').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -687,7 +687,7 @@
            familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
            if(!empty(item)){
              for( var child : item.dependent){
-               if(child.isSpouse != true){
+               if(child.isSpouse != true && child.age <= 26 && empty(child.dateOfDeath)){
                  familyAndFrequent.add({'id': child.name, 'name': child.name, 'relationship': child.relationship.descriptor});
                  child.relationship.descriptor.lowerCase() == 'child' ? hasChildrenValue += 1 : hasChildrenValue ;
                }
@@ -1021,7 +1021,7 @@
                   "enabled": true,
                   "trueLabel": "True Label",
                   "falseLabel": "False Label",
-                  "value": true,
+                  "value": "<% (!empty(queryParams.isCopy) && queryParams.isCopy) ? false : true %>",
                   "onChange": "<% test1Txt.setValue(destinationsToDelete()); %>"
                 },
                 {
@@ -1165,7 +1165,7 @@
                       "type": "grid",
                       "id": "fieldMemberGrid",
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
-                      "render": "<% pageVariables.isField %>",
+                      "visible": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
                       "onRowSelect": "<% childrenArrangments() %>",
                       "rowVariableName": "fieldMemberData",
@@ -1436,7 +1436,7 @@
             },
             {
               "type": "fieldSet",
-              "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) %>",
+              "render": "<% !empty(getWorkerDetails.data[0].workerIsContingentWorker) || !getWorkerDetails.data[0].workerIsContingentWorker %>",
               "id": "personalTimeFS",
               "title": "Personal Time",
               "collapsible": true,
@@ -1589,7 +1589,7 @@
                 },
                 {
                   "type": "hidden",
-                  "value": "<% childrenArrangments() %>"
+                  "value": "<% pageVariables.isField ? childrenArrangments() : '' %>"
                 }
 
               ]
