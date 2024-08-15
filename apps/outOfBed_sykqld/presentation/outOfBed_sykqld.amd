@@ -53,6 +53,7 @@
               "condition": "<% flowVariables.saveForLater %>"
             }
           ],
+          "startsFlow": true,
           "taskId": "createOOBRequest"
         },
         {
@@ -70,7 +71,7 @@
             },
             {
               "order": "c",
-              "value": "createOOBBackToRequest",
+              "value": "createOOB",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
@@ -96,7 +97,7 @@
             },
             {
               "order": "c",
-              "value": "createOOBBackToMain",
+              "value": "oobRequestTravelLodging",
               "condition": "<% flowVariables.backBtn %>"
             }
           ],
@@ -108,7 +109,7 @@
             {
               "order": "a",
               "value": "createOOBBackToMain",
-              "condition": true
+              "condition": "true"
             }
           ],
           "taskId": "createOOBRequest-d-Confirm"
@@ -118,7 +119,89 @@
           "endsFlow": true,
           "taskId": "viewOOBProfile"
         }
-      ]
+      ],
+      "cancelOutOfFlow": true
+    },
+    {
+      "id": "editOOBFlow",
+      "flowSteps": [
+        {
+          "id": "editOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "startsFlow": true,
+          "taskId": "editOOBRequest-a-Create"
+        },
+        {
+          "id": "editOOBRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOB",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "editOOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "editOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "editOOBRequestTravelLodging",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "editOOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "editOOBBackToMain",
+              "condition": "true"
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "editOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "viewOOBProfile"
+        }
+      ],
+      "cancelOutOfFlow": true
     },
     {
       "id": "updateProfile",
@@ -212,6 +295,20 @@
       "routingPattern": "createOOBRequest-d-Confirm",
       "page": {
         "id": "createOOBRequest-d-Confirm"
+      }
+    },
+    {
+      "id": "editOOBRequest-a-Create",
+      "routingPattern": "editOOBRequest-a-Create",
+      "page": {
+        "id": "editOOBRequest-a-Create"
+      }
+    },
+    {
+      "id": "editOOBRequest-b-TravelLodgingDetails",
+      "routingPattern": "editOOBRequest-b-TravelLodgingDetails",
+      "page": {
+        "id": "editOOBRequest-b-TravelLodgingDetails"
       }
     },
     {
