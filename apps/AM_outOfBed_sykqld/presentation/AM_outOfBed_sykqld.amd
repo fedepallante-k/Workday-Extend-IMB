@@ -253,6 +253,13 @@
       "page": {
         "id": "editOOBRequest-b-TravelLodgingDetails"
       }
+    },
+    {
+      "id": "OnBehalfOf_a_SelectWorker",
+      "routingPattern": "OnBehalfOf_a_SelectWorker",
+      "page": {
+        "id": "OnBehalfOf_a_SelectWorker"
+      }
     }
   ],
   "applicationId": "AM_outOfBed_sykqld",

@@ -1,0 +1,106 @@
+{
+  "id": "OnBehalfOf_a_SelectWorker",
+  "endPoints": [
+    {
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
+      "name": "getWorkerDetails",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('', 'manager_Level01 in (' + getCurrentWorker.id +')') %>",
+      "authType": "wcpisu"
+    }
+  ],
+  "outboundData": {
+    "outboundEndPoints": [
+      {
+        "name": "transitionOutboundVars",
+        "type": "outboundVariable",
+        "variableScope": "flow",
+        "values": [
+          {
+            "outboundPath": "isOnBehalfOf",
+            "value": "<% pageVariables.isOnBehalfOf %>"
+          },
+          {
+            "outboundPath": "onBehalfOfWorkerId",
+            "value": "<% !empty(workersIL.selectedEntries[0]) ? workersIL.selectedEntries[0].id : '' %>"
+          },
+          {
+            "outboundPath": "onBehalfOfWorkerDescriptor",
+            "value": "<% !empty(workersIL.selectedEntries[0]) ? workersIL.selectedEntries[0].descriptor : '' %>"
+          }
+        ]
+      }
+    ]
+  },
+  "onLoad": "<%
+    pageVariables.isOnBehalfOf = !empty(queryParams.isOnBehalfOf) && queryParams.isOnBehalfOf;
+  %>",
+  "include": [
+        "OOB.script",
+        "Dates.script"
+  ],
+  "presentation": {
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
+    "title": {
+      "type": "title",
+      "label": "Create an OOB - On Behalf Of"
+    },
+    "body": {
+      "type": "section",
+      "horizontal": false,
+      "children": [
+        {
+          "type": "text",
+          "label": "getCurrentWorker",
+          "id": "getCurrentWorkerTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getCurrentWorker) ? json:asJSON(getCurrentWorker.descriptor) : 'empty'%>"
+        },
+        {
+          "type": "text",
+          "label": "getWorkers",
+          "id": "getWorkersTxt",
+          "required": false,
+          "enabled": false,
+          "_value": "<% !empty(getWorkerDetails) ? json:asJSON(OOB.getWorkerDetails('', queryParams.isOnBehalfOf ?  'manager_Level01 in (' + getCurrentWorker.id +')' : '')) : 'empty'%>"
+        },
+        {
+          "type": "text",
+          "label": "getWorkerDetails",
+          "id": "getWorkerDetailsTxt",
+          "required": false,
+          "enabled": false,
+          "value": "<% !empty(getWorkerDetails) ? json:asJSON(getWorkerDetails) : 'empty'%>"
+        },
+        {
+          "type": "instanceList",
+          "label": "Act on Behalf Of:",
+          "id": "workersIL",
+          "multiSelect": false,
+          "required": true,
+          "enabled": true,
+          "values": "<% !empty(getWorkerDetails.data) ? getWorkerDetails.data.map(x => {x.worker}) : []%>",
+          "onChange": "<%
+          %>"
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "children": [
+        {
+          "type": "richText",
+          "enabled": "false",
+          "value": "Powered By Workday Extend"
+        }
+      ]
+    }
+  }
+}

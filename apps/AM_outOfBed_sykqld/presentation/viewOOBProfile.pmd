@@ -58,6 +58,20 @@
           }
         },
         {
+          "type": "button",
+          "action": "AUXILIARY",
+          "label": "On behalf of",
+          "taskReference": {
+            "taskId": "OnBehalfOf_a_SelectWorker",
+            "parameterBindings": {
+              "oobRequest": "<% 'd675b55f4d4c90014b2a3b3e1a9d0000' %>",
+              "isEdit": "<% false %>",
+              "isCopy": "<% true %>",
+              "isOnBehalfOf": "<% true %>"
+            }
+          }
+        },
+        {
           "type": "text",
           "id": "sts",
           "label": "STS",
