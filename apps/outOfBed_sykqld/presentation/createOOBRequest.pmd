@@ -1247,7 +1247,7 @@
             },
             {
               "type": "fieldSet",
-              "render": "<% empty(getWorkerDetails.data[0].workerIsContingentWorker) || !getWorkerDetails.data[0].workerIsContingentWorker %>",
+              "render": "<% !empty(getWorkerDetails.data[0].workerIsContingentWorker) || !getWorkerDetails.data[0].workerIsContingentWorker %>",
               "title": "Personal Time",
               "collapsible": true,
               "children": [
@@ -1394,7 +1394,7 @@
                 },
                 {
                   "type": "hidden",
-                  "value": "<% childrenArrangments() %>"
+                  "value": "<% pageVariables.isField ? childrenArrangments() : '' %>"
                 }
               ]
             },
