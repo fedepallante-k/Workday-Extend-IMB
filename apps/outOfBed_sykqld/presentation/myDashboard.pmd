@@ -233,7 +233,7 @@
                 "taskReference": {
                   "taskId": "editOOBRequest-a-Create",
                   "parameterBindings": {
-                    "oobRequest": "<% oOBRequest.id %>",
+                    "oobRequest": "<% oOBRequest.workdayID %>",
                     "isEdit": "<% false %>",
                     "isCopy": "<% true %>"
                   }
