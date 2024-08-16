@@ -1394,7 +1394,7 @@
                 },
                 {
                   "type": "hidden",
-                  "value": "<% pageVariables.isField ? childrenArrangments() : ''  %>"
+                  "value": "<% pageVariables.isField ? childrenArrangments() : '' %>"
                 }
               ]
             },
