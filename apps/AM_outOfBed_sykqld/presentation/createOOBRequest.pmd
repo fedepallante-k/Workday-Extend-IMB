@@ -17,14 +17,14 @@
     {
       "name": "getOOBProfileWQL",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles WHERE worker in (' + (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', 'worker in (' +  (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +')') %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getWorkerFromSameUnit",
