@@ -1238,14 +1238,6 @@
               ]
             },
             {
-              "type": "text",
-              "label": "contingent",
-              "id": "contingentTxt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(getWorkerDetails.data[0]) ? json:asJSON(getWorkerDetails.data[0]) : 'empty' %>"
-            },
-            {
               "type": "fieldSet",
               "render": "<% !empty(getWorkerDetails.data[0].workerIsContingentWorker) || !getWorkerDetails.data[0].workerIsContingentWorker %>",
               "title": "Personal Time",
