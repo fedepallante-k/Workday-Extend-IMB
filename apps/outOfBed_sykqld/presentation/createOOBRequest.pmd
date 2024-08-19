@@ -213,7 +213,7 @@
           },
           {
             "outboundPath": "status.id",
-            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+            "value": "<% !empty(getStatuses.data) ? getStatuses.data.find(x => {x.description == 'Draft'}).workdayID : 1 %>"
           },
           {
             "outboundPath": "affinity",
@@ -435,7 +435,7 @@
           },
           {
             "outboundPath": "status.id",
-            "value": "<% getStatuses.data.find(x => {x.description == 'Draft'}).workdayID %>"
+            "value": "<% !empty(getStatuses.data) ? getStatuses.data.find(x => {x.description == 'Draft'}).workdayID : 1 %>"
           },
           {
             "outboundPath": "affinity",
@@ -524,9 +524,6 @@
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
     pageVariables.hasChildren = false;
-  %>",
-  "onSubmit": "<%
-
   %>",
   "script": "<%
   var familyMemberGridValues = function (onLoad){
@@ -765,6 +762,10 @@
     }
   }
   %>",
+  "onSubmit": "<%
+    OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
+    OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
+  %>",
   "presentation": {
     "pageType": "edit",
     "title": {
@@ -964,6 +965,14 @@
                   ]
                 },
                 {
+                  "type": "text",
+                  "id": "errorHolderTxt",
+                  "visible": false,
+                  "required": false,
+                  "enabled": false,
+                  "value": ""
+                },
+                {
                   "type": "fieldSet",
                   "children": [
                     {
@@ -972,7 +981,10 @@
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
                       "visible": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
-                      "onRowSelect": "<% childrenArrangments() %>",
+                      "onRowSelect": "<%
+                        childrenArrangments();
+                        OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
+                      %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
@@ -1065,7 +1077,7 @@
                   "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
                   "enabled": true,
                   "visible": "<% (pageVariables.isField && pageVariables.hasChildren) || (!empty(getOOBRequest.data[0].alternateArrangementForChildren && !empty(getOOBRequest.data))) %>",
-                  "value": "<% !empty(getOOBRequest.data.alternateArrangementForChildren) ? getOOBRequest.data[0].alternateArrangementForChildren : '' %>"
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].alternateArrangementForChildren) ? getOOBRequest.data[0].alternateArrangementForChildren : '' %>"
                 },
                 {
                   "type": "checkBox",
@@ -1108,6 +1120,14 @@
                   ]
                 },
                 {
+                  "type": "text",
+                  "id": "phoneErrorHolderTxt",
+                  "visible": false,
+                  "required": false,
+                  "enabled": false,
+                  "value": ""
+                },
+                {
                   "type": "grid",
                   "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
                   "id": "allNumbers",
@@ -1115,10 +1135,12 @@
                   "rowVariableName": "contactDetailsData",
                   "label": "<% 'Phone Numbers you are travelling with' %>",
                   "onRowAdd": "<%
-                               var selfRows = self.getRows();
-                               var newRow = selfRows[0];
-                               newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
-                               %>",
+                    OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
+                    var selfRows = self.getRows();
+                    var newRow = selfRows[0];
+                    newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
+                  %>",
+                  "onRowRemove":"<%  OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers); %>",
                   "columns": [
                     {
                       "type": "column",
@@ -1135,31 +1157,31 @@
                             "values": "<% pageVariables.phoneNumbers ?: [] %>",
                             "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.id) && !empty(contactDetailsData.name) ? [{'id' :contactDetailsData.id, 'name' : contactDetailsData.name}] : [] %>",
                             "onChange": "<%
-                                         if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
-                                             numberName.value = self.selectedEntries[0].descriptor;
-                                                 numberId.value = self.selectedEntries[0].id;
-                                                 numberName.value = self.selectedEntries[0].descriptor;
-                                                 phoneNameCell.value = self.selectedEntries[0].descriptor;
-                                                 phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
-                                                 phoneNameCell.enabled=false;
-                                         }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
-                                             numberId.value = 'other';
-                                                 phoneNameCell.value = '';
-                                                 phoneCodeList.setValue([]);
-                                                 phoneNumberCol.value = '';
-                                                 phoneNameCell.enabled=true;
-                                                 notesCol.value = '';
-                                         }
-                                             else{
-                                             numberId.value = '';
-                                                 numberName.value = '';
-                                                 phoneCodeList.setValue([]);
-                                                 phoneNumberCol.value = '';
-                                                 notesCol.value = '';
-                                                 phoneNameCell.value = '';
-                                                 phoneNameCell.enabled=false;
-                                         }
-                                         %>"
+                              if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                                numberName.value = self.selectedEntries[0].descriptor;
+                                numberId.value = self.selectedEntries[0].id;
+                                numberName.value = self.selectedEntries[0].descriptor;
+                                phoneNameCell.value = self.selectedEntries[0].descriptor;
+                                phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
+                                phoneNameCell.enabled=false;
+                              }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
+                                numberId.value = 'other';
+                                phoneNameCell.value = '';
+                                phoneCodeList.setValue([]);
+                                phoneNumberCol.value = '';
+                                phoneNameCell.enabled=true;
+                                notesCol.value = '';
+                              }
+                              else{
+                                numberId.value = '';
+                                numberName.value = '';
+                                phoneCodeList.setValue([]);
+                                phoneNumberCol.value = '';
+                                notesCol.value = '';
+                                phoneNameCell.value = '';
+                                phoneNameCell.enabled=false;
+                              }
+                            %>"
                           },
                           {
                             "type": "hidden",

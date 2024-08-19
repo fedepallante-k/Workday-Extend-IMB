@@ -961,7 +961,10 @@
       index = index - 1;
     }
   }
-
+  %>",
+  "onSubmit": "<%
+    OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
+    OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -1159,6 +1162,14 @@
                   ]
                 },
                 {
+                  "type": "text",
+                  "id": "errorHolderTxt",
+                  "visible": false,
+                  "required": false,
+                  "enabled": false,
+                  "value": ""
+                },
+                {
                   "type": "fieldSet",
                   "children": [
                     {
@@ -1167,7 +1178,10 @@
                       "rows": "<% !empty(pageVariables.frequentTravellers) ?  pageVariables.frequentTravellers : [] %>",
                       "visible": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
-                      "onRowSelect": "<% childrenArrangments() %>",
+                      "onRowSelect": "<%
+                        childrenArrangments();
+                        OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
+                      %>",
                       "rowVariableName": "fieldMemberData",
                       "isArrayOutBinding": true,
                       "_rowSelected": "<% !empty(pageVariables.frequentTravellersWIDs) && pageVariables.frequentTravellersWIDs[0].containsValue(fieldMemberData.id)  %>",
@@ -1260,8 +1274,8 @@
                   "label": "Please describe the arrangements for your dependent children who are not traveling with you.   Please include addresses, caregiver contact information, etc.",
                   "required": "<% pageVariables.isField && pageVariables.hasChildren %>",
                   "enabled": true,
-                  "visible": "<% pageVariables.isField && pageVariables.hasChildren %>",
-                  "value": ""
+                  "visible": "<% (pageVariables.isField && pageVariables.hasChildren) || (!empty(getOOBRequest.data) &&!empty(getOOBRequest.data[0].alternateArrangementForChildren)) %>",
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].alternateArrangementForChildren) ? getOOBRequest.data[0].alternateArrangementForChildren : '' %>"
                 },
                 {
                   "type": "checkBox",
@@ -1304,16 +1318,26 @@
                   ]
                 },
                 {
+                  "type": "text",
+                  "id": "phoneErrorHolderTxt",
+                  "visible": false,
+                  "required": false,
+                  "enabled": false,
+                  "value": ""
+                },
+                {
                   "type": "grid",
                   "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
                   "id": "allNumbers",
                   "deleteEndPoint": "deletePhoneNumber",
                   "rowVariableName": "contactDetailsData",
                   "onRowAdd": "<%
-                               var selfRows = self.getRows();
-                               var newRow = selfRows[0];
+                    OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
+                    var selfRows = self.getRows();
+                    var newRow = selfRows[0];
                     newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
                   %>",
+                  "onRowRemove":"<% OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers); %>",
                   "label": "<% 'Phone Numbers you are travelling with' %>",
                   "columns": [
                     {
@@ -1433,14 +1457,6 @@
                   ]
                 }
               ]
-            },
-            {
-              "type": "text",
-              "label": "contingent",
-              "id": "contingentTxt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(getWorkerDetails.data[0]) ? json:asJSON(getWorkerDetails.data[0]) : 'empty' %>"
             },
             {
               "type": "fieldSet",
