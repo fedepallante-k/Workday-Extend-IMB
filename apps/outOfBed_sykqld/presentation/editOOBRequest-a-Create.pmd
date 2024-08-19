@@ -48,7 +48,7 @@
     {
       "name": "getStatuses",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status where statusID = \\'1\\'').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status').urlEncode() %>",
       "authType": "wcpisu"
     },
     {

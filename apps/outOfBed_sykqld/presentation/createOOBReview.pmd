@@ -27,10 +27,38 @@
       "exclude": "<%empty(flowVariables.oobRequest)%>",
       "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  flowVariables.oobRequest + '\\' WHERE oobRequest is not empty ORDER BY travellerName ASC, startDate ASC').urlEncode() %>",
       "authType": "wcpisu"
+    },
+    {
+      "name": "getStatuses",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
     "outboundEndPoints": [
+      {
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
+        "authType": "sso",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(nextBtn.value) || nextBtn.value == false %>",
+        "onSend": "<% return self.data;  %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "status.id",
+            "value": "<% getStatuses.data.find(x => {x.description == 'Pending Approval'}).workdayID %>"
+          }
+        ]
+      },
       {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
