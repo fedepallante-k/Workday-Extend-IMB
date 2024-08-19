@@ -19,7 +19,7 @@
     {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID = \\'1\\' where status is not empty limit 100').pathEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID = \\'1\\' where status is not empty ORDER BY createdMoment DESC limit 100').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [
@@ -198,9 +198,11 @@
                     "label": "Edit",
                     "action": "SECONDARY",
                     "taskReference": {
-                      "taskId": "editRequest",
+                      "taskId": "editOOBRequest-a-Create",
                       "parameterBindings": {
-                        "requestID": "<% oOBRequest.workdayID ?: 'No workday Id found' %>"
+                        "oobRequest": "<% oOBRequest.workdayID ?: 'No workday Id found' %>",
+                        "isEdit": "<% true %>",
+                        "isCopy": "<% false %>"
                       }
                     }
                   },
@@ -229,8 +231,12 @@
                 "label": "Copy",
                 "action": "SECONDARY",
                 "taskReference": {
-                  "taskId": "editOOBRequest",
-                  "parameters": "<% { 'instanceId': oOBRequest.id, 'mode': 'copy'} %>"
+                  "taskId": "editOOBRequest-a-Create",
+                  "parameterBindings": {
+                    "oobRequest": "<% oOBRequest.workdayID %>",
+                    "isEdit": "<% false %>",
+                    "isCopy": "<% true %>"
+                  }
                 }
               }
             },
