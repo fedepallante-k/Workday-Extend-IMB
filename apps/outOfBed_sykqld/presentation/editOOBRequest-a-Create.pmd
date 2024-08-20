@@ -958,7 +958,7 @@
   %>",
   "onSubmit": "<%
     OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
-    OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
+    OOB.checkIfWorkerSelected(errorHolderTxt, (pageVariables.isField ? fieldMemberGrid : staffMemberGrid), accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -1174,7 +1174,7 @@
                       "selectionEnabled": true,
                       "onRowSelect": "<%
                         childrenArrangments();
-                        OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor);
+                        OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
                       %>",
                       "rowVariableName": "fieldMemberData",
                       "isArrayOutBinding": true,
@@ -1227,6 +1227,9 @@
                       "rowVariableName": "staffMemberData",
                       "render": "<% !pageVariables.isField %>",
                       "selectionEnabled": true,
+                      "onRowSelect": "<%
+                        OOB.checkIfWorkerSelected(errorHolderTxt, staffMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
+                      %>",
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
                         {

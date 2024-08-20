@@ -159,9 +159,10 @@ var checkIfPhoneNumberProvided = function(widget, grid) {
   }
 }
 
-var checkIfWorkerSelected = function(widget, familygrid, accompanyingGrid, workerName) {
+var checkIfWorkerSelected = function(widget, grid, accompanyingGrid, workerName, isField) {
   widget.clearError();
-  var listOfSelectedWorkersNames = familygrid.getSelectedRows().map(x => {x.familyMemberCol.childrenMap.worker.value});
+  console.info('grid details = ' + json:asJSON(grid));
+  var listOfSelectedWorkersNames = isField ? grid.getSelectedRows().map(x => {x.familyMemberCol.childrenMap.worker.value}) : grid.getSelectedRows().map(x => {x.staffMemberCol.childrenMap.staffMemberName.value});
   !empty(accompanyingGrid.getRows()) ? listOfSelectedWorkersNames.addAll(accompanyingGrid.getRows().map(x => {x.accompanyingMemberCol.childrenMap.accompanyingMemberFullName.value})) : [];
   if(listOfSelectedWorkersNames.contains(workerName)){
     widget.setVisible(false);
