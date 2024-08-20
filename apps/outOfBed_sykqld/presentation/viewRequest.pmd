@@ -46,6 +46,9 @@
       }
     ]
   },
+  "include": [
+    "Dates.script"
+  ],
   "presentation": {
     "pageType": "edit",
     "headerSize": "VPS_DEFAULT",
@@ -61,6 +64,7 @@
       "children": [
         {
           "type": "section",
+          "render": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) ? Dates.getDate(getOOBRequest.data[0].endDate) >= Dates.getDateRelativeToToday(-4, userTimeZone) : false %>",
           "horizontal": true,
           "children": [
             {
