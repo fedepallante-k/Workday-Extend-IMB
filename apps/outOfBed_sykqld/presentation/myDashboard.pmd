@@ -2,6 +2,12 @@
   "id": "myDashboard",
   "endPoints": [
     {
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
       "name": "getOOBRequests_Old",
       "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?limit={{pagingVariables.limit ?: 50}}&offset={{pagingVariables.offset ?: 0}}` %>",
       "authType": "sso",
@@ -19,7 +25,7 @@
     {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID = \\'1\\' where status is not empty ORDER BY createdMoment DESC limit 100').pathEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getCurrentWorker.id +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [

@@ -224,6 +224,98 @@
           "taskId": "viewOOBProfile"
         }
       ]
+    },
+    {
+      "id": "onBehalfOfOOBFlow",
+      "cancelOutOfFlow": true,
+      "flowSteps": [
+        {
+          "id": "onBehalfOfSelectWorker",
+          "startsFlow": true,
+          "transitions": [
+            {
+              "order": "a",
+              "value": "onBehalfOfCreateOOB",
+              "condition": "<% true %>"
+            }
+          ],
+          "taskId": "OnBehalfOf_a_SelectWorker"
+        },
+        {
+          "id": "onBehalfOfCreateOOB",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "onBehalfOfOOBRequestTravelLodging",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "onBehalfOfCreateOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            }
+          ],
+          "taskId": "createOOBRequest"
+        },
+        {
+          "id": "onBehalfOfOOBRequestTravelLodging",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "onBehalfOfOOBReview",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "onBehalfOfCreateOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "onBehalfOfCreateOOB",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBRequest-b-TravelLodgingDetails"
+        },
+        {
+          "id": "onBehalfOfOOBReview",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "onBehalfOfOOBConfirm",
+              "condition": "<% flowVariables.proceed %>"
+            },
+            {
+              "order": "b",
+              "value": "onBehalfOfCreateOOBBackToMain",
+              "condition": "<% flowVariables.saveForLater %>"
+            },
+            {
+              "order": "c",
+              "value": "onBehalfOfOOBRequestTravelLodging",
+              "condition": "<% flowVariables.backBtn %>"
+            }
+          ],
+          "taskId": "createOOBReview"
+        },
+        {
+          "id": "onBehalfOfOOBConfirm",
+          "transitions": [
+            {
+              "order": "a",
+              "value": "onBehalfOfCreateOOBBackToMain",
+              "condition": "true"
+            }
+          ],
+          "taskId": "createOOBRequest-d-Confirm"
+        },
+        {
+          "id": "onBehalfOfCreateOOBBackToMain",
+          "endsFlow": true,
+          "taskId": "myDashboard"
+        }
+      ]
     }
   ],
   "tasks": [
@@ -337,6 +429,13 @@
       "routingPattern": "myHistoricDashboard",
       "page": {
         "id": "myHistoricDashboard"
+      }
+    },
+    {
+      "id": "OnBehalfOf_a_SelectWorker",
+      "routingPattern": "OnBehalfOf_a_SelectWorker",
+      "page": {
+        "id": "OnBehalfOf_a_SelectWorker"
       }
     }
   ],
