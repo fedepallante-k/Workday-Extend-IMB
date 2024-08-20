@@ -2,6 +2,12 @@
   "id": "myDashboard",
   "endPoints": [
     {
+      "name": "getCurrentWorker",
+      "baseUrlType": "WORKDAY-COMMON",
+      "url": "/workers/me",
+      "authType": "sso"
+    },
+    {
       "name": "getOOBRequests_Old",
       "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests?limit={{pagingVariables.limit ?: 50}}&offset={{pagingVariables.offset ?: 0}}` %>",
       "authType": "sso",
@@ -19,7 +25,7 @@
     {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where on status statusID = \\'1\\' where status is not empty ORDER BY createdMoment DESC limit 100').pathEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getCurrentWorker.id +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [
@@ -49,61 +55,67 @@
           "columnWidthRatios": [0.4,0.4,0.2],
           "children": [
             {
-              "type": "section",
+              "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
+              "title": "When to submit an OOB (Field)",
               "children": [
                 {
                   "type": "richText",
-                  "value": "<h2>When to submit an OOB (Field)</h2><br>Any time you are not going to be in your own residence overnight.<br>Any time your child/children are not going to be in your residence overnight (example: Youth Retreat).<br>When travelling with non-company members, please list them as part of your OOB.<br>When you initially leave the field for STAS or return from STAS (OOBs are not required while on STAS unless you will be travelling internationally)<br>Please submit the OOB at least 72 hours prior to your time of departure."
-                },
-                {
-                  "type": "section",
-                  "horizontal": true,
-                  "children": [
-                    {
-                      "type": "button",
-                      "id": "createRequest",
-                      "label": "Create New OOB",
-                      "action": "PRIMARY",
-                      "taskReference": {
-                        "taskId": "createOOBRequest"
-                      }
-                    },
-                    {
-                      "type": "button",
-                      "id": "myProfile",
-                      "label": "My OOB Profile",
-                      "action": "PRIMARY",
-                      "taskReference": {
-                        "taskId": "viewOOBProfile"
-                      }
-                    }
-                  ]
+                  "value": "<br>Any time you are not going to be in your own residence overnight.<br>Any time your child/children are not going to be in your residence overnight (example: Youth Retreat).<br>When travelling with non-company members, please list them as part of your OOB.<br>When you initially leave the field for STAS or return from STAS (OOBs are not required while on STAS unless you will be travelling internationally)<br>Please submit the OOB at least 72 hours prior to your time of departure."
                 }
               ]
             },
             {
-              "type": "section",
+              "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
+              "title": "When to submit an OOB (Staff)",
               "children": [
                 {
                   "type": "richText",
-                  "value": "<h2>When to submit an OOB (Staff)</h2><br>Any time you are traveling ouside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a seperate OOB notice. If your spouse is traveling please include them on your OOB."
+                  "value": "<br>Any time you are traveling ouside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a seperate OOB notice. If your spouse is traveling please include them on your OOB."
                 }
               ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "label": "QuickLinks",
+          "children": [
+            {
+              "type": "button",
+              "id": "historicalDashboard",
+              "label": "My Historical OOBs",
+              "action": "LINK",
+              "taskReference": {
+                "taskId": "myHistoricDashboard"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "horizontal": true,
+          "children": [
+            {
+              "type": "button",
+              "id": "createRequest",
+              "label": "Create New OOB",
+              "action": "PRIMARY",
+              "taskReference": {
+                "taskId": "createOOBRequest"
+              }
             },
             {
-              "type": "section",
-              "label": "QuickLinks",
-              "children": [
-                {
-                  "type": "button",
-                  "id": "historicalDashboard",
-                  "label": "My Historical OOBs",
-                  "action": "LINK",
-                  "taskReference": {
-                    "taskId": "myHistoricDashboard"
-                  }
-                }
-              ]
+              "type": "button",
+              "id": "myProfile",
+              "label": "My OOB Profile",
+              "action": "PRIMARY",
+              "taskReference": {
+                "taskId": "viewOOBProfile"
+              }
             }
           ]
         },

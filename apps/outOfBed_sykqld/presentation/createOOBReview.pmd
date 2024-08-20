@@ -6,20 +6,20 @@
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
       "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>", "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY cf_XTNDOOBCTTravellerName ASC, departureDate ASC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getDestinations",
@@ -40,7 +40,7 @@
       {
         "name": "updateOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "exclude": "<% empty(nextBtn.value) || nextBtn.value == false %>",
         "onSend": "<% return self.data;  %>",

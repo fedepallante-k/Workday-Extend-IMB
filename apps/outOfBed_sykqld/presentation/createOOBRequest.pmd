@@ -9,22 +9,16 @@
       "authType": "sso"
     },
     {
-      "name": "getOOBProfile",
-      "baseUrlType": "APP-V1",
-      "url": "/oobProfiles",
-      "authType": "sso"
-    },
-    {
       "name": "getOOBProfileWQL",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID AS id, worker, sts, mobileNumbers{workdayID AS id, name, number, countryCode, notes} as mobileNumbers, frequentTravellers{workdayID, name} as frequentTravellers, favouriteDestinations{name} as favouriteDestinations FROM outOfBed_sykqld_oobProfiles WHERE worker in (' + (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', empty(onBehalf) ?  'worker in (' + getCurrentWorker.id +')' : '') %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', 'worker in (' +  (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +')') %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getWorkerFromSameUnit",
@@ -36,7 +30,7 @@
     {
       "name": "getPhoneCodes",
       "httpMethod": "GET",
-      "authType": "sso",
+      "authType": "wcpisu",
       "deferred": true,
       "url": "<% 'https://api.workday.com/referenceData/country_phone_code/vers/latest/search?q=' + instanceListQuery %>"
     },
@@ -57,21 +51,21 @@
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, worker, oobRequest, type AS leaveType, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -123,7 +117,7 @@
         "name": "deletePersonalTimeOff",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs/' + personalTimeOffWID.value %>",
         "httpMethod": "DELETE",
-        "authType": "sso",
+        "authType": "wcpisu",
         "onSend": "<%
                    console.info('delete Triggered = ');
                    self.data ={'data': []};
@@ -135,7 +129,7 @@
       {
         "name": "createOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "POST",
         "exclude": "<% !empty(flowVariables.oobRequest) %>",
         "onSend": "<%
@@ -205,7 +199,7 @@
           },
           {
             "outboundPath": "traveller.id",
-            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+            "value": "<% (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) %>"
           },
           {
             "outboundPath": "cancelConfirmation",
@@ -224,7 +218,7 @@
       {
         "name": "createAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "POST",
         "onSend": "<%
           self.data = {'data' : []};
@@ -244,7 +238,7 @@
       {
         "name": "createPersonalTimeOff",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "POST",
         "failOnStatusCodes": [
           {
@@ -265,7 +259,7 @@
       {
         "name": "updatePersonalTimeOff",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/personalTimeOffs?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [
           {
@@ -285,8 +279,8 @@
       },
       {
         "name": "updateOOBProfile",
-        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
-        "authType": "sso",
+        "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfileWQL.data[0].id %>",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [
           {
@@ -310,7 +304,7 @@
       {
         "name": "updateAccompanyTravellers",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
         "failOnStatusCodes": [
@@ -353,7 +347,7 @@
       {
         "name": "updateOOBRequest",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "exclude": "<% empty(flowVariables.oobRequest) %>",
         "onSend": "<%
@@ -427,7 +421,7 @@
           },
           {
             "outboundPath": "traveller.id",
-            "value": "<% !empty(getCurrentWorker) ? getCurrentWorker.id : '' %>"
+            "value": "<% (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) %>"
           },
           {
             "outboundPath": "cancelConfirmation",

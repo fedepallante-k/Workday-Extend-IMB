@@ -17,8 +17,8 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty( flowVariables.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  queryParams.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, addToOOBProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu"
     },
     {
       "name": "getLodging",
@@ -57,7 +57,7 @@
     {
       "name": "getDestinationsOnProfile",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "exclude": "<% empty(flowVariables.oobProfileID) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, name AS descriptor,travellerName, Destination, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobProfile workdayID = \\''+  flowVariables.oobProfileID + '\\' WHERE oobProfile is not empty AND addToProfile = true ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     }
@@ -103,7 +103,7 @@
       {
         "name": "createAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "POST",
         "exclude": "<% !empty(accompanyTravellerID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "onSend": "<%
@@ -121,7 +121,7 @@
       {
         "name": "updateAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "exclude": "<% empty(accompanyTravellerID.value) %>",
         "onSend": "<% return self.data; %>",
         "httpMethod": "PATCH",
@@ -138,7 +138,7 @@
         "_generationNote": "Updates a single instance, as specified by of the OOBProfile business object resource.",
         "name": "updateOOBProfile",
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/oobProfiles/' + getOOBProfile.data[0].id %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "PATCH",
         "_exclude": "<% !empty(backBtn.value) && backBtn.value == true %>",
         "exclude": "<% true %>",
@@ -178,7 +178,7 @@
       {
         "name": "deleteAccompanyingTravellers",
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers/` + accompanyTravellerID.value %>",
-        "authType": "sso",
+        "authType": "wcpisu",
         "httpMethod": "DELETE",
         "exclude": "<% empty(accompanyTravellerID.value) || (!empty(backBtn.value) && backBtn.value == true) %>",
         "failOnStatusCodes": [

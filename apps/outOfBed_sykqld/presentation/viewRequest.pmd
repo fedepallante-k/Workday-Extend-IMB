@@ -46,9 +46,13 @@
       }
     ]
   },
+  "include": [
+    "Dates.script"
+  ],
   "presentation": {
-    "pageType": "view",
+    "pageType": "edit",
     "headerSize": "VPS_DEFAULT",
+    "standardEditButtonsHidden": true,
     "preferredLabelPosition": "ASIDE",
     "title": {
       "type": "title",
@@ -58,6 +62,27 @@
       "type": "section",
       "horizontal": false,
       "children": [
+        {
+          "type": "section",
+          "render": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) ? Dates.getDate(getOOBRequest.data[0].endDate) >= Dates.getDateRelativeToToday(-4, userTimeZone) : false %>",
+          "horizontal": true,
+          "children": [
+            {
+              "type": "button",
+              "id": "createRequest",
+              "label": "Edit",
+              "action": "PRIMARY",
+              "taskReference": {
+                "taskId": "editOOBRequest-a-Create",
+                "parameterBindings": {
+                  "oobRequest": "<% getOOBRequest.data[0].id ?: 'No workday Id found' %>",
+                  "isEdit": "<% true %>",
+                  "isCopy": "<% false %>"
+                }
+              }
+            }
+          ]
+        },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -522,6 +547,17 @@
                   "value": "<% !empty(lodgingLoopObject.postalCode) ? lodgingLoopObject.postalCode : '' %>"
                 }
               ]
+            }
+          ]
+        },
+        {
+          "type": "editButtonBar",
+          "editButtons": [
+            {
+              "type": "editButton",
+              "label": "Done",
+              "id": "doneButton",
+              "buttonType": "PRIMARY"
             }
           ]
         }
