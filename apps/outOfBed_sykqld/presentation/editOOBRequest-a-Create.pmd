@@ -16,7 +16,7 @@
     {
       "name": "getWorkerDetails",
       "baseUrlType": "WORKDAY-WQL",
-      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', 'worker in (' +  (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +')') %>",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('phoneNumbers{workdayID, phoneNumber, countryCode}, workerIsContingentWorker, dependents{name, phoneNumber_PrimaryWithCountryCode, relationship, cf_XTNDOOBTFIsSpouse AS isSpouse}, cf_CFLRVUnitIDTextWorker AS unitId, jobFamilyGroup', 'worker in (' +  (!empty(flowVariables.isOnBehalfOf) && flowVariables.isOnBehalfOf ? flowVariables.onBehalfOfWorkerId : getCurrentWorker.id) +')') %>",
       "authType": "wcpisu"
     },
     {
@@ -78,6 +78,13 @@
       "baseUrlType": "WORKDAY-WQL",
       "url": "<% '/data?query=' + ('SELECT name , countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, travellerName, addToProfile, oobRequest, oobProfile FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID is not null AND workdayID = \\'' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) +  '\\' WHERE oobRequest is not empty').urlEncode() %>",
       "authType": "wcpisu"
+    },
+    {
+      "name": "searchMobileNumbers",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, name, number, countryCode, notes, oobProfile FROM outOfBed_sykqld_mobileNumbers WHERE (workdayID = \"' + phoneID + '\" AND name is not null AND number is not null)  ORDER BY createdMoment DESC').urlEncode() %>",
+      "authType": "wcpisu",
+      "deferred": true
     }
   ],
   "outboundData": {
@@ -753,7 +760,7 @@
       var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
       if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
         for (var numberVar : getWorkerDetails.data[0].phoneNumbers){
-          phoneNumbersPV.add({'id' : numberVar.id, 'number': numberVar.descriptor,  'name': numberVar.descriptor});
+          phoneNumbersPV.add({'id' : numberVar.workdayID, 'number': numberVar.phoneNumber,  'name': numberVar.phoneNumber});
         }
       }
       return phoneNumbersPV;
@@ -1353,12 +1360,17 @@
                             "selectedValuesAndDescriptors": "<% !empty(contactDetailsData.id) && !empty(contactDetailsData.name) ? [{'id' :contactDetailsData.id, 'name' : contactDetailsData.name}] : [] %>",
                             "onChange": "<%
                               if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id != 'other'){
+                                var phoneData = searchMobileNumbers.invoke({'phoneID': self.selectedEntries[0].id});
+                                var workerPhoneData = getWorkerDetails.data[0].phoneNumbers.find(x => {x.workdayID == self.selectedEntries[0].id});
+                                phoneCodeList.setValues([{'id': (!empty(phoneData.data[0].workdayID) ? phoneData.data[0].workdayID : workerPhoneData.workdayID), 'descriptor': (!empty(phoneData.data[0].name) ? phoneData.data[0].name : workerPhoneData.phoneNumber), 'phoneCode': (!empty(phoneData.data[0].countryCode) ? phoneData.data[0].countryCode : workerPhoneData.countryCode)}]);
+                                phoneCodeList.setValue([!empty(phoneData.data[0].countryCode) ? phoneData.data[0].countryCode : workerPhoneData.countryCode]);
                                 numberName.value = self.selectedEntries[0].descriptor;
-                                numberId.value = self.selectedEntries[0].id;
+                                numberId.value = !empty(workerPhoneData) ? 'other' : self.selectedEntries[0].id;
                                 numberName.value = self.selectedEntries[0].descriptor;
                                 phoneNameCell.value = self.selectedEntries[0].descriptor;
                                 phoneNumberCol.value = regex:replace(self.selectedEntries[0].descriptor, '[^0-9.]', '');
                                 phoneNameCell.enabled=false;
+                                notesCol.value = !empty(phoneData.data[0].notes) ? phoneData.data[0].notes : '';
                               }else if(!empty(self.selectedEntries[0]) && self.selectedEntries[0].id == 'other'){
                                 numberId.value = 'other';
                                 phoneNameCell.value = '';
@@ -1403,7 +1415,7 @@
                       "cellTemplate": {
                         "type": "text",
                         "id": "phoneNameCell",
-                        "enabled": "<% true %>",
+                        "enabled": "<% false %>",
                         "required": true,
                         "value": "<%!empty(contactDetailsData.name) ? contactDetailsData.name : ''%>"
                       }
