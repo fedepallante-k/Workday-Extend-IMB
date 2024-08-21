@@ -772,7 +772,7 @@
     "title": {
       "type": "title",
       "id": "title",
-      "label": "Create an OOB"
+      "label": "<% flowVariables.isOnBehalfOf ? ('Create an OOB - On Behalf Of ' +  flowVariables.onBehalfOfWorkerDescriptor) : 'Create an OOB' %>"
     },
     "body": {
       "type": "section",

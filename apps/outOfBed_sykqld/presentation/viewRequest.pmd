@@ -6,21 +6,28 @@
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(routeParams.requestID) %>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + routeParams.requestID +'\") ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getPersonalTimeOff",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(routeParams.requestID)%>",
       "url": "<% '/data?query=' + ('SELECT worker, oobRequest, type, startDate, endDate FROM outOfBed_sykqld_personalTimeOffs WHERE oobRequest in ('+  routeParams.requestID + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
     },
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(routeParams.requestID)%>",
       "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  routeParams.requestID + ') ORDER BY createdMoment DESC').urlEncode() %>",
-      "authType": "sso"
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getDestinations",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<%empty(routeParams.requestID)%>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  routeParams.requestID + '\\' WHERE oobRequest is not empty ORDER BY travellerName ASC, startDate ASC').urlEncode() %>",
+      "authType": "wcpisu"
     }
   ],
   "outboundData": {
@@ -69,7 +76,7 @@
           "children": [
             {
               "type": "button",
-              "id": "createRequest",
+              "id": "editRequest",
               "label": "Edit",
               "action": "PRIMARY",
               "taskReference": {
@@ -84,70 +91,75 @@
           ]
         },
         {
-          "type": "fieldSet",
-          "id": "tripDetailsFS",
-          "title": "Trip Details",
-          "collapsible": true,
-          "children": [
-            {
-              "type": "text",
-              "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
-              "id": "vismoTxt",
-              "enabled": false,
-              "value": "Yes"
-            },
-            {
-              "type": "text",
-              "label": "Trip Name",
-              "id": "tripNameTxt",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].name : '' %>"
-            },
-            {
-              "type": "textArea",
-              "label": "Trip Purpose",
-              "id": "tripPurposeTxtA",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].purpose : '' %>"
-            },
-            {
-              "type": "date",
-              "label": "Start Date",
-              "id": "startDateDt",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].startDate : '' %>"
-            },
-            {
-              "type": "date",
-              "label": "End Date ",
-              "id": "endDateDt",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].endDate : '' %>"
-            },
-            {
-              "type": "date",
-              "label": "End Date (or Expected End Date)",
-              "id": "endDateDt",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].expectedEndDate : '' %>"
-            },
-            {
-              "type": "text",
-              "label": "STS",
-              "id": "stsIL",
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].sts : '' %>"
-            },
-            {
-              "type": "text",
-              "label": "Other - STS specific to this Trip",
-              "id": "otherStsTxt",
-              "enabled": false,
-              "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) %>",
-              "value": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) ? getOOBRequest.data[0].otherSTS : '' %>"
-            }
-          ]
-        },
+           "type": "fieldSet",
+           "id": "tripDetailsFS",
+           "title": "Trip Details",
+           "collapsible": true,
+           "children": [
+             {
+               "type": "text",
+               "label": "Have you run a diagnostics check and verified that Vismo is running properly on your device?",
+               "id": "vismoTxt",
+               "enabled": false,
+               "value": "Yes"
+             },
+             {
+               "type": "text",
+               "label": "Trip Name",
+               "id": "tripNameTxt",
+               "enabled": false,
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].name : '' %>"
+             },
+             {
+               "type": "textArea",
+               "label": "Trip Purpose",
+               "id": "tripPurposeTxtA",
+               "enabled": false,
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].purpose : '' %>"
+             },
+             {
+               "type": "date",
+               "label": "Start Date",
+               "id": "startDateDt",
+               "dateFormat": "yyyy-MM-dd",
+               "dateDisplayPattern": "MM/dd/yyyy",
+               "enabled": false,
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].startDate : '' %>"
+             },
+             {
+               "type": "date",
+               "label": "End Date ",
+               "id": "endDateDt",
+               "enabled": false,
+               "dateFormat": "yyyy-MM-dd",
+               "dateDisplayPattern": "MM/dd/yyyy",
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].endDate : '' %>"
+             },
+             {
+               "type": "date",
+               "label": "End Date (or Expected End Date)",
+               "id": "endDateDt",
+               "enabled": false,
+               "dateDisplayPattern": "MM-dd-yyyy",
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].expectedEndDate : '' %>"
+             },
+             {
+               "type": "text",
+               "label": "STS",
+               "id": "stsIL",
+               "enabled": false,
+               "value": "<% !empty(getOOBRequest.data[0]) ? getOOBRequest.data[0].sts : '' %>"
+             },
+             {
+               "type": "text",
+               "label": "Other - STS specific to this Trip",
+               "id": "otherStsTxt",
+               "enabled": false,
+               "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) %>",
+               "value": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].otherSTS) ? getOOBRequest.data[0].otherSTS : '' %>"
+             }
+           ]
+         },
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -161,18 +173,15 @@
               "doNotRemove": true,
               "doNotRemoveRow": true,
               "selectionEnabled": false,
-              "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
               "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data.map(x => {{'firstName' : x.firstName, 'lastName' : x.lastName, 'addToOOBProfile' : x.addToOOBProfile}}).distinct() : [] %>",
-              "_visible": "<% !empty(pageVariables.isField) ? pageVariables.isField : false %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
-              "label": "<% 'For Field Family Members' %>",
               "columns": [
                 {
                   "type": "column",
                   "columnId": "familyMemberCol",
-                  "label": "<% 'Members of Family Unit or Frequent Travelers from OOB Profile' %>",
+                  "label": "<% 'Traveler' %>",
                   "cellTemplate": {
                     "id": "traveller",
                     "type": "text",
@@ -184,12 +193,12 @@
                 },
                 {
                   "type": "column",
-                  "columnId": "fieldMemberNameCol",
+                  "columnId": "addToOOBCol",
                   "label": "<% 'If Other selected - Add to OOB Profile?' %>",
                   "cellTemplate": {
                     "id": "addToOOB",
                     "type": "text",
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.fromProfile ? 'Yes' : '' : '' %>",
+                    "value": "<% !empty(fieldMemeberData) && fieldMemeberData.addToOOBProfile ? 'Yes' : 'No'  %>",
                     "enabled": false
                   }
                 }
@@ -205,10 +214,14 @@
             },
             {
               "type": "grid",
+              "visible": "<% !empty(getOOBRequest.data[0]) && !empty(getOOBRequest.data[0].phoneNumbers) %>",
               "rows": "<% !empty(getOOBRequest.data[0] &&!empty(getOOBRequest.data[0].phoneNumbers)) ?  getOOBRequest.data.map(x => {x.phoneNumbers})[0] : [] %>",
               "id": "allNumbers",
               "enabled": false,
               "doNotAdd": true,
+              "doNotRemove": true,
+              "doNotRemoveRow": true,
+              "selectionEnabled": false,
               "rowVariableName": "contactDetailsData",
               "label": "<% 'Phone Numbers you are travelling with' %>",
               "columns": [
@@ -276,6 +289,9 @@
               "rows": "<% !empty(getPersonalTimeOff.data) ? getPersonalTimeOff.data : [] %>",
               "visible": true,
               "doNotAdd": true,
+              "doNotRemove": true,
+              "doNotRemoveRow": true,
+              "selectionEnabled": false,
               "enabled": false,
               "rowVariableName": "timeOffData",
               "label": "<% 'Personal Time Off Details' %>",
@@ -305,7 +321,8 @@
                   "label": "<% 'Start Date' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "value": "<% !empty(timeOffData.startDate) ? timeOffData.startDate : '' %>"
+                    "enabled": false,
+                    "value": "<% !empty(timeOffData.startDate) ? Dates.getDateFormattedUS(timeOffData.startDate) : '' %>"
                   }
                 },
                 {
@@ -314,7 +331,8 @@
                   "label": "<% 'End Date' %>",
                   "cellTemplate": {
                     "type": "text",
-                    "value": "<% !empty(timeOffData.endDate) ? timeOffData.endDate : '' %>"
+                    "enabled": false,
+                    "value": "<% !empty(timeOffData.endDate) ? Dates.getDateFormattedUS(timeOffData.endDate) : '' %>"
                   }
                 }
               ]
@@ -324,7 +342,7 @@
               "label": "Is this an Elevated Risk Situation",
               "id": "elevatedRiskRG",
               "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0].elevatedRisk) ? getOOBRequest.data[0] ? 'Yes' : 'No' : '' %>"
+              "value": "<% !empty(getOOBRequest.data[0].elevatedRisk) ? getOOBRequest.data[0].elevatedRisk ? 'Yes' : 'No' : '' %>"
             },
             {
               "type": "textArea",
@@ -354,6 +372,8 @@
           "children": [
             {
               "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
               "title": "<% 'Travel Details - ' + (objectToLoopOn.firstName ?: '') + ' ' + (objectToLoopOn.lastName ?: '') %>",
               "children": [
                 {
@@ -364,16 +384,21 @@
                   "value": "<% !empty(objectToLoopOn.sts) ? objectToLoopOn.sts : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "date",
                   "label": "Depature Date",
                   "id": "departureDateDt",
                   "enabled": false,
+                  "dateFormat": "yyyy-MM-dd",
+                  "dateDisplayPattern": "MM/dd/yyyy",
                   "value": "<% !empty(objectToLoopOn.departureDate) ? objectToLoopOn.departureDate : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Departure Time",
                   "id": "departureTimeTxt",
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "enabled": false,
                   "value": "<% !empty(objectToLoopOn.departureTime) ? objectToLoopOn.departureTime : '' %>"
                 },
@@ -382,12 +407,17 @@
                   "label": "Arrival Date",
                   "id": "arrivalDateDt",
                   "enabled": false,
+                  "dateFormat": "yyyy-MM-dd",
+                  "dateDisplayPattern": "MM/dd/yyyy",
                   "value": "<% !empty(objectToLoopOn.arrivalDate) ? objectToLoopOn.arrivalDate : '' %>"
                 },
                 {
-                  "type": "text",
+                  "type": "time",
                   "label": "Arrival Time",
                   "id": "arrivalTimeTxt",
+                  "timePrecision": "MINUTE",
+                  "timeFormat": "HH:mm",
+                  "timeDisplayPattern": "HH:mm",
                   "enabled": false,
                   "value": "<% !empty(objectToLoopOn.arrivalTime) ? objectToLoopOn.arrivalTime : '' %>"
                 },
@@ -397,6 +427,14 @@
                   "id": "modeOfTransportTxt",
                   "enabled": false,
                   "value": "<% !empty(objectToLoopOn.modeOfTransport) ? objectToLoopOn.modeOfTransport : '' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "Airline",
+                  "id": "airlineTxt",
+                  "enabled": false,
+                  "visible": "<% !empty(objectToLoopOn.airline) %>",
+                  "value": "<% !empty(objectToLoopOn.airline) ? objectToLoopOn.airline : '' %>"
                 },
                 {
                   "type": "text",
@@ -453,19 +491,22 @@
         {
           "type": "loop",
           "label": "Loop",
-          "_render": "<% !empty(getOOBRequest.data[0].lodging) %>",
-          "on": "<% !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging})[0] : [] %>",
+          "on": "<% !empty(getDestinations.data) ? getDestinations.data : [] %>",
           "as": "lodgingLoopObject",
           "index": "loopIndex",
           "children": [
             {
               "type": "fieldSet",
+              "collapsible": true,
+              "initializeCollapsed": true,
               "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName : '') %>",
               "children": [
                 {
                   "type": "date",
                   "label": "Start Date",
                   "id": "lodgingStartDateDt",
+                  "dateFormat": "yyyy-MM-dd",
+                  "dateDisplayPattern": "MM/dd/yyyy",
                   "enabled": false,
                   "value": "<% !empty(lodgingLoopObject.startDate) ? lodgingLoopObject.startDate : '' %>"
                 },
@@ -474,6 +515,8 @@
                   "label": "End Date",
                   "id": "lodgingEndDateDt",
                   "enabled": false,
+                  "dateFormat": "yyyy-MM-dd",
+                  "dateDisplayPattern": "MM/dd/yyyy",
                   "value": "<% !empty(lodgingLoopObject.endDate) ? lodgingLoopObject.endDate : '' %>"
                 },
                 {
@@ -544,7 +587,8 @@
                   "label": "Add this location to my frequent destination list",
                   "id": "addToFrequentDestinationTxt",
                   "enabled": false,
-                  "value": "<% !empty(lodgingLoopObject.postalCode) ? lodgingLoopObject.postalCode : '' %>"
+                  "visible": "<% !empty(lodgingLoopObject.addToProfile) && lodgingLoopObject.addToProfile %>",
+                  "value": "<% lodgingLoopObject.addToProfile ? 'Yes' : 'No' %>"
                 }
               ]
             }
