@@ -437,6 +437,13 @@
       "page": {
         "id": "OnBehalfOf_a_SelectWorker"
       }
+    },
+    {
+      "id": "OnBehalfOf_ManagementDashboard",
+      "routingPattern": "OnBehalfOf_ManagementDashboard",
+      "page": {
+        "id": "OnBehalfOf_ManagementDashboard"
+      }
     }
   ],
   "applicationId": "outOfBed_sykqld"

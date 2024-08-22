@@ -1,5 +1,5 @@
 {
-  "id": "myDashboard",
+  "id": "OnBehalfOf_ManagementDashboard",
   "endPoints": [
     {
       "name": "getCurrentWorker",
@@ -8,9 +8,15 @@
       "authType": "sso"
     },
     {
+      "name": "getWorkerDetails",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + OOB.getWorkerDetails('', 'manager_Level01 in (' + getCurrentWorker.id +')') %>",
+      "authType": "wcpisu"
+    },
+    {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getCurrentWorker.id +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
+      "url": "<%'/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate, elevatedRiskSituation, cf_XTNDOOBLRVWorkerLegalName AS legalName FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getWorkerDetails.data.map(x => {x.worker.id}).join(',') +  ') ORDER BY createdMoment DESC limit 20').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [
@@ -21,95 +27,53 @@
           "code": 403
         }
       ]
+    },
+    {
+      "name": "searchAccompanyTravllers",
+      "baseUrlType": "WORKDAY-WQL",
+      "exclude": "<% empty(flowVariables.oobRequest) %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id  FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  oobRequest + ')').urlEncode() %>",
+      "authType": "wcpisu",
+      "deferred": true
     }
   ],
+  "outboundData": {
+    "outboundEndPoints": [
+    ]
+  },
+  "include": [
+    "OOB.script"
+  ],
   "presentation": {
-    "pageType": "view",
+    "headerSize": "VPS_DEFAULT",
+    "pageType": "edit",
     "title": {
       "type": "title",
-      "id": "title",
-      "label": "My OOB Dashboard"
+      "label": "OOB Management Dashboard"
     },
     "body": {
       "type": "section",
-      "id": "bodySection",
+      "horizontal": false,
       "children": [
         {
-          "type": "section",
-          "horizontal": true,
-          "columnWidthRatios": [0.4,0.4,0.2],
-          "children": [
-            {
-              "type": "fieldSet",
-              "collapsible": true,
-              "initializeCollapsed": true,
-              "title": "When to submit an OOB (Field)",
-              "children": [
-                {
-                  "type": "richText",
-                  "value": "<br>Any time you are not going to be in your own residence overnight.<br>Any time your child/children are not going to be in your residence overnight (example: Youth Retreat).<br>When travelling with non-company members, please list them as part of your OOB.<br>When you initially leave the field for STAS or return from STAS (OOBs are not required while on STAS unless you will be travelling internationally)<br>Please submit the OOB at least 72 hours prior to your time of departure."
-                }
-              ]
-            },
-            {
-              "type": "fieldSet",
-              "collapsible": true,
-              "initializeCollapsed": true,
-              "title": "When to submit an OOB (Staff)",
-              "children": [
-                {
-                  "type": "richText",
-                  "value": "<br>Any time you are traveling ouside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a seperate OOB notice. If your spouse is traveling please include them on your OOB."
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "section",
-          "label": "QuickLinks",
-          "children": [
-            {
-              "type": "button",
-              "id": "historicalDashboard",
-              "label": "My Historical OOBs",
-              "action": "LINK",
-              "taskReference": {
-                "taskId": "myHistoricDashboard"
-              }
-            }
-          ]
-        },
-        {
-          "type": "section",
-          "horizontal": true,
-          "children": [
-            {
-              "type": "button",
-              "id": "createRequest",
-              "label": "Create New OOB",
-              "action": "PRIMARY",
-              "taskReference": {
-                "taskId": "createOOBRequest"
-              }
-            },
-            {
-              "type": "button",
-              "id": "myProfile",
-              "label": "My OOB Profile",
-              "action": "PRIMARY",
-              "taskReference": {
-                "taskId": "viewOOBProfile"
-              }
-            }
-          ]
+          "type": "button",
+          "id": "OBORequest",
+          "label": "Create New OOB On Behalf Of",
+          "action": "PRIMARY",
+          "taskReference": {
+            "taskId": "OnBehalfOf_a_SelectWorker"
+          }
         },
         {
           "type": "grid",
           "label": "View All",
           "id": "viewAllGrid",
-          "rows": "<% getOOBRequests.data  %>",
+          "rows": "<% !empty(getOOBRequests.data) ? getOOBRequests.data : [] %>",
           "rowVariableName": "oOBRequest",
+          "doNotAdd": true,
+          "doNotRemove": true,
+          "doNotRemoveRow": true,
+          "selectionEnabled": false,
           "pagingInfo": {
             "endPoint": "<% endpoints.getOOBRequests %>",
             "rowCount": "<% getOOBRequests.total %>",
@@ -119,12 +83,25 @@
             {
               "type": "column",
               "columnId": "nameColumn",
-              "label": "Name",
+              "label": "Trip Name",
               "sortableAndFilterable": true,
               "cellTemplate": {
                 "type": "text",
                 "id": "name",
+                "enabled": false,
                 "value": "<% oOBRequest.name %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "employeeRefColumn",
+              "label": "Employee Reference",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "employeeReferenceCell",
+                "enabled": false,
+                "value": "<% !empty(oOBRequest.legalName) ? oOBRequest.legalName : 'No Reference' %>"
               }
             },
             {
@@ -135,29 +112,68 @@
               "cellTemplate": {
                 "type": "text",
                 "id": "numberOfTravellers",
-                "value": "<% oOBRequest.accompanyingTravellers.size() ?: '' %>"
+                "enabled": false,
+                "value": "<% !empty(oOBRequest.workdayID) ? searchAccompanyTravllers.invoke({'oobRequest': oOBRequest.workdayID}).data.size() : 'null' %>"
               }
             },
             {
               "type": "column",
               "columnId": "startDateColumn",
-              "label": "Start Date",
+              "label": "Trip Start Date",
               "sortableAndFilterable": true,
               "cellTemplate": {
                 "type": "text",
                 "id": "startDate",
+                "enabled": false,
                 "value": "<% oOBRequest.startDate ?: '' %>"
               }
             },
             {
               "type": "column",
               "columnId": "endDateColumn",
-              "label": "End Date",
+              "label": "Trip End Date",
               "sortableAndFilterable": true,
               "cellTemplate": {
                 "type": "text",
                 "id": "endDate",
+                "enabled": false,
                 "value": "<% oOBRequest.endDate ?: (oOBRequest.expectedEndDate ?: '') %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "countryColumn",
+              "label": "Country",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "countryCell",
+                "enabled": false,
+                "value": "<% !empty(true) ? 'test' : '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "countryColumn",
+              "label": "Affinity",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "affinityCell",
+                "enabled": false,
+                "value": "<%  !empty(oOBRequest.affinity) ? oOBRequest.affinity : '' %>"
+              }
+            },
+            {
+              "type": "column",
+              "columnId": "countryColumn",
+              "label": "Elevated Risk Situation",
+              "sortableAndFilterable": true,
+              "cellTemplate": {
+                "type": "text",
+                "id": "elevatedRiskCell",
+                "enabled": false,
+                "value": "<%  !empty(oOBRequest.elevatedRiskSituation) ? oOBRequest.elevatedRiskSituation : '' %>"
               }
             },
             {
@@ -168,18 +184,8 @@
               "cellTemplate": {
                 "type": "text",
                 "id": "status",
+                "enabled": false,
                 "value": "<%  empty(oOBRequest.startDate) ? (oOBRequest.status.description ?: '') : ((date:parse(oOBRequest.startDate).after(date:now())) ? 'Upcoming' : (oOBRequest.status.description ?: ''))%>"
-              }
-            },
-            {
-              "type": "column",
-              "columnId": "submittedDateColumn",
-              "label": "Submitted On",
-              "sortableAndFilterable": true,
-              "cellTemplate": {
-                "type": "text",
-                "id": "submittedOn",
-                "value": "<% oOBRequest.createdMoment.substringBefore('T') ?: '' %>"
               }
             },
             {
