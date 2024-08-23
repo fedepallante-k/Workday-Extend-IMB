@@ -295,10 +295,12 @@
 
   var togglewidgets = function(enableWidgets, disableWidgets){
       if(!empty(enableWidgets)){
+          console.info('Widgets to enable = ' + json:asJSON(enableWidgets));
         for(var x : enableWidgets){
+          console.info('widget x = ' + json:asJSON(x));
+          x.setEnabled(true);
           x.setVisible(true);
           x.setRequired(true);
-          x.setEnabled(true);
           empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
         }
       }
@@ -364,7 +366,7 @@
               "children": [
                 {
                   "type": "instanceList",
-                  "label": "Travellers",
+                  "label": "Travelers",
                   "id": "travellersIL",
                   "multiSelect": false,
                   "required": true,
@@ -478,7 +480,7 @@
                 },
                 {
                   "type": "date",
-                  "label": "Depature Date",
+                  "label": "Departure Date",
                   "id": "departureDateDt",
                   "required": true,
                   "enabled": true,
@@ -496,7 +498,7 @@
                 },
                 {
                   "type": "time",
-                  "label": "Departure Time",
+                  "label": "Departure Time (Enter in 24-hour time, or specify AM/PM)",
                   "id": "departureTimeTxt",
                   "required": true,
                   "enabled": true,
@@ -535,7 +537,7 @@
                 },
                 {
                   "type": "time",
-                  "label": "Arrival Time",
+                  "label": "Arrival Time (Enter in 24-hour time, or specify AM/PM)",
                   "id": "arrivalTimeTxt",
                   "required": true,
                   "enabled": true,
@@ -564,15 +566,14 @@
                   "values": "<% OOB.getModeOfTransport() %>",
                   "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.modeOfTransport) ? [OOB.getModeOfTransport().find(x => {x.descriptor == travelDeatilsPanels.modeOfTransport})] : [] %>",
                   "onChange": "<%
-                    console.info('yourVehicleRG = ' + json:asJSON(yourVehicleRG));
                     !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
                     if(!empty(self.selectedEntries[0])) {
                       if(self.selectedEntries[0].id == 'air'){
                         var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
-                        var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt];
+                        var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt, giveCarDetailsTxt];
                         togglewidgets(toggleOn,toggleOff);
                       }else if (self.selectedEntries[0].id == 'car'){
-                        var toggleOn = [yourVehicleRG];
+                        var toggleOn = [yourVehicleRG, giveCarDetailsTxt];
                         var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
                         togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'bus'){
@@ -723,7 +724,7 @@
                       "value": "<% self.value[0] == 'yes' ? true : false %>"
                     }
                   ],
-                  "onChange": "<%
+                  "_onChange": "<%
                     if(self.selectedEntries[0].id == 'yes'){
                       giveCarDetailsTxt.setEnabled(true);
                       giveCarDetailsTxt.setVisible(true);

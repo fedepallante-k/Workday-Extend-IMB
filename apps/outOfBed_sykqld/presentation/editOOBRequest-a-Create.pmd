@@ -1064,11 +1064,11 @@
                   "type": "checkBox",
                   "label": "End Date is an Expected End Date",
                   "id": "endDateChbx",
-                  "required": true,
+                  "required": false,
                   "enabled": true,
                   "trueLabel": "True Label",
                   "falseLabel": "False Label",
-                  "value": "<% true %>"
+                  "value": "<% false %>"
                 },
                 {
                   "type": "instanceList",
@@ -1120,7 +1120,7 @@
                   "doNotRemove": true,
                   "deleteEndPoint": "deleteAccompanyingTravellers",
                   "rowVariableName": "accompanyingMemberData",
-                  "label": "<% 'Accompanying Travellers Grid' %>",
+                  "label": "<% 'Accompanying Travelers Grid' %>",
                   "onRowRemove": "<% setMembersGrid(); %>",
                   "visible": "<% !empty(getAccompanyTravllers.data) %>",
                   "columns": [
@@ -1283,7 +1283,7 @@
                 },
                 {
                   "type": "checkBox",
-                  "label": "Other individuals (not list above) that will be traveling",
+                  "label": "Other individuals (not listed above) that will be traveling",
                   "id": "otherIndividualsChbx",
                   "required": false,
                   "enabled": true,
@@ -1603,7 +1603,7 @@
                 },
                 {
                   "type": "textArea",
-                  "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+                  "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival, and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
                   "id": "elevatedRiskTxtA",
                   "required": false,
                   "enabled": true,

@@ -324,7 +324,7 @@
                 },
                 {
                   "type": "grid",
-                  "label": "Frequent Travellers",
+                  "label": "Frequent Travelers",
                   "id": "allTravellers",
                   "isArrayOutBinding": true,
                   "rows": "<% getOOBProfile.data[0].frequentTravellers ?: [] %>",

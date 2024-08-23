@@ -56,6 +56,35 @@
           {
             "outboundPath": "status.id",
             "value": "<% getStatuses.data.find(x => {x.description == 'Pending Approval'}).workdayID %>"
+          },
+          {
+            "outboundPath": "numberOfTravellers",
+            "value": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data.map(x => {x.id}).size() :'' %>"
+          }
+        ]
+      },
+      {
+        "name": "launchBusinessProcess",
+        "baseUrlType": "APP-V1",
+        "url": "/requestApprovalFlowEvents",
+        "httpMethod": "POST",
+        "authType": "sso",
+        "exclude": "<% empty(nextBtn.value) || nextBtn.value == false %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 401
+          },
+          {
+            "code": 500
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "businessProcessTarget.id",
+            "value": "<% flowVariables.oobRequest %>"
           }
         ]
       },
@@ -125,6 +154,7 @@
       "type": "section",
       "horizontal": false,
       "children": [
+
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",
@@ -388,7 +418,7 @@
             },
             {
               "type": "textArea",
-              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival, and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
               "id": "elevatedRiskTxtA",
               "enabled": false,
               "visible": "<% !empty(getOOBRequest.data[0].elevatedRiskSituation) %>",
@@ -427,7 +457,7 @@
                 },
                 {
                   "type": "date",
-                  "label": "Depature Date",
+                  "label": "Departure Date",
                   "id": "departureDateDt",
                   "enabled": false,
                   "dateFormat": "yyyy-MM-dd",
@@ -436,7 +466,7 @@
                 },
                 {
                   "type": "time",
-                  "label": "Departure Time",
+                  "label": "Departure Time (Enter in 24-hour time, or specify AM/PM)",
                   "id": "departureTimeTxt",
                   "timePrecision": "MINUTE",
                   "timeFormat": "HH:mm",
@@ -455,7 +485,7 @@
                 },
                 {
                   "type": "time",
-                  "label": "Arrival Time",
+                  "label": "Arrival Time (Enter in 24-hour time, or specify AM/PM)",
                   "id": "arrivalTimeTxt",
                   "timePrecision": "MINUTE",
                   "timeFormat": "HH:mm",

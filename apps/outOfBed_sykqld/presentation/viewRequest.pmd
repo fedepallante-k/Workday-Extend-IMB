@@ -346,7 +346,7 @@
             },
             {
               "type": "textArea",
-              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
+              "label": "As this is an Elevated Risk Situation, state who you will make scheduled contact with upon departure, arrival, and return; what the contact frequency will be and what form the contact will take – cell phone, radio frequency, VOIP Phone, etc.)",
               "id": "elevatedRiskTxtA",
               "enabled": false,
               "visible": "<% !empty(getOOBRequest.data[0].elevatedRiskSituation) %>",
@@ -385,7 +385,7 @@
                 },
                 {
                   "type": "date",
-                  "label": "Depature Date",
+                  "label": "Departure Date",
                   "id": "departureDateDt",
                   "enabled": false,
                   "dateFormat": "yyyy-MM-dd",

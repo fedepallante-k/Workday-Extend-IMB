@@ -326,7 +326,7 @@
                 },
                 {
                   "type": "date",
-                  "label": "Depature Date",
+                  "label": "Departure Date",
                   "id": "departureDateDt",
                   "required": true,
                   "enabled": true,

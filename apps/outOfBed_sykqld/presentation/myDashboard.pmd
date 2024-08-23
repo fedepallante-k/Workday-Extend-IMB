@@ -59,7 +59,7 @@
               "children": [
                 {
                   "type": "richText",
-                  "value": "<br>Any time you are traveling ouside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a seperate OOB notice. If your spouse is traveling please include them on your OOB."
+                  "value": "<br>Any time you are traveling outside the continental US for work purposes.<br>Please submit the OOB at least 72 hours prior to your time of departure from the USA.<br>When travelling with other US Staff or Field Personnel each person needs to submit a separate OOB notice. If your spouse is traveling, please include them on your OOB."
                 }
               ]
             }
@@ -130,12 +130,12 @@
             {
               "type": "column",
               "columnId": "numberOfTravellersColumn",
-              "label": "Number Of Travellers",
+              "label": "Number Of Travelers",
               "sortableAndFilterable": true,
               "cellTemplate": {
                 "type": "text",
                 "id": "numberOfTravellers",
-                "value": "<% oOBRequest.accompanyingTravellers.size() ?: '' %>"
+                "value": "<% oOBRequest.numberOfTravellers ?: '' %>"
               }
             },
             {
@@ -192,21 +192,7 @@
                   {
                     "type": "button",
                     "id": "editButton",
-                    "label": "Edit",
-                    "action": "SECONDARY",
-                    "taskReference": {
-                      "taskId": "editOOBRequest-a-Create",
-                      "parameterBindings": {
-                        "oobRequest": "<% oOBRequest.workdayID ?: 'No workday Id found' %>",
-                        "isEdit": "<% true %>",
-                        "isCopy": "<% false %>"
-                      }
-                    }
-                  },
-                  {
-                    "type": "button",
-                    "id": "editButton",
-                    "label": "View",
+                    "label": "View/Edit",
                     "action": "SECONDARY",
                     "taskReference": {
                       "taskId": "viewRequest",
