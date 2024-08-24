@@ -398,8 +398,7 @@
                   %>"
                 },
                 {
-                  "type": "text",
-                  "enabled": false,
+                  "type": "hidden",
                   "id": "accompanyTravellerID",
                   "value": "<%  !empty(travelDeatilsPanels.id) ? travelDeatilsPanels.id : '' %>",
                   "valuesOut": [
@@ -579,45 +578,36 @@
                   "onChange": "<%
                     !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
                     if(!empty(self.selectedEntries[0])) {
-                        console.info('toggle IF');
                       if(self.selectedEntries[0].id == 'air'){
-                          console.info('toggle air');
                         var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
                         var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt, giveCarDetailsTxt];
                         togglewidgets(toggleOn,toggleOff);
                       }else if (self.selectedEntries[0].id == 'car'){
-                          console.info('toggle car');
                         var toggleOn = [yourVehicleRG, giveCarDetailsTxt];
                         var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt];
                         togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'bus'){
-                          console.info('toggle bus');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, yourVehicleRG, modeOfTransportOtherTxt, giveCarDetailsTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'train'){
-                          console.info('toggle train');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'boat'){
-                          console.info('toggle boat');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'other'){
-                          console.info('toggle other');
                          var toggleOn = [modeOfTransportOtherTxt];
                          var toggleOff = [airlineTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }else{
-                          console.info('toggle else');
                          var toggleOn = [];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }
                     }else{
-                        console.info('main else air');
                       var toggleOn = [];
                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                       togglewidgets(toggleOn,toggleOff );
