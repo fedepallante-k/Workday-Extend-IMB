@@ -172,6 +172,16 @@ var checkIfWorkerSelected = function(widget, grid, accompanyingGrid, workerName,
   }
 }
 
+var stringtoMap = function (stringOfNames){
+    var list = stringOfNames.split(',');
+    var listOfNames = [];
+    for (var x : list){
+        listOfNames.add({'id' : x, 'descriptor': x});
+    }
+    console.info('list of Names Map = ' + listOfNames);
+    return listOfNames.distinct();
+}
+
 {
     "getCurrentTime": getCurrentTime,
     "getWorkerDetails": getWorkerDetails,
@@ -181,5 +191,6 @@ var checkIfWorkerSelected = function(widget, grid, accompanyingGrid, workerName,
     "getPhoneData": getPhoneData,
     "getPTGridData" : getPTGridData,
     "checkIfPhoneNumberProvided": checkIfPhoneNumberProvided,
-    "checkIfWorkerSelected": checkIfWorkerSelected
+    "checkIfWorkerSelected": checkIfWorkerSelected,
+    "stringtoMap": stringtoMap
 }

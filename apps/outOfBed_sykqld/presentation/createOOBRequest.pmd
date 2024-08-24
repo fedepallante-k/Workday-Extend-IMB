@@ -50,7 +50,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging, travellerNames, otherTravellerNames FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -116,7 +116,6 @@
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPhoneData(false, false));
-          console.info('Create Phone Numbers = ' + json:asJSON(self.data));
           return self.data;
         %>"
       },
@@ -140,6 +139,7 @@
         "httpMethod": "POST",
         "exclude": "<% !empty(flowVariables.oobRequest) %>",
         "onSend": "<%
+                   console.info('update oob request data =' + self.data);
           return self.data;
         %>",
         "failOnStatusCodes": [
@@ -219,6 +219,14 @@
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
+          },
+          {
+            "outboundPath": "travellerNames",
+            "value": "<% !empty(getAllAccompanyingTravellerNames()) ? getAllAccompanyingTravellerNames() : '' %>"
+          },
+          {
+            "outboundPath": "otherTravellerNames",
+            "value": "<% getOtherAccompanyingTravellerNames();  %>"
           }
         ]
       },
@@ -227,11 +235,11 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "wcpisu",
         "httpMethod": "POST",
+        "exclude": true,
         "onSend": "<%
           self.data = {'data' : []};
           self.data.data.addAll(getAllAccompanyingTravellers().data);
-          console.info('createAccompanyingTravellers = ' + self.data);
-          return self.data;
+          return self.data
         %>",
         "failOnStatusCodes": [
           {
@@ -313,7 +321,8 @@
         "url": "<% 'https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true' %>",
         "authType": "wcpisu",
         "httpMethod": "PATCH",
-        "exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
+        "_exclude": "<% empty(saveForLaterBtn.value) || saveForLaterBtn.value == false %>",
+        "exclude": true,
         "failOnStatusCodes": [
           {
             "code": 400
@@ -347,7 +356,6 @@
         "onSend": "<%
            self.data = {'data':[]};
            self.data.data.addAll(getPhoneData(true, false));
-           console.info('Update Phone Numbers = ' + json:asJSON(self.data));
            return self.data;
          %>"
       },
@@ -358,6 +366,7 @@
         "httpMethod": "PATCH",
         "exclude": "<% empty(flowVariables.oobRequest) %>",
         "onSend": "<%
+        console.info('update oob request data =' + self.data);
           return self.data;
         %>",
         "failOnStatusCodes": [
@@ -441,6 +450,14 @@
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
+          },
+          {
+            "outboundPath": "travellerNames",
+            "value": "<% getAllAccompanyingTravellerNames();  %>"
+          },
+          {
+            "outboundPath": "otherTravellerNames",
+            "value": "<% !empty(getOtherAccompanyingTravellerNames()) ? getOtherAccompanyingTravellerNames() : ' ' %>"
           }
         ]
       },
@@ -522,6 +539,7 @@
     pageVariables.hasOOBProfile = !empty(getOOBProfileWQL.data);
     pageVariables.frequentTravellers = familyMemberGridValues(true);
     pageVariables.frequentTravellersStaff = getStaffGridValues(true) ;
+    //pageVariables.otherTravellers =  ;
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
     pageVariables.hasChildren = false;
@@ -550,7 +568,7 @@
       if(!empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers)){
         familyAndFrequent.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
       }
-
+/*
       var familyAndFrequentWithoutAccompany = [];
       if(!empty(getAccompanyTravllers.data) && empty(accompanyignTravellersGrid.getRows()) && onLoad){
         var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
@@ -564,14 +582,15 @@
         }
         familyAndFrequentWithoutAccompany = list:excludeMultiple(familyAndFrequent, 'name', listOfNames );
       }
-
+*/
       if(hasChildrenValue > 0) {
         pageVariables.hasChildren=true
       }else{
         pageVariables.hasChildren=false;
       }
 
-    return !empty(getAccompanyTravllers.data) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
+    //return !empty(getAccompanyTravllers.data) ? familyAndFrequentWithoutAccompany : familyAndFrequent;
+             return familyAndFrequent;
   }
 
   var getStaffGridValues = function (onLoad){
@@ -580,7 +599,7 @@
       if(!empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].frequentTravellers)){
           fieldFrequentTravellers.addAll(getOOBProfileWQL.data[0].frequentTravellers.map(x => {{'id' : x.workdayID, 'name' : x.name}}));
       }
-
+/*
       var fieldWithoutAccompany = [];
       if(!empty(getAccompanyTravllers.data) && empty(fieldMemberGrid.getRows()) && onLoad){
           var listOfNames = getAccompanyTravllers.data.map(x => {x.firstName + ' ' + x.lastName});
@@ -594,18 +613,19 @@
               }
               fieldWithoutAccompany = list:excludeMultiple(fieldFrequentTravellers, 'name', listOfNames );
       }
-
-      return !empty(getAccompanyTravllers.data) ? fieldWithoutAccompany : fieldFrequentTravellers;
-
+*/
+      //return !empty(getAccompanyTravllers.data) ? fieldWithoutAccompany : fieldFrequentTravellers;
+      return fieldFrequentTravellers;
   }
 
+/*
   var setMembersGrid = function (){
       console.info('setMembersGrid Triggered ');
       var gridValues = familyMemberGridValues(false);
       console.info('set grid data = ' + json:asJSON(gridValues));
       fieldMemberGrid.setRows(gridValues ?: []);
   }
-
+*/
   var getPhoneNumbers = function(){
       var phoneNumbersPV = !empty(getOOBProfileWQL.data) && !empty(getOOBProfileWQL.data[0].mobileNumbers) ? getOOBProfileWQL.data[0].mobileNumbers : [] ;
       if(!empty(getWorkerDetails.data[0] && !empty(getWorkerDetails.data[0].phoneNumbers))){
@@ -635,45 +655,91 @@
       AlternativeRTxt.setVisible(false);
     }
    }
-             
+
   var getAllAccompanyingTravellers = function(){
-  var addAccompanyingTraveller = [];
-  var otherAccompanyingTraveller = [];
+    var addAccompanyingTraveller = [];
+    var otherAccompanyingTraveller = [];
   
-  for (var otherMembers : OtherMemberGrid.getRows()) {
-      addAccompanyingTraveller.add({
-      'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
-      'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
-      'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
-      'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+    for (var otherMembers : OtherMemberGrid.getRows()) {
+        addAccompanyingTraveller.add({
+        'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
+        'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
+        'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
+        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+      });
+    }
+
+    if(!empty(staffMemberGrid.getSelectedRows())){
+      for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
+        addAccompanyingTraveller.add( {
+          'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+          'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+          'addToOOBProfile': false,
+          'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+        });
+      }
+    }
+    if(!empty(fieldMemberGrid.getSelectedRows())){
+        console.info('Inside Family selected rows ');
+      for ( var i : fieldMemberGrid.getSelectedRows()) {
+          console.info('Inside For loop family');
+        addAccompanyingTraveller.add( {
+          'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+          'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+          'addToOOBProfile': false,
+          'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
     });
+      }
+    }
+
+    var TravellerArray = {'data' : addAccompanyingTraveller}
+    return TravellerArray;
+  }
+
+
+  var getAllAccompanyingTravellerNames = function(){
+
+    var names = [];
+
+    if(!empty(OtherMemberGrid.getRows())){
+      for (var otherMembers : OtherMemberGrid.getRows()) {
+        if(otherMembers.childrenMap.addToOOBCol.value == true){
+          names.add(otherMembers.childrenMap.otherMemberCol.value);
+        }
+      }
   }
 
   if(!empty(staffMemberGrid.getSelectedRows())){
     for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
-      addAccompanyingTraveller.add( {
-        'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
-        'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
-        'addToOOBProfile': false,
-        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-      });
-    }
-  }
-  if(!empty(fieldMemberGrid.getSelectedRows())){
-      console.info('Inside Family selected rows ');
-    for ( var i : fieldMemberGrid.getSelectedRows()) {
-        console.info('Inside For loop family');
-      addAccompanyingTraveller.add( {
-        'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
-        'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
-        'addToOOBProfile': false,
-        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-  });
+      names.add(selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value);
     }
   }
 
-  var TravellerArray = {'data' : addAccompanyingTraveller}
-  return TravellerArray;
+  if(!empty(fieldMemberGrid.getSelectedRows())){
+    for ( var i : fieldMemberGrid.getSelectedRows()) {
+             names.add(i.childrenMap.familyMemberCol.childrenMap.worker.value);
+    }
+  }
+
+  return !empty(names) ? names.join() : '';
+  }
+
+  var getOtherAccompanyingTravellerNames = function(){
+
+    var otherNames = [];
+
+    if(!empty(OtherMemberGrid.getRows())){
+             console.info('In IF for OTher ' );
+      for (var otherMembers : OtherMemberGrid.getRows()) {
+             console.info('Other member =' + json:asJSON(otherMembers) );
+        if(otherMembers.childrenMap.addToOOBCol.value != true){
+             console.info('Other member adding =' + json:asJSON(otherMembers.childrenMap.otherMemberCol.value) );
+          otherNames.add(otherMembers.childrenMap.otherMemberCol.value);
+        }
+      }
+    }
+console.info('other traveller Names =' + otherNames );
+  return !empty(otherNames) ? otherNames.join() : ' ';
   }
 
   var getPTGridData = function(isEdit){
@@ -762,6 +828,7 @@
       index = index - 1;
     }
   }
+
   %>",
   "onSubmit": "<%
     OOB.checkIfWorkerSelected(errorHolderTxt, (pageVariables.isField ? fieldMemberGrid : staffMemberGrid), accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
@@ -922,8 +989,7 @@
                   "rowVariableName": "accompanyingMemeberData",
                   "label": "<% 'Accompanying Travelers Grid' %>",
                   "onRowRemove": "<%
-                                  console.info('Row remove triggered');
-                                  setMembersGrid();
+                                 // setMembersGrid();
                                   %>",
                   "visible": "<% !empty(getAccompanyTravllers.data) %>",
                   "columns": [
@@ -986,6 +1052,7 @@
                         childrenArrangments();
                         OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
                       %>",
+                      "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(fieldMemeberData.name) : [] %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
@@ -1026,6 +1093,22 @@
                   ]
                 },
                 {
+                  "type": "text",
+                  "label": "getOOBRequest.data[0].travellerNames.split(',')",
+                  "id": "test1Txt",
+                  "required": false,
+                  "enabled": false,
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? json:asJSON(getOOBRequest.data[0].travellerNames.split(',')) : 'empty' %>"
+                },
+                {
+                  "type": "text",
+                  "label": "getOOBRequest.data[0].travellerNames.split(',').contains('Logan McNeil')",
+                  "id": "test2Txt",
+                  "required": false,
+                  "enabled": false,
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains('Logan McNeil') : 'empty' %>"
+                },
+                {
                   "type": "fieldSet",
                   "render": "<% !pageVariables.isField %>",
                   "children": [
@@ -1038,6 +1121,7 @@
                       "onRowSelect": "<%
                         OOB.checkIfWorkerSelected(errorHolderTxt, staffMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
                       %>",
+                      "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(staffMemberData.name) : [] %>",
                       "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
                       "columns": [
@@ -1090,18 +1174,28 @@
                   "visible": true,
                   "required": false,
                   "enabled": true,
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) %>",
                   "onChange": "<%
                   self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) ;
                   self.value == false ? removeGridRows(OtherMemberGrid) : '' ;
                 %>"
                 },
                 {
+                  "type": "text",
+                  "label": "TESTOtherData",
+                  "id": "testOtherDataTxt",
+                  "required": false,
+                  "enabled": false,
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) ? OOB.stringtoMap(getOOBRequest.data[0].otherTravellerNames) : 'empty' %>"
+                },
+                {
                   "type": "grid",
-                  "rows": "<% [] %>",
+                  "rows": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) ? OOB.stringtoMap(getOOBRequest.data[0].otherTravellerNames) : [] %>",
                   "id": "OtherMemberGrid",
                   "rowVariableName": "otherMemeberData",
                   "label": "<% 'For Other Members' %>",
-                  "visible": false,
+                  "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) ? getOOBRequest.data[0].otherTravellerNames.split(',').contains(otherMemeberData.descriptor) : [] %>",
+                  "visible": "<%!empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) %>",
                   "columns": [
                     {
                       "type": "column",
@@ -1109,7 +1203,8 @@
                       "label": "<% 'Other Individuals Traveling ' %>",
                       "cellTemplate": {
                         "type": "text",
-                        "enabled": true
+                        "enabled": true,
+                        "value": "<% otherMemeberData.descriptor %>"
                       }
                     },
                     {
@@ -1118,7 +1213,8 @@
                       "label": "<% 'Add to OOB profile? ' %>",
                       "cellTemplate": {
                         "type": "checkBox",
-                        "enabled": true
+                        "enabled": true,
+                        "value": "<% false %>"
                       }
                     }
                   ]
