@@ -123,7 +123,9 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "wcpisu",
         "exclude": "<% empty(accompanyTravellerID.value) %>",
-        "onSend": "<% return self.data; %>",
+        "onSend": "<%
+                   console.info('Update accompnay Traveller data = ' + json:asJSON( self.data))
+                   return self.data; %>",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [
           {
@@ -295,21 +297,29 @@
 
   var togglewidgets = function(enableWidgets, disableWidgets){
       if(!empty(enableWidgets)){
-          console.info('Widgets to enable = ' + json:asJSON(enableWidgets));
         for(var x : enableWidgets){
-          console.info('widget x = ' + json:asJSON(x));
-          x.setEnabled(true);
           x.setVisible(true);
           x.setRequired(true);
-          empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
+          //empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
+              if(!empty(x.label) && x.label.contains('assigned')){
+              x.setValue([]);
+              }
+              else{
+                  x.setValue('');
+              }
         }
       }
       if(!empty(disableWidgets)){
         for(var x : disableWidgets){
           x.setVisible(false);
           x.setRequired(false);
-          x.setEnabled(false);
-          empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('');
+          //empty(x.value) && empty(x.value[0]) ? '' : !empty(x.value[0]) ? x.setValue([]) : x.setValue('empty');
+          if(!empty(x.label) && x.label.contains('assigned')){
+              x.setValue([]);
+          }
+              else{
+              x.setValue('empty');
+          }
         }
      }
   }
@@ -388,7 +398,8 @@
                   %>"
                 },
                 {
-                  "type": "hidden",
+                  "type": "text",
+                  "enabled": false,
                   "id": "accompanyTravellerID",
                   "value": "<%  !empty(travelDeatilsPanels.id) ? travelDeatilsPanels.id : '' %>",
                   "valuesOut": [
@@ -568,36 +579,45 @@
                   "onChange": "<%
                     !empty(self.selectedEntries[0]) ? modeOfTransportName.setValue(self.selectedEntries[0].descriptor) :  modeOfTransportName.setValue('');
                     if(!empty(self.selectedEntries[0])) {
+                        console.info('toggle IF');
                       if(self.selectedEntries[0].id == 'air'){
+                          console.info('toggle air');
                         var toggleOn = [departureAirportTxt, arrivalAirportTxt,airlineTxt];
                         var toggleOff = [yourVehicleRG,busNumberTxt, modeOfTransportOtherTxt, giveCarDetailsTxt];
                         togglewidgets(toggleOn,toggleOff);
                       }else if (self.selectedEntries[0].id == 'car'){
+                          console.info('toggle car');
                         var toggleOn = [yourVehicleRG, giveCarDetailsTxt];
-                        var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt,giveCarDetailsTxt];
+                        var toggleOff = [departureAirportTxt,arrivalAirportTxt,airlineTxt, modeOfTransportOtherTxt,busNumberTxt];
                         togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'bus'){
+                          console.info('toggle bus');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, yourVehicleRG, modeOfTransportOtherTxt, giveCarDetailsTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'train'){
+                          console.info('toggle train');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'boat'){
+                          console.info('toggle boat');
                          var toggleOn = [busNumberTxt, departureAirportTxt,arrivalAirportTxt];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, giveCarDetailsTxt, yourVehicleRG];
                          togglewidgets(toggleOn,toggleOff );
                        }else if (self.selectedEntries[0].id == 'other'){
+                          console.info('toggle other');
                          var toggleOn = [modeOfTransportOtherTxt];
                          var toggleOff = [airlineTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }else{
+                          console.info('toggle else');
                          var toggleOn = [];
                          var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                          togglewidgets(toggleOn,toggleOff );
                        }
                     }else{
+                        console.info('main else air');
                       var toggleOn = [];
                       var toggleOff = [airlineTxt, modeOfTransportOtherTxt, yourVehicleRG, giveCarDetailsTxt,busNumberTxt, departureAirportTxt, arrivalAirportTxt];
                       togglewidgets(toggleOn,toggleOff );
@@ -624,7 +644,7 @@
                   "label": "Bus/Train/Boat Number",
                   "id": "busNumberTxt",
                   "required": false,
-                  "visible": "<% !empty(travelDeatilsPanels.transportNumber)%>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Bus' || travelDeatilsPanels.modeOfTransport == 'Train' || travelDeatilsPanels.modeOfTransport == 'Boat' %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.transportNumber) ? travelDeatilsPanels.transportNumber : '' %>",
                   "valuesOut": [
@@ -641,7 +661,7 @@
                 {
                   "type": "text",
                   "label": "Airline",
-                  "visible": "<% !empty(travelDeatilsPanels.airline) %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Air'  %>",
                   "id": "airlineTxt",
                   "required": false,
                   "enabled": true,
@@ -662,7 +682,7 @@
                   "label": "Departure location",
                   "id": "departureAirportTxt",
                   "required": false,
-                  "visible": "<% !empty(travelDeatilsPanels.departurePoint) %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Bus' || travelDeatilsPanels.modeOfTransport == 'Train' || travelDeatilsPanels.modeOfTransport == 'Boat' || travelDeatilsPanels.modeOfTransport == 'Air' %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.departurePoint) ? travelDeatilsPanels.departurePoint : '' %>",
                   "valuesOut": [
@@ -681,7 +701,7 @@
                   "label": "Arrival location",
                   "id": "arrivalAirportTxt",
                   "required": false,
-                  "visible": "<% !empty(travelDeatilsPanels.arrivalPoint) %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Bus' || travelDeatilsPanels.modeOfTransport == 'Train' || travelDeatilsPanels.modeOfTransport == 'Boat' || travelDeatilsPanels.modeOfTransport == 'Air' %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.arrivalPoint) ? travelDeatilsPanels.arrivalPoint : '' %>",
                   "valuesOut": [
@@ -723,25 +743,13 @@
                       "valueOutBinding": "updateAccompanyingTravellers.data[].assignedVehicle",
                       "value": "<% self.value[0] == 'yes' ? true : false %>"
                     }
-                  ],
-                  "_onChange": "<%
-                    if(self.selectedEntries[0].id == 'yes'){
-                      giveCarDetailsTxt.setEnabled(true);
-                      giveCarDetailsTxt.setVisible(true);
-                      giveCarDetailsTxt.setRequired(true);
-                    }else{
-                      giveCarDetailsTxt.setEnabled(false);
-                      giveCarDetailsTxt.setVisible(false);
-                      giveCarDetailsTxt.setRequired(false);
-                      giveCarDetailsTxt.setValue('');
-                    }
-                  %>"
+                  ]
                 },
                 {
                   "type": "text",
                   "label": "Give car details",
                   "id": "giveCarDetailsTxt",
-                  "visible": "<% travelDeatilsPanels.assignedVehicle %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Car' %>",
                   "required": false,
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.carDetails) ? travelDeatilsPanels.carDetails : '' %>",
@@ -761,7 +769,7 @@
                   "label": "Mode Of Transport Other",
                   "id": "modeOfTransportOtherTxt",
                   "required": false,
-                  "visible": "<% !empty(travelDeatilsPanels.otherTransport) %>",
+                  "visible": "<% travelDeatilsPanels.modeOfTransport == 'Other' %>",
                   "enabled": true,
                   "value": "<% !empty(travelDeatilsPanels.otherTransport) ? travelDeatilsPanels.otherTransport : '' %>",
                   "valuesOut": [
