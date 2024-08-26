@@ -756,7 +756,7 @@
                 },
                 {
                   "type": "text",
-                  "label": "Mode Of Transport Other",
+                  "label": "Other Mode of Transport",
                   "id": "modeOfTransportOtherTxt",
                   "required": false,
                   "visible": "<% travelDeatilsPanels.modeOfTransport == 'Other' %>",
@@ -802,7 +802,7 @@
               "children": [
                 {
                   "type": "instanceList",
-                  "label": "Traveler Destiantions ",
+                  "label": "Traveler Destinations ",
                   "id": "travellerDestinationsIL",
                   "multiSelect": false,
                   "required": true,

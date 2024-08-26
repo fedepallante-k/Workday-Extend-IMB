@@ -637,43 +637,43 @@
    }
              
   var getAllAccompanyingTravellers = function(){
-  var addAccompanyingTraveller = [];
-  var otherAccompanyingTraveller = [];
+    var addAccompanyingTraveller = [];
+    var otherAccompanyingTraveller = [];
   
-  for (var otherMembers : OtherMemberGrid.getRows()) {
+    for (var otherMembers : OtherMemberGrid.getRows()) {
       addAccompanyingTraveller.add({
-      'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
-      'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
-      'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
-      'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-    });
-  }
-
-  if(!empty(staffMemberGrid.getSelectedRows())){
-    for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
-      addAccompanyingTraveller.add( {
-        'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
-        'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
-        'addToOOBProfile': false,
+        'firstName': otherMembers.childrenMap.otherMemberCol.value.substringBefore(' '),
+        'lastName': otherMembers.childrenMap.otherMemberCol.value.substringAfter(' '),
+        'addToOOBProfile': otherMembers.childrenMap.addToOOBCol.value,
         'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
       });
     }
-  }
-  if(!empty(fieldMemberGrid.getSelectedRows())){
-      console.info('Inside Family selected rows ');
-    for ( var i : fieldMemberGrid.getSelectedRows()) {
-        console.info('Inside For loop family');
-      addAccompanyingTraveller.add( {
-        'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
-        'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
-        'addToOOBProfile': false,
-        'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
-  });
-    }
-  }
 
-  var TravellerArray = {'data' : addAccompanyingTraveller}
-  return TravellerArray;
+    if(!empty(staffMemberGrid.getSelectedRows())){
+      for ( var selectedMembers : staffMemberGrid.getSelectedRows()) {
+        addAccompanyingTraveller.add( {
+          'firstName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringBefore(' '),
+          'lastName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value.substringAfter(' '),
+          'addToOOBProfile': false,
+          'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+        });
+      }
+    }
+    if(!empty(fieldMemberGrid.getSelectedRows())){
+        console.info('Inside Family selected rows ');
+      for ( var i : fieldMemberGrid.getSelectedRows()) {
+        console.info('Inside For loop family');
+        addAccompanyingTraveller.add( {
+          'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
+          'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
+          'addToOOBProfile': false,
+          'oobRequest': {'id': !empty(createOOBRequest.id) ? createOOBRequest.id : !empty(flowVariables.oobRequest)  ? flowVariables.oobRequest : ''}
+        });
+      }
+    }
+
+    var TravellerArray = {'data' : addAccompanyingTraveller}
+    return TravellerArray;
   }
 
   var getPTGridData = function(isEdit){
