@@ -355,6 +355,13 @@
       }
     },
     {
+      "id": "approveOOBRequest",
+      "routingPattern": "/viewRequest/{eventId}",
+      "page": {
+        "id": "viewRequest"
+      }
+    },
+    {
       "id": "viewOOBProfile",
       "routingPattern": "/viewOOBProfile",
       "page": {

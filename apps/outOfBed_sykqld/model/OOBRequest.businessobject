@@ -131,7 +131,7 @@
       "id": 14,
       "name": "traveller",
       "type": "SINGLE_INSTANCE",
-      "useForDisplay": false,
+      "useForDisplay": true,
       "isPurgeable": false,
       "target": "WORKER",
       "secureByTarget": true
