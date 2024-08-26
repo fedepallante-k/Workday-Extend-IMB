@@ -17,7 +17,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(flowVariables.oobRequest) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging, travellerNames FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '') +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{workdayID AS id, name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging, travellerNames, otherTravellerNames FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : '') +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -333,6 +333,8 @@
 
   var getListOfTravellerNames = function (){
     var list = getOOBRequest.data[0].travellerNames.split(',');
+    !empty(getOOBRequest.data[0].otherTravellerNames) ? list.addAll(getOOBRequest.data[0].otherTravellerNames.split(',')) : '';
+
     var listOfNames = [];
       for (var x : list){
         listOfNames.add({'id' : x, 'descriptor': x});
@@ -390,71 +392,15 @@
           %>",
           "children": [
             {
-              "type": "text",
-              "label": "test1",
-              "id": "test1Txt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data) ? getOOBRequest.data : 'empty'%>"
-            },
-            {
-              "type": "text",
-              "label": "getOOBRequest.data[0].travellerNames",
-              "id": "test2Txt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames : 'empty'%>"
-            },
-            {
-              "type": "text",
-              "label": "getOOBRequest.data[0].travellerNames.split(',').distinct()",
-              "id": "test3Txt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(getOOBRequest.data[0].travellerNames.split(',').distinct()) ? getOOBRequest.data[0].travellerNames.split(',').distinct() : 'empty'%>"
-            },
-            {
-              "type": "text",
-              "label": "pageVariables.travellerNames",
-              "id": "test3Txt",
-              "required": false,
-              "enabled": false,
-              "value": "<% !empty(pageVariables.travellerNames) ? json:asJSON(pageVariables.travellerNames) : 'empty'%>"
-            },
-            {
               "type": "fieldSet",
               "collapsible": true,
               "id": "travelEventFSID",
-              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames : '') %>",
+              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "instanceList",
                   "label": "Travelers",
                   "id": "travellersIL",
-                  "render": false,
-                  "multiSelect": false,
-                  "required": true,
-                  "enabled": true,
-                  "values": "<% !empty(pageVariables.travellerNames) ? pageVariables.travellerNames : [] %>",
-                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) ? [{'id': getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).id, 'descriptor' : getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).firstName + ' ' + getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).lastName}] : []%>",
-                  "_onChange": "<%
-                    if(empty(self.selectedEntries[0])){
-                      firstNameTxt.setValue('');
-                      lastNameTxt.setValue('');
-                      addToOOBTxt.setValue(false);
-                      travelEventFSID.setTitle('Travel Event Details ');
-                    }else if(!empty(self.selectedEntries[0])){
-                      firstNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).firstName);
-                      lastNameTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).lastName);
-                      addToOOBTxt.setValue(getAccompanyTravllers.data.find(x => {x.id == self.selectedEntries[0].id}).addToOOBProfile);
-                      travelEventFSID.setTitle('Travel Event Details - ' + self.selectedEntries[0].descriptor);
-                    }
-                  %>"
-                },
-                {
-                  "type": "instanceList",
-                  "label": "Travelers",
-                  "id": "travellersIL2",
                   "multiSelect": true,
                   "required": false,
                   "enabled": true,
@@ -465,8 +411,10 @@
                   "onChange": "<%
                     if(empty(self.getSelectedEntries())){
                       addTravellerNamesTxt.setValue('');
+                      travelEventFSID.setTitle('Travel Event Details');
                     }else if(!empty(self.getSelectedEntries())){
-                      addTravellerNamesTxt.setValue(travellersIL2.getSelectedEntries().map(x => {x.descriptor}).join());
+                      addTravellerNamesTxt.setValue(travellersIL.getSelectedEntries().map(x => {x.descriptor}).join());
+                      travelEventFSID.setTitle('Travel Event Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join());
                     }
                   %>"
                  },
@@ -869,8 +817,6 @@
           "type": "panelList",
           "label": "Lodging Events",
           "id": "LodgingPanel",
-          "_panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data.map(x => {x.lodging}) : [] %>",
-          "__panels": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].lodging) ? getOOBRequest.data[0].lodging : [] %>",
           "panels": "<% !empty(getDestinations.data) ? getDestinations.data : [] %>",
           "panelName": "lodgingDetailsPanels",
           "indexVariableName": "travelPanelIndex",
@@ -892,20 +838,21 @@
                   "type": "instanceList",
                   "label": "Traveler Destiantions ",
                   "id": "travellerDestinationsIL",
-                  "multiSelect": false,
                   "required": true,
                   "enabled": true,
                   "idKey": "id",
                   "displayKey": "descriptor",
-                  "values": "<% getAccompanyTravllers.data.map(x => {{'id' : (x.firstName + ' ' + x.lastName), 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
-                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.travellerName)  ? [{'id' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName, 'descriptor' : getDestinations.data.find(x => {x.travellerName == lodgingDetailsPanels.travellerName}).travellerName} ] : [] %>",
+                  "multiSelect": true,
+                  "_values": "<% getAccompanyTravllers.data.map(x => {{'id' : (x.firstName + ' ' + x.lastName), 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
+                  "values": "<% !empty(pageVariables.travellerNames) ? pageVariables.travellerNames : [] %>",
+                  "selectedValues": "<% !empty(lodgingDetailsPanels.id) && !empty(getDestinations.data) && !empty(getDestinations.data[0].travellerName) ? getDestinations.data.find(x => {x.id == lodgingDetailsPanels.id}).travellerName.split(',') : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
                       lodgingTravellerNameTxt.setValue('');
                       LodgingDetails.setTitle('Lodging/Destination Details');
                     }else if(!empty(self.selectedEntries[0])){
-                      lodgingTravellerNameTxt.setValue(self.selectedEntries[0].id);
-                      LodgingDetails.setTitle('Lodging/Destination Details - ' + self.selectedEntries[0].descriptor);
+                      LodgingDetails.setTitle('Lodging/Destination Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join());
+                      lodgingTravellerNameTxt.setValue(self.getSelectedEntries().map(x => {x.descriptor}).join());
                     }
                   %>"
                 },

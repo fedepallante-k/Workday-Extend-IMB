@@ -831,7 +831,6 @@ console.info('other traveller Names =' + otherNames );
 
   %>",
   "onSubmit": "<%
-    OOB.checkIfWorkerSelected(errorHolderTxt, (pageVariables.isField ? fieldMemberGrid : staffMemberGrid), accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
     OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
   %>",
   "presentation": {
@@ -972,74 +971,6 @@ console.info('other traveller Names =' + otherNames );
               "collapsible": true,
               "children": [
                 {
-                  "type": "richText",
-                  "id": "removingAccompanyingTravellersTxt",
-                  "required": false,
-                  "enabled": false,
-                  "visible": "<% !empty(getAccompanyTravllers.data) %>",
-                  "value": "<% '<b> <p style=color:#f38b00>' + 'Please navigate to the next page to remove accompanying travelers' + '</p> </b>'%>"
-                },
-                {
-                  "type": "grid",
-                  "rows": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data : [] %>",
-                  "id": "accompanyignTravellersGrid",
-                  "doNotAdd": true,
-                  "doNotRemove": true,
-                  "deleteEndPoint": "deleteAccompanyingTravellers",
-                  "rowVariableName": "accompanyingMemeberData",
-                  "label": "<% 'Accompanying Travelers Grid' %>",
-                  "onRowRemove": "<%
-                                 // setMembersGrid();
-                                  %>",
-                  "visible": "<% !empty(getAccompanyTravllers.data) %>",
-                  "columns": [
-                    {
-                      "type": "column",
-                      "columnId": "accompanyingMemberCol",
-                      "label": "<% 'Accompanying Individuals Traveling ' %>",
-                      "cellTemplate": {
-                        "type": "fieldSet",
-                        "children": [
-                          {
-                            "type": "text",
-                            "id": "accompanyingMemberName",
-                            "enabled": false,
-                            "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') + (!empty(accompanyingMemeberData.departureDate) && !empty(accompanyingMemeberData.arrivalDate) ? (' (' +  (accompanyingMemeberData.departureDate ?: '') + ' to ' + (accompanyingMemeberData.arrivalDate ?: '') + ')') : '') %>"
-                          },
-                          {
-                            "type": "hidden",
-                            "id": "accompanyingMemberID",
-                            "value": "<% accompanyingMemeberData.id %>"
-                          },
-                          {
-                            "type": "hidden",
-                            "id": "accompanyingMemberFullName",
-                            "value": "<% (accompanyingMemeberData.firstName ?: '') + ' ' + (accompanyingMemeberData.lastName ?: '') %>"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "column",
-                      "columnId": "addToOOBCol",
-                      "label": "<% 'Add to OOB profile? ' %>",
-                      "cellTemplate": {
-                        "type": "checkBox",
-                        "value": "<% accompanyingMemeberData.addToOOBProfile %>",
-                        "enabled": false
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "id": "errorHolderTxt",
-                  "visible": false,
-                  "required": false,
-                  "enabled": false,
-                  "value": ""
-                },
-                {
                   "type": "fieldSet",
                   "children": [
                     {
@@ -1049,9 +980,7 @@ console.info('other traveller Names =' + otherNames );
                       "visible": "<% pageVariables.isField %>",
                       "selectionEnabled": true,
                       "onRowSelect": "<%
-                        childrenArrangments();
-                        OOB.checkIfWorkerSelected(errorHolderTxt, fieldMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
-                      %>",
+                        childrenArrangments();%>",
                       "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(fieldMemeberData.name) : [] %>",
                       "rowVariableName": "fieldMemeberData",
                       "isArrayOutBinding": true,
@@ -1093,22 +1022,6 @@ console.info('other traveller Names =' + otherNames );
                   ]
                 },
                 {
-                  "type": "text",
-                  "label": "getOOBRequest.data[0].travellerNames.split(',')",
-                  "id": "test1Txt",
-                  "required": false,
-                  "enabled": false,
-                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? json:asJSON(getOOBRequest.data[0].travellerNames.split(',')) : 'empty' %>"
-                },
-                {
-                  "type": "text",
-                  "label": "getOOBRequest.data[0].travellerNames.split(',').contains('Logan McNeil')",
-                  "id": "test2Txt",
-                  "required": false,
-                  "enabled": false,
-                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains('Logan McNeil') : 'empty' %>"
-                },
-                {
                   "type": "fieldSet",
                   "render": "<% !pageVariables.isField %>",
                   "children": [
@@ -1118,9 +1031,7 @@ console.info('other traveller Names =' + otherNames );
                       "rows": "<% !empty(pageVariables.frequentTravellers) ? pageVariables.frequentTravellersStaff : [] %>",
                       "rowVariableName": "staffMemberData",
                       "visible": "<% !pageVariables.isField %>",
-                      "onRowSelect": "<%
-                        OOB.checkIfWorkerSelected(errorHolderTxt, staffMemberGrid, accompanyignTravellersGrid, getWorkerDetails.data[0].worker.descriptor, pageVariables.isField);
-                      %>",
+                      "onRowSelect": "<%%>",
                       "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(staffMemberData.name) : [] %>",
                       "selectionEnabled": true,
                       "label": "<% 'For Staff Members' %>",
@@ -1179,14 +1090,6 @@ console.info('other traveller Names =' + otherNames );
                   self.value ? OtherMemberGrid.setVisible(true) : OtherMemberGrid.setVisible(false) ;
                   self.value == false ? removeGridRows(OtherMemberGrid) : '' ;
                 %>"
-                },
-                {
-                  "type": "text",
-                  "label": "TESTOtherData",
-                  "id": "testOtherDataTxt",
-                  "required": false,
-                  "enabled": false,
-                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) ? OOB.stringtoMap(getOOBRequest.data[0].otherTravellerNames) : 'empty' %>"
                 },
                 {
                   "type": "grid",

@@ -18,7 +18,7 @@
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<%empty(flowVariables.oobRequest)%>", "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY cf_XTNDOOBCTTravellerName ASC, departureDate ASC').urlEncode() %>",
+      "exclude": "<%empty(flowVariables.oobRequest)%>", "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile, travellerNames FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY cf_XTNDOOBCTTravellerName ASC, departureDate ASC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -245,7 +245,7 @@
               "selectionEnabled": false,
               "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
               "__rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
-              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data.map(x => {{'firstName' : x.firstName, 'lastName' : x.lastName, 'addToOOBProfile' : x.addToOOBProfile}}).distinct() : [] %>",
+              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -259,7 +259,7 @@
                     "type": "text",
                     "visible": true,
                     "render": true,
-                    "value": "<% !empty(fieldMemeberData) ? (fieldMemeberData.firstName ?: '') + ' ' + (fieldMemeberData.lastName ?: '') : '' %>",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.travellerNames.replace(',', ', ') : '' %>",
                     "enabled": false
                   }
                 },
@@ -446,7 +446,7 @@
               "type": "fieldSet",
               "collapsible": true,
               "initializeCollapsed": true,
-              "title": "<% 'Travel Details - ' + (objectToLoopOn.firstName ?: '') + ' ' + (objectToLoopOn.lastName ?: '') %>",
+              "title": "<% 'Travel Details - ' + objectToLoopOn.travellerNames.replace(',', ', ') ?: '' %>",
               "children": [
                 {
                   "type": "text",
