@@ -981,8 +981,8 @@ console.info('other traveller Names =' + otherNames );
                       "selectionEnabled": true,
                       "onRowSelect": "<%
                         childrenArrangments();%>",
-                      "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(fieldMemeberData.name) : [] %>",
                       "rowVariableName": "fieldMemeberData",
+                      "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(fieldMemeberData.name) : [] %>",
                       "isArrayOutBinding": true,
                       "label": "<% 'For Field Family Members' %>",
                       "columns": [
@@ -1393,7 +1393,10 @@ console.info('other traveller Names =' + otherNames );
                       "descriptor": "No"
                     }
                   ],
-                  "onChange": "<% self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false)%>"
+                  "onChange": "<%
+                    self.value == ['yes'] ? elevatedRiskTxtA.setVisible(true) : elevatedRiskTxtA.setVisible(false);
+                    elevatedRiskTxtA.setValue('');
+                  %>"
                 },
                 {
                   "type": "textArea",

@@ -130,9 +130,7 @@
         "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
         "authType": "wcpisu",
         "exclude": "<% empty(accompanyTravellerID.value) %>",
-        "onSend": "<%
-                   console.info('Update accompnay Traveller data = ' + json:asJSON( self.data))
-                   return self.data; %>",
+        "onSend": "<% return self.data; %>",
         "httpMethod": "PATCH",
         "failOnStatusCodes": [
           {
@@ -339,8 +337,6 @@
       for (var x : list){
         listOfNames.add({'id' : x, 'descriptor': x});
       }
-    console.info('list of Names Map = ' + listOfNames);
-    console.info('list of Names Map Distinct = ' + json:asJSON(listOfNames.distinct()));
     return listOfNames.distinct();
   }
 
@@ -395,7 +391,7 @@
               "type": "fieldSet",
               "collapsible": true,
               "id": "travelEventFSID",
-              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.replace(',', ', ') : '') %>",
+              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "instanceList",
