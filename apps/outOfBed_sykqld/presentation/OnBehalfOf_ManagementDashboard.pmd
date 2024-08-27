@@ -16,7 +16,7 @@
     {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<%'/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate, elevatedRiskSituation, cf_XTNDOOBLRVWorkerLegalName AS legalName FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getWorkerDetails.data.map(x => {x.worker.id}).join(',') +  ') ORDER BY createdMoment DESC limit 20').pathEncode() %>",
+      "url": "<%'/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate, elevatedRiskSituation, cf_XTNDOOBLRVWorkerLegalName AS legalName, listOfCountries, numberOfTravellers FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getWorkerDetails.data.map(x => {x.worker.id}).join(',') +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [
@@ -113,7 +113,8 @@
                 "type": "text",
                 "id": "numberOfTravellers",
                 "enabled": false,
-                "value": "<% !empty(oOBRequest.workdayID) ? searchAccompanyTravllers.invoke({'oobRequest': oOBRequest.workdayID}).data.size() : 'null' %>"
+                "_value": "<% !empty(oOBRequest.workdayID) ? searchAccompanyTravllers.invoke({'oobRequest': oOBRequest.workdayID}).data.size() : 'null' %>",
+                "value": "<% !empty(oOBRequest.numberOfTravellers) ? oOBRequest.numberOfTravellers : '' %>"
               }
             },
             {
@@ -149,12 +150,12 @@
                 "type": "text",
                 "id": "countryCell",
                 "enabled": false,
-                "value": "<% !empty(true) ? 'test' : '' %>"
+                "value": "<% !empty(oOBRequest.listOfCountries) ? oOBRequest.listOfCountries : '' %>"
               }
             },
             {
               "type": "column",
-              "columnId": "countryColumn",
+              "columnId": "affinityColumn",
               "label": "Affinity",
               "sortableAndFilterable": true,
               "cellTemplate": {
@@ -166,7 +167,7 @@
             },
             {
               "type": "column",
-              "columnId": "countryColumn",
+              "columnId": "elevatedRiskColumn",
               "label": "Elevated Risk Situation",
               "sortableAndFilterable": true,
               "cellTemplate": {

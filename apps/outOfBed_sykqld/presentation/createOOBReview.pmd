@@ -154,7 +154,6 @@
       "type": "section",
       "horizontal": false,
       "children": [
-
         {
           "type": "fieldSet",
           "id": "tripDetailsFS",

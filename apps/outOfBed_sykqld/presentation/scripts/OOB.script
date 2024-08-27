@@ -172,6 +172,35 @@ var checkIfWorkerSelected = function(widget, grid, accompanyingGrid, workerName,
   }
 }
 
+var getAllTravellers = function (otherGrid, staffGrid, fieldGrid){
+  var travellers = [];
+
+  if(!empty(otherGrid.getRows())){
+     for (var otherMembers : otherGrid.getRows()) {
+         travellers.add({
+         'travellerName': otherMembers.childrenMap.otherMemberCol.value
+       });
+     }
+  }
+
+    if(!empty(staffGrid.getSelectedRows())){
+      for ( var selectedMembers : staffGrid.getSelectedRows()) {
+          travellers.add( {
+          'travellerName': selectedMembers.childrenMap.staffMemberCol.childrenMap.staffMemberName.value
+        });
+      }
+    }
+    if(!empty(fieldGrid.getSelectedRows())){
+      for ( var i : fieldGrid.getSelectedRows()) {
+          travellers.add( {
+          'travellerName': i.childrenMap.familyMemberCol.childrenMap.worker.value
+        });
+      }
+    }
+
+    return travellers;
+}
+
 {
     "getCurrentTime": getCurrentTime,
     "getWorkerDetails": getWorkerDetails,
@@ -181,5 +210,6 @@ var checkIfWorkerSelected = function(widget, grid, accompanyingGrid, workerName,
     "getPhoneData": getPhoneData,
     "getPTGridData" : getPTGridData,
     "checkIfPhoneNumberProvided": checkIfPhoneNumberProvided,
-    "checkIfWorkerSelected": checkIfWorkerSelected
+    "checkIfWorkerSelected": checkIfWorkerSelected,
+    "getAllTravellers": getAllTravellers
 }

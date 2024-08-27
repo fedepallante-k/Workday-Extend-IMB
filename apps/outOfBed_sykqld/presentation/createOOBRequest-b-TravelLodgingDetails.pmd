@@ -208,6 +208,28 @@
         ]
       },
       {
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(nextBtn.value) || nextBtn.value == false %>",
+        "onSend": "<% return self.data;  %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "listOfCountries",
+            "value": "<% pageVariables.allcountries ?: '' %>"
+          }
+        ]
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -339,7 +361,22 @@
   %>",
   "onLoad": "<%
     pageVariables.lodgingList = !empty(getDestinationsOnProfile.data) ? getDestinationsOnProfile.data.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}];
+    pageVariables.allcountries;
    %>",
+  "onSubmit":"<%
+    if (nextBtn.value) {
+      var getPanelList = LodgingPanel.getPanels();
+      var listOfCountries = [];
+
+      for (var panelItem : getPanelList) {
+        var countryDescriptor = panelItem.children[0].childrenMap.get('countryIl').selectedEntries[0].descriptor;
+        listOfCountries.add(countryDescriptor);
+      }
+
+      pageVariables.allcountries = listOfCountries.join();
+    }
+
+  %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
     "pageType": "edit",

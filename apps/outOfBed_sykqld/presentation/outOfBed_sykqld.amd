@@ -356,7 +356,7 @@
     },
     {
       "id": "approveOOBRequest",
-      "routingPattern": "/viewRequest/{eventId}",
+      "routingPattern": "/viewRequest",
       "page": {
         "id": "viewRequest"
       }
