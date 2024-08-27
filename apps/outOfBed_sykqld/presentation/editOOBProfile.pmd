@@ -152,11 +152,11 @@
                         "multiSelect": false,
                         "valuesOut": [
                           {
-                            "value": "<% self.value %>",
+                            "value": "<% self.value[0] %>",
                             "valueOutBinding": "createMobileNumbers.data[].countryCode"
                           },
                           {
-                            "value": "<% self.value %>",
+                            "value": "<% self.value[0] %>",
                             "valueOutBinding": "updateMobileNumbers.data[].countryCode"
                           }
                         ]
@@ -306,11 +306,11 @@
                         "multiSelect": false,
                         "valuesOut": [
                           {
-                            "value": "<% self.value %>",
+                            "value": "<% self.value[0] %>",
                             "valueOutBinding": "createDestinations.data[].countryCode"
                           },
                           {
-                            "value": "<% self.value %>",
+                            "value": "<% self.value[0] %>",
                             "valueOutBinding": "updateDestinations.data[].countryCode"
                           }
                         ]

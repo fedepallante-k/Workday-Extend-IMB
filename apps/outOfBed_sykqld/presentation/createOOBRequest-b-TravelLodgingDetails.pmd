@@ -213,6 +213,28 @@
         ]
       },
       {
+        "name": "updateOOBRequest",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/oobRequests/` + flowVariables.oobRequest %>",
+        "authType": "wcpisu",
+        "httpMethod": "PATCH",
+        "exclude": "<% empty(nextBtn.value) || nextBtn.value == false %>",
+        "onSend": "<% return self.data;  %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ],
+        "values": [
+          {
+            "outboundPath": "listOfCountries",
+            "value": "<% pageVariables.allcountries ?: '' %>"
+          }
+        ]
+      },
+      {
         "name": "transitionOutboundVars",
         "type": "outboundVariable",
         "variableScope": "flow",
@@ -356,8 +378,21 @@
   "onLoad": "<%
     pageVariables.travellerNames  = getListOfTravellerNames();
     pageVariables.lodgingList = !empty(getDestinationsOnProfile.data) ? getDestinationsOnProfile.data.add({'id': 'other', 'descriptor': 'Other'}) : [{'id': 'other', 'descriptor': 'Other'}];
+    pageVariables.allcountries;
    %>",
-  "onSubmit": "<%
+  "onSubmit":"<%
+    if (nextBtn.value) {
+      var getPanelList = LodgingPanel.getPanels();
+      var listOfCountries = [];
+
+      for (var panelItem : getPanelList) {
+        var countryDescriptor = panelItem.children[0].childrenMap.get('countryIl').selectedEntries[0].descriptor;
+        listOfCountries.add(countryDescriptor);
+      }
+
+      pageVariables.allcountries = listOfCountries.join();
+    }
+
   %>",
   "presentation": {
     "headerSize": "VPS_DEFAULT",
@@ -398,7 +433,7 @@
                   "label": "Travelers",
                   "id": "travellersIL",
                   "multiSelect": true,
-                  "required": false,
+                  "required": true,
                   "enabled": true,
                   "idKey": "descriptor",
                   "displayKey": "descriptor",
@@ -413,7 +448,7 @@
                       travelEventFSID.setTitle('Travel Event Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join());
                     }
                   %>"
-                 },
+                },
                 {
                   "type": "hidden",
                   "id": "accompanyTravellerID",
@@ -788,7 +823,7 @@
                 },
                 {
                   "type": "text",
-                  "label": "Mode Of Transport Other",
+                  "label": "Other Mode of Transport",
                   "id": "modeOfTransportOtherTxt",
                   "required": false,
                   "visible": "<% travelDeatilsPanels.modeOfTransport == 'Other' %>",
@@ -832,7 +867,7 @@
               "children": [
                 {
                   "type": "instanceList",
-                  "label": "Traveler Destiantions ",
+                  "label": "Traveler Destinations ",
                   "id": "travellerDestinationsIL",
                   "required": true,
                   "enabled": true,
