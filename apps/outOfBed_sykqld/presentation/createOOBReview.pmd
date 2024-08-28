@@ -5,7 +5,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<%empty(flowVariables.oobRequest)%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode, addToProfile} as lodging, travellerNames, otherTravellerNames FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + flowVariables.oobRequest +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -118,24 +118,28 @@
     "Dates.script"
   ],
   "script": "<%
-   var checkDestinations = function (){
-     var accompanyTravellerNames = getAccompanyTravllers.data.map(x => {{'name' : (x.firstName + ' ' + x.lastName)}}).distinct();
-     var destinationNamevalues = getDestinations.data.map(x => {x.travellerName}).distinct();
+    var checkDestinations = function (){
+      var allTravellerNames = !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',') : [];
+      !empty(getOOBRequest.data[0].otherTravellerNames) ? allTravellerNames.addAll(getOOBRequest.data[0].otherTravellerNames.split(',')) : '';
+      var mapOfTravellers =  allTravellerNames.map(x => {{'name' : x}}).distinct();
+      var destiantionTravellersList = [];
+      if(!empty(getDestinations.data)){
+        for(var x : getDestinations.data){
+          destiantionTravellersList.addAll(x.travellerName.split(','));
+        }
+      }
 
-     var missingNames = list:excludeMultiple(accompanyTravellerNames, 'name', destinationNamevalues);
-     var names =[];
-     missingNames.forEach(q => { if (!empty(q.name)) { names.add(q.name)}});
-
-     return missingNames;
-  }
+      var missingNames = list:excludeMultiple(mapOfTravellers, 'name', destiantionTravellersList.distinct());
+      var names =[];
+      missingNames.forEach(q => { if (!empty(q.name)) { names.add(q.name)}});
+      return missingNames;
+    }
   %>",
   "onSubmit": "<%
-
     warningWidgetTxt.clearWarning();
     if(!empty(checkDestinations()) && (!empty(nextBtn.value) && nextBtn.value == true) && pageVariables.warningCount==0 ){
       warningWidgetTxt.setWarning('These following traveler(s) are about to be submitted without destination details: ' + checkDestinations().map(x => {x.name}).join(', '));
       pageVariables.warningCount +=1;
-
     }
   %>",
   "onLoad": "<%

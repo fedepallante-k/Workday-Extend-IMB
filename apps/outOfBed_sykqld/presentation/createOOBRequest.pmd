@@ -125,9 +125,7 @@
         "httpMethod": "DELETE",
         "authType": "wcpisu",
         "onSend": "<%
-                   console.info('delete Triggered = ');
                    self.data ={'data': []};
-                   console.info('Edit page delete endPoint = ' + json:asJSON(self.data));
                    return self.data;
                    %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
@@ -266,7 +264,6 @@
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(false));
-          console.info('Create Personal Time Off data = ' + json:asJSON(self.data));
           return self.data;
         %>"
       },
@@ -287,7 +284,6 @@
         "onSend": "<%
           self.data = {'data':[]};
           self.data.data.addAll(getPTGridData(true));
-          console.info('Update Personal Time Off data = ' + json:asJSON(self.data));
           return self.data;
         %>"
       },
@@ -465,10 +461,7 @@
         "httpMethod": "DELETE",
         "authType": "wcpisu",
         "onSend": "<%
-                   console.info('numberId.value= ' + numberId.value);
-                   console.info('delete Triggered = ');
                    self.data ={'data': []};
-                   console.info('Edit page delete Phone Numbers = ' + json:asJSON(self.data));
                    return self.data;
                    %>",
         "exclude": "<% empty(numberId.value) %>"
@@ -548,7 +541,6 @@
     var hasChildrenValue = 0;
     if(!empty(getWorkerFromSameUnit.data)){
       for (var item : getWorkerFromSameUnit.data){
-          //console.info('Member of Same Family unit = ' + item.worker.descriptor);
         familyAndFrequent.add({'id': item.worker.id, 'name': item.worker.descriptor});
           if(!empty(item)){
             for( var child : item.dependent){
@@ -678,9 +670,7 @@
       }
     }
     if(!empty(fieldMemberGrid.getSelectedRows())){
-        console.info('Inside Family selected rows ');
       for ( var i : fieldMemberGrid.getSelectedRows()) {
-          console.info('Inside For loop family');
         addAccompanyingTraveller.add( {
           'firstName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringBefore(' '),
           'lastName': i.childrenMap.familyMemberCol.childrenMap.worker.value.substringAfter(' '),
@@ -727,16 +717,13 @@
     var otherNames = [];
 
     if(!empty(OtherMemberGrid.getRows())){
-             console.info('In IF for OTher ' );
       for (var otherMembers : OtherMemberGrid.getRows()) {
-             console.info('Other member =' + json:asJSON(otherMembers) );
         if(otherMembers.childrenMap.addToOOBCol.value != true){
-             console.info('Other member adding =' + json:asJSON(otherMembers.childrenMap.otherMemberCol.value) );
           otherNames.add(otherMembers.childrenMap.otherMemberCol.value);
         }
       }
     }
-console.info('other traveller Names =' + otherNames );
+
   return !empty(otherNames) ? otherNames.join() : ' ';
   }
 

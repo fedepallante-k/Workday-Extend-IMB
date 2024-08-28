@@ -992,13 +992,11 @@
 
   var copyAccompanyingTravellers = function(){
     var existingTravellers = getAccompanyTravllers.data;
-    console.info('existingTravellers before for  = ' + json:asJSON(existingTravellers));
     for( var x : existingTravellers){
       x.oobRequest.id = createOOBRequest.id;
       //x.oobRequest = queryParams.oobRequest;
     }
 
-    console.info('existingTravellers = ' + json:asJSON(existingTravellers));
     return existingTravellers;
   }
   %>",

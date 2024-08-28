@@ -178,7 +178,6 @@ var stringtoMap = function (stringOfNames){
     for (var x : list){
         listOfNames.add({'id' : x, 'descriptor': x});
     }
-    console.info('list of Names Map = ' + listOfNames);
     return listOfNames.distinct();
 }
 

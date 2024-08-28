@@ -1039,7 +1039,8 @@
                       //var destinationData = getLodging.data[0].favouriteDestinations.find(x=>{x.id == valueToFindAgain});
                       //var destinationData = getDestinations.data.find(x=>{x.id == valueToFindAgain});
                       var destinationData = getDestinationsOnProfile.data.find(x=>{x.id == valueToFindAgain});
-                      countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
+                      countryIl.setValues([getCountry.data.find(x => {x.id == destinationData.countryCode})] ?: []);
+                      //countryIl.setValues([{'id' : destinationData.countryCode, 'descriptor' : destinationData.countryCode}] ?: []);
                       countryIl.setValue([destinationData.countryCode] ?: []);
                       addressLine1Txt.setValue(destinationData.addressLine1 ?: '');
                       addressLine2Txt.setValue(destinationData.addressLine2 ?: '');
