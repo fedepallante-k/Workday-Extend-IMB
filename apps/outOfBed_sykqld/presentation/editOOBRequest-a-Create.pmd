@@ -63,7 +63,7 @@
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(queryParams.oobRequest )%>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) + ') ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile, travellerNames, oobRequest FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+ (!empty(flowVariables.oobRequest) ? flowVariables.oobRequest : queryParams.oobRequest) + ') ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -215,6 +215,14 @@
           {
             "outboundPath": "affinity",
             "value": "<% '' %>"
+          },
+          {
+            "outboundPath": "travellerNames",
+            "value": "<% !empty(getAllAccompanyingTravellerNames()) ? getAllAccompanyingTravellerNames() : '' %>"
+          },
+          {
+            "outboundPath": "otherTravellerNames",
+            "value": "<% getOtherAccompanyingTravellerNames();  %>"
           }
         ]
       },
@@ -228,6 +236,26 @@
           return self.data;
         %>",
         "exclude": "<% empty(personalTimeOffWID.value) %>"
+      },
+      {
+        "name": "createAccompanyingTravellers",
+        "url": "<% `https://api.workday.com/apps/outOfBed_sykqld/v1/accompanyingTravellers?bulk=true` %>",
+        "authType": "wcpisu",
+        "httpMethod": "POST",
+        "exclude": "<% (!empty(queryParams.isEdit) && queryParams.isEdit && empty(flowVariables.oobRequest)) || (!empty(queryParams.isEdit) && queryParams.isEdit && !empty(flowVariables.oobRequest)) || ((empty(queryParams.isCopy) || !queryParams.isCopy) && !empty(flowVariables.oobRequest))%>",
+        "onSend": "<%
+          self.data = {'data' : []};
+          self.data.data.addAll(copyAccompanyingTravellers());
+          return self.data;
+        %>",
+        "failOnStatusCodes": [
+          {
+            "code": 400
+          },
+          {
+            "code": 403
+          }
+        ]
       },
       {
         "name": "createPersonalTimeOff",
@@ -523,10 +551,6 @@
             "value": "<% !empty(otherStsTxt.value) ? otherStsTxt.value : '' %>"
           },
           {
-            "outboundPath": "accompanyingTravellerNames",
-            "value": "<% getAllAccompanyingTravellers() %>"
-          },
-          {
             "outboundPath": "accompanyingTravellers",
             "value": "<% ! empty(createAccompanyingTravellers.data) ? createAccompanyingTravellers.data.map(x=> {{'id' : x.body.id}}) : [];    %>"
           },
@@ -716,6 +740,7 @@
       }
     }
 
+  /*
     var getAllAccompanyingTravellers = function(){
       var addAccompanyingTraveller = [];
       var otherAccompanyingTraveller = [];
@@ -782,6 +807,7 @@
          var TravellerArray = {'data' : addAccompanyingTraveller}
          return TravellerArray;
      }
+    */
 
     var getPTGridData = function(isEdit){
       var updatePersonalTimeOff =[];
@@ -963,6 +989,18 @@
 
   return !empty(otherNames) ? otherNames.join() : ' ';
   }
+
+  var copyAccompanyingTravellers = function(){
+    var existingTravellers = getAccompanyTravllers.data;
+    console.info('existingTravellers before for  = ' + json:asJSON(existingTravellers));
+    for( var x : existingTravellers){
+      x.oobRequest.id = createOOBRequest.id;
+      //x.oobRequest = queryParams.oobRequest;
+    }
+
+    console.info('existingTravellers = ' + json:asJSON(existingTravellers));
+    return existingTravellers;
+  }
   %>",
   "onSubmit": "<%
     OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers);
@@ -1025,8 +1063,7 @@
                   "enabled": true,
                   "trueLabel": "True Label",
                   "falseLabel": "False Label",
-                  "value": "<% (!empty(queryParams.isCopy) && queryParams.isCopy) ? false : true %>",
-                  "onChange": "<% %>"
+                  "value": "<% (!empty(queryParams.isCopy) && queryParams.isCopy) ? false : true %>"
                 },
                 {
                   "type": "text",

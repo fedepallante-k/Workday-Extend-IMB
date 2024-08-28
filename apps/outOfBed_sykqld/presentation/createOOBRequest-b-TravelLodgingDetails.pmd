@@ -352,7 +352,7 @@
   }
 
   var getListOfTravellerNames = function (){
-    var list = getOOBRequest.data[0].travellerNames.split(',');
+    var list = !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',') : [];
     !empty(getOOBRequest.data[0].otherTravellerNames) ? list.addAll(getOOBRequest.data[0].otherTravellerNames.split(',')) : '';
 
     var listOfNames = [];
