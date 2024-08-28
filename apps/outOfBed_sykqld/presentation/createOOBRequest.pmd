@@ -540,7 +540,7 @@
     pageVariables.phoneNumbers = getPhoneNumbers().add({'id': 'other', 'number': 'Other', 'name': 'Other'}) ;
     pageVariables.isField = !empty(getWorkerDetails.data[0].jobFamilyGroup.find(x => {x.descriptor == 'Field'}));
     pageVariables.hasChildren = false;
-    pageVariables.allTravellers = [];
+    //pageVariables.allTravellers = [];
   %>",
   "script": "<%
   var familyMemberGridValues = function (onLoad){
@@ -979,7 +979,7 @@ console.info('other traveller Names =' + otherNames );
                       "selectionEnabled": true,
                       "onRowSelect": "<%
                         childrenArrangments();
-                        pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
+                        //pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
                         //personalTimeGrid.childrenMap.workerTimeOffCol.childrenMap.personalTimeOffWorker.setValues(pageVariables.allTravellers);
                       %>",
                       "rowVariableName": "fieldMemeberData",
@@ -1033,8 +1033,8 @@ console.info('other traveller Names =' + otherNames );
                       "rowVariableName": "staffMemberData",
                       "visible": "<% !pageVariables.isField %>",
                       "onRowSelect": "<%
-                        pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
-                        personalTimeOffWorker.setValues(pageVariables.allTravellers);
+                        //pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
+                        //personalTimeOffWorker.setValues(pageVariables.allTravellers);
                       %>",
                       "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',').contains(staffMemberData.name) : [] %>",
                       "selectionEnabled": true,
@@ -1104,11 +1104,11 @@ console.info('other traveller Names =' + otherNames );
                   "rowSelected": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) ? getOOBRequest.data[0].otherTravellerNames.split(',').contains(otherMemeberData.descriptor) : [] %>",
                   "visible": "<%!empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].otherTravellerNames) %>",
                   "onRowRemove": "<%
-                   pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
-                   personalTimeOffWorker.setValues(pageVariables.allTravellers);
+                   //pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
+                   //personalTimeOffWorker.setValues(pageVariables.allTravellers);
                   %>",
                   "onRowAdd": "<% pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
-                  personalTimeOffWorker.setValues(pageVariables.allTravellers);
+                  //personalTimeOffWorker.setValues(pageVariables.allTravellers);
                                %>",
                   "columns": [
                     {
@@ -1120,8 +1120,8 @@ console.info('other traveller Names =' + otherNames );
                         "enabled": true,
                         "value": "<% otherMemeberData.descriptor %>",
                         "onChange": "<%
-                          pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
-                          personalTimeOffWorker.setValues(pageVariables.allTravellers);
+                          //pageVariables.allTravellers = OOB.getAllTravellers(OtherMemberGrid, staffMemberGrid ?: '', fieldMemberGrid ?: '');
+                          //personalTimeOffWorker.setValues(pageVariables.allTravellers);
                         %>"
                       }
                     },
@@ -1336,10 +1336,10 @@ console.info('other traveller Names =' + otherNames );
                           {
                             "type": "instanceList",
                             "id": "personalTimeOffWorker",
-                            "idKey": "travellerName",
-                            "displayKey": "travellerName",
-                            "_values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
-                            "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : pageVariables.allTravellers %>",
+                            "_idKey": "travellerName",
+                            "_displayKey": "travellerName",
+                            "values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : !empty(getWorkerFromSameUnit.data) ? getWorkerFromSameUnit.data.map(result => {result.worker}) : [] %>",
+                            "_values": "<%  !pageVariables.isField ? getWorkerDetails.data.map(x => {x.worker}) : pageVariables.allTravellers %>",
                             "enabled": true,
                             "selectedValuesAndDescriptors": "<% !empty(timeOffData.worker) ? [timeOffData.worker] : []  %>"
                           },

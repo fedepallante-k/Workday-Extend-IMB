@@ -444,7 +444,7 @@
               "type": "fieldSet",
               "collapsible": true,
               "initializeCollapsed": true,
-              "title": "<% 'Travel Details - ' + objectToLoopOn.travellerNames.replace(',', ', ') ?: '' %>",
+              "title": "<% 'Travel Details - ' + (!empty(objectToLoopOn.travellerNames) ? objectToLoopOn.travellerNames.replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "text",
@@ -571,7 +571,7 @@
               "type": "fieldSet",
               "collapsible": true,
               "initializeCollapsed": true,
-              "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName : '') %>",
+              "title": "<% 'Lodging Details - ' + (!empty(lodgingLoopObject.travellerName) ? lodgingLoopObject.travellerName.replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "date",
