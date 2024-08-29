@@ -19,7 +19,7 @@
       "name": "getOOBRequest",
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(routeParams.requestID) && empty(getReviewRequest.id) %>",
-      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + (getReviewRequest.id ?: routeParams.requestID) +'\") ORDER BY createdMoment DESC').urlEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, createdMoment, OOBRequest, name, purpose, startDate, expectedEndDate, endDate, sts, otherSTS, alternateArrangementForChildren, elevatedRisk, elevatedRiskSituation, initiatorComments, traveller, status, affinity, phoneNumbers{name, number, countryCode, notes} as phoneNumbers, accompanyingTravellers{firstName, lastName, fromProfile} as accompanyingTravellers, lodging{startDate, endDate, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, contactNumber,travellerName, postalCode} as lodging, travellerNames, otherTravellerNames FROM outOfBed_sykqld_oobRequests WHERE workdayID in (\"' + (getReviewRequest.id ?: routeParams.requestID) +'\") ORDER BY createdMoment DESC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {
@@ -41,6 +41,12 @@
       "baseUrlType": "WORKDAY-WQL",
       "exclude": "<% empty(routeParams.requestID) && empty(getReviewRequest.id) %>",
       "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, travellerName, Destination, name, countryCode, addressLine1, addressLine2, addressLine3, city, state, postalCode, contactNumber, other, startDate, endDate, addToProfile, oobRequest{workdayID} as oobRequest FROM outOfBed_sykqld_destinations WHERE ON oobRequest workdayID = \\''+  (getReviewRequest.id ?: routeParams.requestID) + '\\' WHERE oobRequest is not empty ORDER BY travellerName ASC, startDate ASC').urlEncode() %>",
+      "authType": "wcpisu"
+    },
+    {
+      "name": "getStatuses",
+      "baseUrlType": "WORKDAY-WQL",
+      "url": "<% '/data?query=' + ('SELECT workdayID, statusID, description FROM outOfBed_sykqld_status').urlEncode() %>",
       "authType": "wcpisu"
     }
   ],
@@ -68,6 +74,7 @@
     ]
   },
   "include": [
+    "OOB.script",
     "Dates.script"
   ],
   "presentation": {
@@ -85,7 +92,7 @@
       "children": [
         {
           "type": "section",
-          "render": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) ? Dates.getDate(getOOBRequest.data[0].endDate) >= Dates.getDateRelativeToToday(-4, userTimeZone) : false %>",
+          "render": "<% (!empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) ? Dates.getDate(getOOBRequest.data[0].endDate) >= Dates.getDateRelativeToToday(-4, userTimeZone) : false) || getStatuses.data.find(x => {x.description == 'Draft'}).workdayID == getOOBRequest.data[0].status.id %>",
           "horizontal": true,
           "children": [
             {
@@ -188,7 +195,8 @@
               "doNotRemove": true,
               "doNotRemoveRow": true,
               "selectionEnabled": false,
-              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
+              "_rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
+              "rows": "<% OOB.getListOfTravellerNames(getOOBRequest).map(x => {{'travellerName' : x}}) %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -202,18 +210,7 @@
                     "type": "text",
                     "visible": true,
                     "render": true,
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.travellerNames.replace(',', ', ') : '' %>",
-                    "enabled": false
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "addToOOBCol",
-                  "label": "<% 'If Other selected - Add to OOB Profile?' %>",
-                  "cellTemplate": {
-                    "id": "addToOOB",
-                    "type": "text",
-                    "value": "<% !empty(fieldMemeberData) && fieldMemeberData.addToOOBProfile ? 'Yes' : 'No'  %>",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.travellerName : '' %>",
                     "enabled": false
                   }
                 }

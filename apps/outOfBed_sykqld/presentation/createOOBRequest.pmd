@@ -224,6 +224,10 @@
           {
             "outboundPath": "otherTravellerNames",
             "value": "<% getOtherAccompanyingTravellerNames();  %>"
+          },
+          {
+            "outboundPath": "numberOfTravellers",
+            "value": "<% getAllAccompanyingTravellerNames().split(',').size() %>"
           }
         ]
       },
@@ -452,6 +456,10 @@
           {
             "outboundPath": "otherTravellerNames",
             "value": "<% !empty(getOtherAccompanyingTravellerNames()) ? getOtherAccompanyingTravellerNames() : ' ' %>"
+          },
+          {
+            "outboundPath": "numberOfTravellers",
+            "value": "<% getAllAccompanyingTravellerNames().split(',').size() %>"
           }
         ]
       },

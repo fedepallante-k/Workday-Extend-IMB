@@ -59,7 +59,7 @@
           },
           {
             "outboundPath": "numberOfTravellers",
-            "value": "<% !empty(getAccompanyTravllers.data) ? getAccompanyTravllers.data.map(x => {x.id}).size() :'' %>"
+            "value": "<% OOB.getListOfTravellerNames(getOOBRequest).size() %>"
           }
         ]
       },
@@ -245,9 +245,8 @@
               "doNotRemove": true,
               "doNotRemoveRow": true,
               "selectionEnabled": false,
-              "_rows": "<% !empty(getOOBRequest.data[0] && !empty(getOOBRequest.data[0].accompanyingTravellers)) ?  getOOBRequest.data.map(x => {x.accompanyingTravellers})[0].distinct() : [] %>",
-              "__rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
-              "rows": "<% !empty(getAccompanyTravllers.data) ?  getAccompanyTravllers.data : [] %>",
+              "_rows": "<% (!empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].travellerNames)) ? getOOBRequest.data[0].travellerNames.split(',').map(x => {{'travellerName' : x}}) : [] %>",
+              "rows": "<% OOB.getListOfTravellerNames(getOOBRequest).map(x => {{'travellerName' : x}}) %>",
               "visible": true,
               "enabled": false,
               "rowVariableName": "fieldMemeberData",
@@ -261,18 +260,7 @@
                     "type": "text",
                     "visible": true,
                     "render": true,
-                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.travellerNames.replace(',', ', ') : '' %>",
-                    "enabled": false
-                  }
-                },
-                {
-                  "type": "column",
-                  "columnId": "addToOOBCol",
-                  "label": "<% 'If Other selected - Add to OOB Profile?' %>",
-                  "cellTemplate": {
-                    "id": "addToOOB",
-                    "type": "text",
-                    "value": "<% !empty(fieldMemeberData) && fieldMemeberData.addToOOBProfile ? 'Yes' : 'No'  %>",
+                    "value": "<% !empty(fieldMemeberData) ? fieldMemeberData.travellerName : '' %>",
                     "enabled": false
                   }
                 }

@@ -210,6 +210,13 @@ var getAllTravellers = function (otherGrid, staffGrid, fieldGrid){
     return travellers;
 }
 
+var getListOfTravellerNames = function (getOOBRequest){
+    var list = !empty(getOOBRequest.data[0].travellerNames) ? getOOBRequest.data[0].travellerNames.split(',') : [];
+    !empty(getOOBRequest.data[0].otherTravellerNames) ? list.addAll(getOOBRequest.data[0].otherTravellerNames.split(',')) : '';
+
+    return list;
+}
+
 {
     "getCurrentTime": getCurrentTime,
     "getWorkerDetails": getWorkerDetails,
@@ -221,5 +228,6 @@ var getAllTravellers = function (otherGrid, staffGrid, fieldGrid){
     "checkIfPhoneNumberProvided": checkIfPhoneNumberProvided,
     "checkIfWorkerSelected": checkIfWorkerSelected,
     "stringtoMap": stringtoMap,
-    "getAllTravellers": getAllTravellers
+    "getAllTravellers": getAllTravellers,
+    "getListOfTravellerNames": getListOfTravellerNames
 }

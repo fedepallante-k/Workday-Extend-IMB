@@ -10,7 +10,7 @@
     {
       "name": "getOOBRequests",
       "authType": "sso",
-      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getCurrentWorker.id +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
+      "url": "<% '/data?query=' + ('SELECT createdMoment, workdayID, OOBRequest, name, purpose, sts, traveller, lodging, status{description} as status, initiator, affinity, accompanyingTravellers{firstName, lastName} as accompanyingTravellers, startDate, endDate, expectedEndDate, numberOfTravellers FROM outOfBed_sykqld_oobRequests where status is not empty AND traveller in (' + getCurrentWorker.id +  ') ORDER BY createdMoment DESC limit 100').pathEncode() %>",
       "baseUrlType": "WORKDAY-WQL",
       "httpMethod": "GET",
       "failOnStatusCodes": [

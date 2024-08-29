@@ -445,7 +445,7 @@
                       travelEventFSID.setTitle('Travel Event Details');
                     }else if(!empty(self.getSelectedEntries())){
                       addTravellerNamesTxt.setValue(travellersIL.getSelectedEntries().map(x => {x.descriptor}).join());
-                      travelEventFSID.setTitle('Travel Event Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join());
+                      travelEventFSID.setTitle('Travel Event Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join().replace(',',', '));
                     }
                   %>"
                 },
@@ -863,7 +863,7 @@
               "type": "fieldSet",
               "id": "LodgingDetails",
               "collapsible": true,
-              "title": "<% 'Lodging/Destination Details - ' + (!empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '') %>",
+              "title": "<% 'Lodging/Destination Details ' + (!empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '') %>",
               "children": [
                 {
                   "type": "instanceList",
@@ -882,7 +882,7 @@
                       lodgingTravellerNameTxt.setValue('');
                       LodgingDetails.setTitle('Lodging/Destination Details');
                     }else if(!empty(self.selectedEntries[0])){
-                      LodgingDetails.setTitle('Lodging/Destination Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join());
+                      LodgingDetails.setTitle('Lodging/Destination Details - ' + self.getSelectedEntries().map(x => {x.descriptor}).join().replace(',',', '));
                       lodgingTravellerNameTxt.setValue(self.getSelectedEntries().map(x => {x.descriptor}).join());
                     }
                   %>"
