@@ -131,7 +131,7 @@
       "id": 14,
       "name": "traveller",
       "type": "SINGLE_INSTANCE",
-      "useForDisplay": true,
+      "useForDisplay": false,
       "isPurgeable": false,
       "target": "WORKER",
       "secureByTarget": true
@@ -187,6 +187,46 @@
       "type": "MULTI_INSTANCE",
       "isPurgeable": false,
       "target": "Destination"
+    },
+    {
+      "id": 21,
+      "name": "travellerNames",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 22,
+      "name": "otherTravellerNames",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 23,
+      "name": "numberOfTravellers",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
+    },
+    {
+      "id": 24,
+      "name": "listOfCountries",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     }
   ]
 }

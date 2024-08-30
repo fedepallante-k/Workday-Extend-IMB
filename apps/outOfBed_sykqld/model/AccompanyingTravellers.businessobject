@@ -181,6 +181,16 @@
       "isReferenceId": false,
       "useForDisplay": false,
       "enableSearch": false
+    },
+    {
+      "id": 20,
+      "name": "travellerNames",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     }
   ]
 }

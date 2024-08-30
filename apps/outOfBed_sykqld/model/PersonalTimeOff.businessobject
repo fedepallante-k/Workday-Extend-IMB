@@ -53,6 +53,16 @@
       "isPurgeable": false,
       "enableIndex": false,
       "precision": "DAY"
+    },
+    {
+      "id": 6,
+      "name": "travellerName",
+      "type": "TEXT",
+      "isReferenceId": false,
+      "useForDisplay": false,
+      "isPurgeable": false,
+      "enableIndex": false,
+      "enableSearch": false
     }
   ]
 }
