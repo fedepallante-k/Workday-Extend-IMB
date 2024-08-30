@@ -5,36 +5,6 @@
       "value": "outOfBed_sykqld"
     }
   ],
-  "dataProviders": [
-    {
-      "key": "WORKDAY-COMMON",
-      "value": "https://api.workday.com/common/v1"
-    },
-    {
-      "key": "WORKDAY-RAAS",
-      "value": "https://api.workday.com/raas"
-    },
-    {
-      "key": "WORKDAY-WQL",
-      "value": "https://api.workday.com/wql/v1"
-    },
-    {
-      "key": "APP-V1",
-      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
-    },
-    {
-      "key": "WORKDAY-BP",
-      "value": "https://api.workday.com/businessProcess/v1"
-    },
-    {
-      "key": "APP-ORCHESTRATE-V1",
-      "value": "https://api.workday.com/orchestrate/v1/apps/<% site.applicationId %>/orchestrations"
-    },
-    {
-      "key": "WORKDAY-CONNECT-V1",
-      "value": "https://api.workday.com/connect/v1"
-    }
-  ],
   "flowDefinitions": [
     {
       "id": "createOOBFlow",
@@ -227,11 +197,9 @@
     },
     {
       "id": "onBehalfOfOOBFlow",
-      "cancelOutOfFlow": true,
       "flowSteps": [
         {
           "id": "onBehalfOfSelectWorker",
-          "startsFlow": true,
           "transitions": [
             {
               "order": "a",
@@ -239,6 +207,7 @@
               "condition": "<% true %>"
             }
           ],
+          "startsFlow": true,
           "taskId": "OnBehalfOf_a_SelectWorker"
         },
         {
@@ -315,7 +284,8 @@
           "endsFlow": true,
           "taskId": "myDashboard"
         }
-      ]
+      ],
+      "cancelOutOfFlow": true
     }
   ],
   "tasks": [
@@ -352,13 +322,6 @@
       "routingPattern": "/viewOOBRequest",
       "page": {
         "id": "viewOOBRequest"
-      }
-    },
-    {
-      "id": "approveOOBRequest",
-      "routingPattern": "/viewRequest/{eventId}",
-      "page": {
-        "id": "viewRequest"
       }
     },
     {
@@ -446,5 +409,35 @@
       }
     }
   ],
-  "applicationId": "outOfBed_sykqld"
+  "applicationId": "outOfBed_sykqld",
+  "dataProviders": [
+    {
+      "key": "WORKDAY-COMMON",
+      "value": "https://api.workday.com/common/v1"
+    },
+    {
+      "key": "WORKDAY-RAAS",
+      "value": "https://api.workday.com/raas"
+    },
+    {
+      "key": "WORKDAY-WQL",
+      "value": "https://api.workday.com/wql/v1"
+    },
+    {
+      "key": "APP-V1",
+      "value": "https://api.workday.com/apps/outOfBed_sykqld/v1"
+    },
+    {
+      "key": "WORKDAY-BP",
+      "value": "https://api.workday.com/businessProcess/v1"
+    },
+    {
+      "key": "APP-ORCHESTRATE-V1",
+      "value": "https://api.workday.com/orchestrate/v1/apps/<% site.applicationId %>/orchestrations"
+    },
+    {
+      "key": "WORKDAY-CONNECT-V1",
+      "value": "https://api.workday.com/connect/v1"
+    }
+  ]
 }

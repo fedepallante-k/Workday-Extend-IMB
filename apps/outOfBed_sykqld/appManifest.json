@@ -5,6 +5,6 @@
   "description" : "The Out of Bed (OOB) process is a mechanism to support the security and well-being of IMB employees who are traveling. It provides visibility of travel plans to those who have a responsibility for employees in specific areas (geographical regions, countries, HR assignments, etc.).",
   "latestVersion" : "d3a077934a4664e3227b2d482b323d8c",
   "organizationId" : "60a651db-0cfb-472d-94a3-645bbea98e69",
-  "promotionLevel" : "DEVELOPMENT",
+  "promotionLevel" : "RELEASE_CANDIDATE",
   "validationLimit" : "V1"
 }

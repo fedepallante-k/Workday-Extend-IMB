@@ -1,7 +1,7 @@
 {
   "id": 1,
   "name": "RequestApprovalFlow",
-  "label": "Manage OOB: HR Evaluation",
+  "label": "Request Approval Flow",
   "description": "Business Process Type for RequestApprovalFlow",
   "useForOrchestrate": true,
   "allowsCancel": true,
@@ -10,9 +10,6 @@
       "APPROVE",
       "DENY"
     ]
-  },
-  "details": {
-    "pageRoute": "/viewRequest/{eventId}"
   },
   "actionSteps": [],
   "targetBusinessObject": "OOBRequest",

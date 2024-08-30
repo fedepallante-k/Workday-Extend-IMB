@@ -18,7 +18,8 @@
     {
       "name": "getAccompanyTravllers",
       "baseUrlType": "WORKDAY-WQL",
-      "exclude": "<%empty(flowVariables.oobRequest)%>", "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY cf_XTNDOOBCTTravellerName ASC, departureDate ASC').urlEncode() %>",
+      "exclude": "<%empty(flowVariables.oobRequest)%>",
+      "url": "<% '/data?query=' + ('SELECT workdayID AS id, sts, departureDate, arrivalDate, modeOfTransport, departurePoint, arrivalPoint, firstName, lastName, fromProfile, airline, assignedVehicle, otherTransport, transportNumber, carDetails, departureTime, arrivalTime, addToOOBProfile FROM outOfBed_sykqld_accompanyingTravellers WHERE oobRequest in ('+  flowVariables.oobRequest + ') ORDER BY cf_XTNDOOBCTTravellerName ASC, departureDate ASC').urlEncode() %>",
       "authType": "wcpisu"
     },
     {

@@ -40,8 +40,8 @@
   "onLoad": "<%
              %>",
   "include": [
-        "OOB.script",
-        "Dates.script"
+    "OOB.script",
+    "Dates.script"
   ],
   "presentation": {
     "headerSize": "VPS_DEFAULT",

@@ -52,7 +52,11 @@
         {
           "type": "section",
           "horizontal": true,
-          "columnWidthRatios": [0.4,0.4,0.2],
+          "columnWidthRatios": [
+            0.4,
+            0.4,
+            0.2
+          ],
           "children": [
             {
               "type": "fieldSet",

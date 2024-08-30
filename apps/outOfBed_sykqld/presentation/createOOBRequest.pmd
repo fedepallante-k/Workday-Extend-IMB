@@ -1144,7 +1144,7 @@
                     var newRow = selfRows[0];
                     newRow.childrenMap.NameCol.childrenMap.isNewNumber.setValue(true);
                   %>",
-                  "onRowRemove":"<%  OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers); %>",
+                  "onRowRemove": "<%  OOB.checkIfPhoneNumberProvided(phoneErrorHolderTxt, allNumbers); %>",
                   "columns": [
                     {
                       "type": "column",

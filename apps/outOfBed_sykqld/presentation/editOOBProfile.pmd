@@ -146,7 +146,7 @@
                         "selectedValuesAndDescriptors": "<% [{'id': mobile.countryCode, 'phoneCode': mobile.countryCode}] %>",
                         "searchEndPoint": "<% endpoints.getPhoneCodes %>",
                         "values": "<% [] %>",
-                        "searchResultValues": "<% getPhoneCodes.items %>",
+                        "searchResultValues": "<% getPhoneCodes.items.distinct() %>",
                         "idKey": "phoneCode",
                         "displayKey": "phoneCode",
                         "multiSelect": false,
