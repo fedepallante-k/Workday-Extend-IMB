@@ -116,7 +116,6 @@
   "include": [
     "OOB.script",
     "Dates.script"
-    ""
   ],
   "script": "<%
     var checkDestinations = function (){

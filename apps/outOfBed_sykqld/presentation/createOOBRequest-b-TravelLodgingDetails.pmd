@@ -426,7 +426,7 @@
               "type": "fieldSet",
               "collapsible": true,
               "id": "travelEventFSID",
-              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) && !empty(travelDeatilsPanels.id) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.replace(',', ', ') : '') %>",
+              "title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) && !empty(travelDeatilsPanels.id) ? list:filterMultiple(getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'descriptor' : x}}), 'descriptor', OOB.getListOfTravellerNames(getOOBRequest)).map(x => {x.descriptor}).join().replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "instanceList",
@@ -440,7 +440,8 @@
                   "values": "<% !empty(pageVariables.travellerNames) ? pageVariables.travellerNames : [] %>",
                   "_values": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}) : [] %>",
                   "_selectedValues": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',') : [] %>",
-                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}) : [] %>",
+                  "_oldselectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}) : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? list:filterMultiple(getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}), 'id', OOB.getListOfTravellerNames(getOOBRequest))  : [] %>",
                   "onChange": "<%
                     if(empty(self.getSelectedEntries())){
                       addTravellerNamesTxt.setValue('');
@@ -529,7 +530,7 @@
                 {
                   "type": "hidden",
                   "id": "addTravellerNamesTxt",
-                  "value": "<% !empty(travelDeatilsPanels.travellerNames) ? travelDeatilsPanels.travellerNames : 'empty' %>",
+                  "value": "<% !empty(travelDeatilsPanels.travellerNames) ? list:filterMultiple(getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'descriptor' : x}}), 'descriptor', OOB.getListOfTravellerNames(getOOBRequest)).map(x => {x.descriptor}).join() : 'empty' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createAccompanyingTravellers.data[].travellerNames",
@@ -865,7 +866,8 @@
               "type": "fieldSet",
               "id": "LodgingDetails",
               "collapsible": true,
-              "title": "<% 'Lodging/Destination Details ' + (!empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '') %>",
+              "_title": "<% 'Travel Event Details - ' + (!empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) && !empty(travelDeatilsPanels.id) ? list:filterMultiple(getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'descriptor' : x}}), 'descriptor', OOB.getListOfTravellerNames(getOOBRequest)).map(x => {x.descriptor}).join().replace(',', ', ') : '') %>",
+              "title": "<% 'Lodging/Destination Details ' + (!empty(lodgingDetailsPanels.travellerName) ? list:filterMultiple(lodgingDetailsPanels.travellerName.split(',').map(x => {{'descriptor' : x}}), 'descriptor', OOB.getListOfTravellerNames(getOOBRequest)).map(x => {x.descriptor}).join().replace(',', ', ') : '') %>",
               "children": [
                 {
                   "type": "instanceList",
@@ -878,7 +880,9 @@
                   "multiSelect": true,
                   "_values": "<% getAccompanyTravllers.data.map(x => {{'id' : (x.firstName + ' ' + x.lastName), 'descriptor' : (x.firstName + ' ' + x.lastName)}}).distinct() %>",
                   "values": "<% !empty(pageVariables.travellerNames) ? pageVariables.travellerNames : [] %>",
-                  "selectedValues": "<% !empty(lodgingDetailsPanels.id) && !empty(getDestinations.data) && !empty(getDestinations.data[0].travellerName) ? getDestinations.data.find(x => {x.id == lodgingDetailsPanels.id}).travellerName.split(',') : [] %>",
+                  "_selectedValues": "<% !empty(lodgingDetailsPanels.id) && !empty(getDestinations.data) && !empty(getDestinations.data[0].travellerName) ? getDestinations.data.find(x => {x.id == lodgingDetailsPanels.id}).travellerName.split(',') : [] %>",
+                 "_selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? list:filterMultiple(getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}), 'id', OOB.getListOfTravellerNames(getOOBRequest))  : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(lodgingDetailsPanels.id) && !empty(getDestinations.data) && !empty(getDestinations.data[0].travellerName) ? list:filterMultiple(getDestinations.data.find(x => {x.id == lodgingDetailsPanels.id}).travellerName.split(',').map(x => {{'id' : x, 'descriptor' : x}}), 'id', OOB.getListOfTravellerNames(getOOBRequest)) : [] %>",
                   "onChange": "<%
                     if(empty(self.selectedEntries[0])){
                       lodgingTravellerNameTxt.setValue('');
@@ -937,7 +941,7 @@
                 {
                   "type": "hidden",
                   "id": "lodgingTravellerNameTxt",
-                  "value": "<% !empty(lodgingDetailsPanels.travellerName) ? lodgingDetailsPanels.travellerName : '' %>",
+                  "value": "<% !empty(lodgingDetailsPanels.travellerName) ? list:filterMultiple(lodgingDetailsPanels.travellerName.split(',').map(x => {{'descriptor' : x}}), 'descriptor', OOB.getListOfTravellerNames(getOOBRequest)).map(x => {x.descriptor}).join().replace(',', ', ') : '' %>",
                   "valuesOut": [
                     {
                       "valueOutBinding": "createDestinations.data[].travellerName",
