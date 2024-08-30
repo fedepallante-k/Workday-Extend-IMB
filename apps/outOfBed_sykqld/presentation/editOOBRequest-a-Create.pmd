@@ -165,7 +165,7 @@
           },
           {
             "outboundPath": "expectedEndDate",
-            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+            "value": "<% !empty(endDateDt.value) && endDateChbx.value==true ? Dates.getDateFormatted(endDateDt.value) : '' %>"
           },
           {
             "outboundPath": "endDate",
@@ -223,6 +223,10 @@
           {
             "outboundPath": "otherTravellerNames",
             "value": "<% getOtherAccompanyingTravellerNames();  %>"
+          },
+          {
+            "outboundPath": "numberOfTravellers",
+            "value": "<% getAllAccompanyingTravellerNames().split(',').size() %>"
           }
         ]
       },
@@ -376,7 +380,7 @@
           },
           {
             "outboundPath": "expectedEndDate",
-            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+            "value": "<% !empty(endDateDt.value) && endDateChbx.value==true ? Dates.getDateFormatted(endDateDt.value) : '' %>"
           },
           {
             "outboundPath": "endDate",
@@ -444,6 +448,10 @@
           {
             "outboundPath": "otherTravellerNames",
             "value": "<% getOtherAccompanyingTravellerNames();  %>"
+          },
+          {
+            "outboundPath": "numberOfTravellers",
+            "value": "<% getAllAccompanyingTravellerNames().split(',').size() %>"
           }
         ]
       },
@@ -1085,7 +1093,7 @@
                   "id": "startDateDt",
                   "required": true,
                   "enabled": true,
-                  "value": "<% OOB.getCurrentTime() %>"
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].startDate) && ((!empty(queryParams.isCopy) && !queryParams.isCopy) || !empty(flowVariables.oobRequest)) ? getOOBRequest.data[0].startDate : '' %>"
                 },
                 {
                   "type": "date",
@@ -1093,7 +1101,7 @@
                   "id": "endDateDt",
                   "required": true,
                   "enabled": true,
-                  "value": "<% OOB.getCurrentTime() %>"
+                  "value": "<% !empty(getOOBRequest.data) && !empty(getOOBRequest.data[0].endDate) && ((!empty(queryParams.isCopy) && !queryParams.isCopy) || !empty(flowVariables.oobRequest)) ? getOOBRequest.data[0].endDate : '' %>"
                 },
                 {
                   "type": "checkBox",

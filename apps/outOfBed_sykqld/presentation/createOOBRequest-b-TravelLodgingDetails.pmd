@@ -438,7 +438,9 @@
                   "idKey": "descriptor",
                   "displayKey": "descriptor",
                   "values": "<% !empty(pageVariables.travellerNames) ? pageVariables.travellerNames : [] %>",
-                  "selectedValues": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames)? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',') : [] %>",
+                  "_values": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}) : [] %>",
+                  "_selectedValues": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',') : [] %>",
+                  "selectedValuesAndDescriptors": "<% !empty(travelDeatilsPanels.id) && !empty(getAccompanyTravllers.data) && !empty(getAccompanyTravllers.data[0].travellerNames) ? getAccompanyTravllers.data.find(x => {x.id == travelDeatilsPanels.id}).travellerNames.split(',').map(x => {{'id' : x, 'descriptor' : x}}) : [] %>",
                   "onChange": "<%
                     if(empty(self.getSelectedEntries())){
                       addTravellerNamesTxt.setValue('');

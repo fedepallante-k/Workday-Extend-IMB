@@ -166,7 +166,7 @@
           },
           {
             "outboundPath": "expectedEndDate",
-            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+            "value": "<% !empty(endDateDt.value) && endDateChbx.value==true ? Dates.getDateFormatted(endDateDt.value) : null %>"
           },
           {
             "outboundPath": "endDate",
@@ -394,7 +394,7 @@
           },
           {
             "outboundPath": "expectedEndDate",
-            "value": "<% !empty(endDateDt.value) ? Dates.getDateFormatted(endDateDt.value) : null %>"
+            "value": "<% !empty(endDateDt.value) && endDateChbx.value==true ? Dates.getDateFormatted(endDateDt.value) : null %>"
           },
           {
             "outboundPath": "endDate",
